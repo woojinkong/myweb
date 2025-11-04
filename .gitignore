@@ -1,0 +1,27 @@
+# === Backend (Spring Boot / Maven) ===
+backend/target/
+backend/.idea/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/*.iml
+# 로그
+backend/*.log
+backend/logs/
+
+# === Frontend (React / Vite) ===
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.cache/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/.env
+frontend/.env.*.local
+
+# === OS / IDE 공통 ===
+.DS_Store
+Thumbs.db
+.vscode/
