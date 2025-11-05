@@ -28,6 +28,9 @@ public class User {
     private Integer userAge;
     private String email;
     private String phone;
-    private String role = "User";
+    private String role = "USER";
+
+     // ✅ 프로필 이미지 경로 추가
+    private String profileImage;
     
 }

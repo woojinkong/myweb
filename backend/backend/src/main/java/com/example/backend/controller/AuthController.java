@@ -39,6 +39,7 @@ public class AuthController {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refresh)
                 .httpOnly(true)
+                .secure(false) // ✅ 배포 시 true (HTTPS에서만 전송)
                 .path("/")                 // 경로 전체
                 .sameSite("Lax")           // 로컬 개발은 Lax로 OK
                 .maxAge(7 * 24 * 3600)     // 7일
@@ -52,20 +53,32 @@ public class AuthController {
 
     // 토큰 재발급 (쿠키에서 refresh 읽음)
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@CookieValue(value = "refreshToken", required = false) String refresh) {
-        if (refresh == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<AuthResponse> refresh(
+    @CookieValue(value = "refreshToken", required = false) String refresh
+    ) {
+        if (refresh == null) return ResponseEntity.status(401).build();
+
         try {
             String userId = jwt.getSubject(refresh);
-            var u = repo.findByUserId(userId).orElse(null);
-            if (u == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            if (!jwt.validateToken(refresh)) {
+                // ✅ 만료된 토큰 → 쿠키 삭제
+                ResponseCookie clear = ResponseCookie.from("refreshToken", "")
+                    .path("/").maxAge(0).httpOnly(true).build();
+                return ResponseEntity.status(401)
+                        .header(HttpHeaders.SET_COOKIE, clear.toString())
+                        .build();
+            }
 
+            var user = repo.findByUserId(userId).orElseThrow();
             String newAccess = service.newAccessToken(userId);
-            u.setUserPwd(null);
-            return ResponseEntity.ok(new AuthResponse(newAccess, u));
+            user.setUserPwd(null);
+
+            return ResponseEntity.ok(new AuthResponse(newAccess, user));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(401).build();
         }
     }
+
 
     // 내 정보 (액세스 토큰 필요) - 테스트용
     @GetMapping("/me")

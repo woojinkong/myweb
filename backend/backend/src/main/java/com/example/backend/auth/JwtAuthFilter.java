@@ -1,44 +1,69 @@
 package com.example.backend.auth;
 
+import com.example.backend.service.CustomUserDetailsService;
+import com.example.backend.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.backend.util.JwtUtil;
-
 import java.io.IOException;
-import java.util.Collections;
-
-
-
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
+
     private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService userDetailsService;
 
-    public JwtAuthFilter(JwtUtil jwtUtil) { this.jwtUtil = jwtUtil; }
-
-     @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
 
-        String h = req.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(h) && h.startsWith("Bearer ")) {
-            String token = h.substring(7);
-            try {
-                String userId = jwtUtil.getSubject(token);
-                var auth = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception ignored) { }
+        // ✅ Authorization 헤더에서 토큰 추출
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        chain.doFilter(req, res);
+
+        String token = authHeader.substring(7); // "Bearer " 이후의 토큰만 추출
+
+        try {
+            // ✅ 토큰 유효성 검증
+           if (!jwtUtil.validateToken(token)) {
+                log.warn("❌ Invalid or expired token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 🔥 401 명시
+                return;
+            }
+
+            String userId = jwtUtil.getSubject(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        } catch (Exception e) {
+            log.error("JWT Filter error: ", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        // ✅ 다음 필터로 진행
+        filterChain.doFilter(request, response);
     }
 }

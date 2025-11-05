@@ -1,4 +1,9 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/myapp?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -17,9 +22,11 @@ spring:
 konghome:
   jwt:
     secret: "change-this-to-a-very-long-random-secret-key-please"
-    access-exp-min: 15
+    access-exp-min: 30
     refresh-exp-days: 7
 
-
+file:
+  upload-dir: C:\myweb\backend\backend\uploads
 server:
   port: 8080
+
