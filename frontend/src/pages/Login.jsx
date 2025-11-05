@@ -1,0 +1,121 @@
+import { useState } from "react";
+import axiosInstance from "../api/axiosInstance";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext"; // ✅ 추가
+
+export default function Login() {
+  const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext); // ✅ 추가
+
+  const [form, setForm] = useState({
+    userId: "",
+    userPwd: "",
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const res = await axiosInstance.post("/auth/login", form);
+      const accessToken = res.data.accessToken;
+      const user = res.data.user;
+
+      // ✅ accessToken 저장
+      Cookies.set("accessToken", accessToken, { expires: 1 });
+
+      // ✅ 전역 상태 갱신 (핵심)
+      setUser(user);
+
+      alert("로그인 성공!");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      setError("아이디 또는 비밀번호가 올바르지 않습니다.");
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <h2 style={styles.title}>로그인</h2>
+      <form onSubmit={handleSubmit} style={styles.form}>
+        <input
+          type="text"
+          name="userId"
+          placeholder="아이디"
+          value={form.userId}
+          onChange={handleChange}
+          required
+          style={styles.input}
+        />
+        <input
+          type="password"
+          name="userPwd"
+          placeholder="비밀번호"
+          value={form.userPwd}
+          onChange={handleChange}
+          required
+          style={styles.input}
+        />
+        <button type="submit" style={styles.button}>
+          로그인
+        </button>
+      </form>
+
+      {error && <p style={styles.error}>{error}</p>}
+
+      <p style={{ marginTop: "15px" }}>
+        아직 회원이 아니신가요?{" "}
+        <a href="/signup" style={{ color: "#007BFF" }}>
+          회원가입
+        </a>
+      </p>
+    </div>
+  );
+}
+
+
+const styles = {
+  container: {
+    maxWidth: "400px",
+    margin: "80px auto",
+    padding: "20px",
+    border: "1px solid #ddd",
+    borderRadius: "10px",
+    backgroundColor: "#fff",
+    textAlign: "center",
+  },
+  title: {
+    marginBottom: "20px",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  input: {
+    padding: "10px",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+  },
+  button: {
+    padding: "10px",
+    borderRadius: "5px",
+    backgroundColor: "#4CAF50",
+    color: "white",
+    border: "none",
+    cursor: "pointer",
+  },
+  error: {
+    color: "red",
+    marginTop: "10px",
+  },
+};
