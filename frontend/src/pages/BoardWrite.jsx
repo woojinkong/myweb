@@ -11,6 +11,7 @@ export default function BoardWrite() {
   const [form, setForm] = useState({
     title: "",
     content: "",
+    category: "free", // ✅ 기본값
   });
   const [image, setImage] = useState(null);
 
@@ -34,18 +35,16 @@ export default function BoardWrite() {
     const formData = new FormData();
     formData.append("title", form.title);
     formData.append("content", form.content);
+    formData.append("category", form.category); // ✅ 카테고리 전송
     if (image) formData.append("image", image);
 
     try {
       await axiosInstance.post("/board", formData, {
-       headers: {
-        "Content-Type": "multipart/form-data",
-        //Authorization: `Bearer ${Cookies.get("accessToken")}`, // ✅ 꼭 붙이기
-    },
-        withCredentials: true, // ✅ 쿠키 포함 요청
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
       });
       alert("게시글이 등록되었습니다!");
-      navigate("/board");
+      navigate(`/board?category=${form.category}`); // ✅ 선택한 카테고리로 이동
     } catch (err) {
       console.error(err);
       alert("등록 중 오류가 발생했습니다.");
@@ -56,6 +55,21 @@ export default function BoardWrite() {
     <div style={styles.container}>
       <h2 style={styles.title}>게시글 작성</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
+        {/* ✅ 카테고리 선택 */}
+        <label style={styles.label}>
+          📂 카테고리 선택:
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            style={styles.select}
+          >
+            <option value="notice">공지</option>
+            <option value="free">자유</option>
+            <option value="inform">정보</option>
+          </select>
+        </label>
+
         <input
           type="text"
           name="title"
@@ -65,6 +79,7 @@ export default function BoardWrite() {
           required
           style={styles.input}
         />
+
         <textarea
           name="content"
           placeholder="내용"
@@ -73,7 +88,9 @@ export default function BoardWrite() {
           required
           style={styles.textarea}
         />
+
         <input type="file" accept="image/*" onChange={handleFileChange} />
+
         <button type="submit" style={styles.button}>
           등록하기
         </button>
@@ -99,6 +116,18 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
+  },
+  label: {
+    fontWeight: "bold",
+    marginBottom: "5px",
+  },
+  select: {
+    width: "100%",
+    padding: "10px",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+    marginTop: "5px",
+    marginBottom: "10px",
   },
   input: {
     padding: "10px",

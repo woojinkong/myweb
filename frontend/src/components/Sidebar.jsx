@@ -1,6 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
+  const location = useLocation();
+  const currentCategory = new URLSearchParams(location.search).get("category");
+
+  const getActiveStyle = (category) => ({
+  backgroundColor: currentCategory === category ? "#4CAF50" : "transparent",
+  color: currentCategory === category ? "#fff" : "#333",
+  fontWeight: currentCategory === category ? "600" : "500",
+  transition: "all 0.2s ease",
+});
+
   return (
     <div
       style={{
@@ -13,26 +23,26 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         <button onClick={toggleSidebar} style={styles.hamburger}>
           ☰
         </button>
-        {/* {isOpen && <span style={styles.logo}>KONGHOME</span>} */}
       </div>
 
       {/* ✅ 메뉴 리스트 */}
       <ul style={styles.list}>
         <li style={styles.item}>
-          <Link to="/board" style={styles.link}>
-            📋 {isOpen && "게시판"}
+          <Link to="/board?category=notice" style={{ ...styles.link, ...getActiveStyle("notice") }}>
+            📢 {isOpen && "공지"}
           </Link>
         </li>
         <li style={styles.item}>
-          <Link to="/ranking" style={styles.link}>
-            🏆 {isOpen && "구현중"}
+          <Link to="/board?category=free" style={{ ...styles.link, ...getActiveStyle("free") }}>
+            💬 {isOpen && "자유"}
           </Link>
         </li>
         <li style={styles.item}>
-          <Link to="/store" style={styles.link}>
-            🛒 {isOpen && "구현중"}
+          <Link to="/board?category=inform" style={{ ...styles.link, ...getActiveStyle("inform") }}>
+            ℹ️  {isOpen && "정보"}
           </Link>
         </li>
+        <hr style={{ width: "80%", border: "none", borderTop: "1px solid #ddd", margin: "15px auto" }} />
       </ul>
     </div>
   );
@@ -69,11 +79,6 @@ const styles = {
     border: "none",
     cursor: "pointer",
   },
-  logo: {
-    fontSize: "18px",
-    fontWeight: "700",
-    color: "#333",
-  },
   list: {
     listStyle: "none",
     padding: 0,
@@ -81,7 +86,7 @@ const styles = {
     width: "100%",
   },
   item: {
-    marginBottom: "15px",
+    marginBottom: "10px",
     textAlign: "center",
   },
   link: {

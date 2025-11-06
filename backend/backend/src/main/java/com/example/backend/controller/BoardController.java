@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.config.CustomUserDetails;
+import com.example.backend.dto.BoardListResponse;
 import com.example.backend.entity.Board;
 import com.example.backend.service.BoardService;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +28,20 @@ public class BoardController {
     private String uploadDir;
 
     // ✅ 전체 게시글 조회
+   // ✅ BoardController.java
     @GetMapping
-    public ResponseEntity<List<Board>> getAll() {
-        return ResponseEntity.ok(service.findAll());
-    }
+        public ResponseEntity<List<BoardListResponse>> getAll(
+            @RequestParam(required = false) String category
+        ) {
+        if (category != null && !category.isBlank()) {
+            // ✅ 카테고리별 조회
+            return ResponseEntity.ok(service.findAllWithCommentCountByCategory(category));
+        } else {
+            // ✅ 전체 조회
+            return ResponseEntity.ok(service.findAllWithCommentCount());
+        }
+        }
+
 
     // ✅ 단일 게시글 조회
     @GetMapping("/{id}")
@@ -46,7 +57,8 @@ public class BoardController {
         @AuthenticationPrincipal CustomUserDetails userDetails, // ✅ 로그인 유저 자동 주입
         @RequestParam("title") String title,
         @RequestParam("content") String content,
-        @RequestParam(value = "image", required = false) MultipartFile image
+        @RequestParam(value = "image", required = false) MultipartFile image,
+        @RequestParam("category") String category   // ✅ 추가
     ) throws IOException {
 
     if (userDetails == null) {
@@ -69,20 +81,25 @@ public class BoardController {
             .content(content)
             .userId(userId) // ✅ 인증된 유저 ID로 설정
             .imagePath(filePath)
+            .category(category) // ✅ 필수
             .build();
 
     return ResponseEntity.status(HttpStatus.CREATED).body(service.save(board));
 }
+
+
+
     // ✅ 게시글 수정
     @PutMapping("/{id}")
     public ResponseEntity<Board> update(
             @PathVariable Long id,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
-            @RequestParam(value = "image", required = false) MultipartFile image
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "category", required = false) String category // ✅ 선택적으로 변경 가능
     ) throws IOException {
 
-        Board existing = service.findById(id);
+        Board existing = service.findByIdRaw(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
@@ -107,7 +124,9 @@ public class BoardController {
         existing.setTitle(title);
         existing.setContent(content);
         existing.setImagePath(filePath);
-
+        if (category != null && !category.isBlank()) {
+        existing.setCategory(category);
+}
         return ResponseEntity.ok(service.save(existing));
     }
 
@@ -127,4 +146,8 @@ public class BoardController {
     service.delete(id);
     return ResponseEntity.noContent().build();
 }
+
+
+    
+
 }

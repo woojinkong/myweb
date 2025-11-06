@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import useAuth from "../hooks/useAuth"; // ✅ 로그인 유저 확인용
+import CommentSection from "./CommentSection";
 
 export default function BoardDetail() {
   const { id } = useParams();
@@ -88,6 +89,9 @@ export default function BoardDetail() {
       <div style={styles.contentBox}>
         <p style={styles.content}>{board.content}</p>
       </div>
+      
+      {/* ✅ 댓글 섹션 */}
+      <CommentSection boardId={Number(id)} />
 
       <div style={styles.buttons}>
         <Link to="/board" style={styles.backButton}>
