@@ -1,16 +1,24 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 export default function BoardList() {
   const [boards, setBoards] = useState([]);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const category = searchParams.get("category") || "notice"; // ✅ 기본값 설정
+
+  const categoryNameMap = {
+  free: "자유게시판",
+  notice: "공지사항",
+  inform: "정보게시판",
+};
 
   useEffect(() => {
     const fetchBoards = async () => {
       try {
-        const res = await axiosInstance.get("/board");
+        const res = await axiosInstance.get(`/board?category=${category}`); // ✅ 카테고리 적용
         setBoards(res.data);
       } catch (err) {
         console.error("게시글 불러오기 실패:", err);
@@ -18,18 +26,25 @@ export default function BoardList() {
     };
     fetchBoards();
 
-    // ✅ 브라우저 뒤로가기 시에도 새로고침하도록
-  window.addEventListener("focus", fetchBoards);
-  return () => window.removeEventListener("focus", fetchBoards);
-  }, []);
+    // ✅ 브라우저 focus 시에도 새로고침
+    window.addEventListener("focus", fetchBoards);
+    return () => window.removeEventListener("focus", fetchBoards);
+  }, [category]);
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>📋 게시글 목록</h2>
+        <h2 style={styles.title}>📋 게시글 목록 ({categoryNameMap[category] || "전체"})</h2>
         <Link to="/board/write" style={styles.writeButton}>
           ✏️ 새 글 작성
         </Link>
+      </div>
+
+      <div style={{ marginBottom: "20px" }}>
+        {/* ✅ 카테고리 탭 */}
+        <button onClick={() => navigate("/board?category=notice")}>공지</button>
+        <button onClick={() => navigate("/board?category=free")}>자유</button>
+        <button onClick={() => navigate("/board?category=inform")}>정보</button>
       </div>
 
       {boards.length > 0 ? (
@@ -48,7 +63,10 @@ export default function BoardList() {
                 )}
               </div>
               <div style={styles.cardContent}>
-                <h3 style={styles.boardTitle}>{board.title}</h3>
+                <h3 style={styles.boardTitle}>
+                  {board.title}{" "}
+                  <span style={styles.commentCount}>[{board.commentCount}]</span>
+                </h3>
                 <p style={styles.writer}>👤 {board.userId}</p>
                 <p style={styles.date}>
                   🕓 {new Date(board.createdDate).toLocaleString()}
@@ -74,13 +92,13 @@ const styles = {
     boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center", // ✅ 가운데 정렬
+    alignItems: "center",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%", // ✅ 버튼과 제목 간격 맞춤
+    width: "100%",
     maxWidth: "1000px",
     marginBottom: "25px",
     borderBottom: "2px solid #ddd",
@@ -102,7 +120,7 @@ const styles = {
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", // ✅ 1~3열 자동 조정
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
     gap: "24px",
     justifyContent: "center",
     width: "100%",
@@ -155,5 +173,11 @@ const styles = {
     color: "#777",
     fontSize: "16px",
     marginTop: "30px",
+  },
+  commentCount: {
+    color: "#007BFF",
+    fontSize: "15px",
+    fontWeight: "500",
+    marginLeft: "4px",
   },
 };

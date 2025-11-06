@@ -28,6 +28,8 @@ function App() {
             style={{
               ...styles.content,
               marginLeft: isSidebarOpen ? "200px" : "70px",
+              width: isSidebarOpen ? "calc(100% - 200px)" : "calc(100% - 70px)",
+              
             }}
           >
             <Routes>
@@ -90,13 +92,17 @@ const styles = {
     flexDirection: "column",
     height: "100vh",
   },
-  content: {
+    content: {
     flex: 1,
-    padding: "30px",
+    marginTop: "60px", // ✅ Navbar 높이 반영 (fixed라 필수)
+    padding: "20px",
     background: "#fff",
     overflowY: "auto",
+    overflowX: "hidden",
+    boxSizing: "border-box",
     transition: "margin-left 0.3s ease",
   },
+
 };
 
 export default App;

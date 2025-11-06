@@ -42,6 +42,9 @@ public class Board {
     public void prePersist() {
         this.createdDate = LocalDateTime.now();
         this.viewCount = 0; // ✅ 게시글 생성 시 초기값 0
+        if (this.category == null || this.category.isBlank()) {
+        this.category = "free"; // ✅ 기본값
+    }
     }
 
     @PreUpdate
@@ -52,4 +55,14 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private List<BoardLike> likes = new ArrayList<>();
+
+    // Board.java 일부
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @jakarta.persistence.OrderBy("createdDate ASC")
+    @com.fasterxml.jackson.annotation.JsonIgnore  // ⚠️ Board 응답에 댓글 전체를 싣지 않도록
+    private List<Comment> comments = new ArrayList<>();
+
+    @Column(nullable = false)
+    private String category; // 예: "free", "game", "notice"
+
 }
