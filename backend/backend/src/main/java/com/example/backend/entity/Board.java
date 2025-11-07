@@ -30,7 +30,13 @@ public class Board {
     @Column(nullable = false)
     private String userId; // 작성자 (userId 또는 nickname)
 
-    private String imagePath; // ✅ 업로드된 이미지 경로
+    //private String imagePath; // ✅ 업로드된 이미지 경로
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonManagedReference
+    private List<BoardImage> images = new ArrayList<>();
+
+
 
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;

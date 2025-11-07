@@ -11,26 +11,36 @@ export default function BoardEdit() {
   const [form, setForm] = useState({
     title: "",
     content: "",
+    category: "free",
   });
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [images, setImages] = useState([]); // ✅ 새로 선택한 이미지
+  const [previews, setPreviews] = useState([]); // ✅ 미리보기
+  const [existingImages, setExistingImages] = useState([]); // ✅ 서버에 이미 저장된 이미지
 
-  // ✅ 기존 게시글 정보 불러오기
+  // ✅ 기존 게시글 불러오기
   useEffect(() => {
     const fetchBoard = async () => {
       try {
         const res = await axiosInstance.get(`/board/${id}`);
         const board = res.data;
 
-        // 작성자 본인 아닌 경우 접근 제한
+        // 권한 검사
         if (!user || user.userId !== board.userId) {
           alert("수정 권한이 없습니다!");
           navigate("/board");
           return;
         }
 
-        setForm({ title: board.title, content: board.content });
-        setPreview(`http://localhost:8080${board.imagePath}`);
+        setForm({
+          title: board.title,
+          content: board.content,
+          category: board.category,
+        });
+
+        // ✅ 기존 이미지들
+        if (board.images && board.images.length > 0) {
+          setExistingImages(board.images);
+        }
       } catch (err) {
         console.error("게시글 불러오기 실패:", err);
         alert("게시글을 불러올 수 없습니다.");
@@ -40,16 +50,29 @@ export default function BoardEdit() {
     fetchBoard();
   }, [id, user, navigate]);
 
-  // ✅ 입력 변경
+  // ✅ 입력값 변경
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ 이미지 업로드
+  // ✅ 새 이미지 선택
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setImage(file);
-    if (file) setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files);
+    setImages((prev) => [...prev, ...files]);
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+    setPreviews((prev) => [...prev, ...previewUrls]);
+    e.target.value = ""; // 같은 파일 다시 선택 가능하게
+  };
+
+  // ✅ 새로 추가한 이미지 삭제
+  const removeNewImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ✅ 기존 이미지 삭제
+  const removeExistingImage = (imageId) => {
+    setExistingImages((prev) => prev.filter((img) => img.imageId !== imageId));
   };
 
   // ✅ 수정 요청
@@ -59,7 +82,14 @@ export default function BoardEdit() {
     const formData = new FormData();
     formData.append("title", form.title);
     formData.append("content", form.content);
-    if (image) formData.append("image", image);
+    formData.append("category", form.category);
+
+    // ✅ 유지할 기존 이미지 ID만 전달
+    const remainImageIds = existingImages.map((img) => img.imageId);
+    formData.append("remainImageIds", JSON.stringify(remainImageIds));
+
+    // ✅ 새로 추가한 이미지 추가
+    images.forEach((img) => formData.append("images", img));
 
     try {
       await axiosInstance.put(`/board/${id}`, formData, {
@@ -86,6 +116,7 @@ export default function BoardEdit() {
           required
           style={styles.input}
         />
+
         <textarea
           name="content"
           placeholder="내용"
@@ -95,15 +126,51 @@ export default function BoardEdit() {
           style={styles.textarea}
         />
 
-        {preview && (
-          <div style={styles.previewBox}>
-            <img src={preview} alt="미리보기" style={styles.previewImg} />
+        {/* ✅ 기존 이미지 표시 */}
+        {existingImages.length > 0 && (
+          <div style={styles.previewContainer}>
+            {existingImages.map((img) => (
+              <div key={img.imageId} style={{ position: "relative" }}>
+                <img
+                  src={`http://localhost:8080${img.imagePath}`}
+                  alt="기존 이미지"
+                  style={styles.previewImage}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeExistingImage(img.imageId)}
+                  style={styles.deleteBtn}
+                >
+                  ❌
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
+        {/* ✅ 새로 추가한 이미지 미리보기 */}
+        {previews.length > 0 && (
+          <div style={styles.previewContainer}>
+            {previews.map((src, idx) => (
+              <div key={idx} style={{ position: "relative" }}>
+                <img src={src} alt={`preview-${idx}`} style={styles.previewImage} />
+                <button
+                  type="button"
+                  onClick={() => removeNewImage(idx)}
+                  style={styles.deleteBtn}
+                >
+                  ❌
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ✅ 여러 장 업로드 */}
         <input
           type="file"
           accept="image/*"
+          multiple
           onChange={handleFileChange}
           style={{ marginBottom: "15px" }}
         />
@@ -127,7 +194,7 @@ export default function BoardEdit() {
 
 const styles = {
   container: {
-    maxWidth: "600px",
+    maxWidth: "700px",
     margin: "60px auto",
     background: "#fff",
     padding: "30px",
@@ -160,14 +227,27 @@ const styles = {
     resize: "none",
     fontSize: "16px",
   },
-  previewBox: {
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    overflow: "hidden",
+  previewContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "10px",
   },
-  previewImg: {
-    width: "100%",
-    height: "auto",
+  previewImage: {
+    width: "100px",
+    height: "100px",
+    objectFit: "cover",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+  },
+  deleteBtn: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    background: "rgba(0,0,0,0.5)",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer",
   },
   buttonBox: {
     display: "flex",

@@ -1,12 +1,4 @@
 spring:
-  profiles:
-    active: dev
-
-  servlet:
-    multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
-
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/myapp?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -34,14 +26,7 @@ spring:
           starttls:
             enable: true
 
-
 konghome:
-  frontend-url: "http://192.168.123.107:5173"
-  jwt:
-    secret: "change-this-to-a-very-long-random-secret-key-please"
-    access-exp-min: 30
-    refresh-exp-days: 7
-
   cors:
     allowed-origins:
       - "http://localhost:5173"
@@ -50,7 +35,7 @@ konghome:
 
 file:
   upload-dir: C:/myweb/backend/backend/uploads
-
+  
 server:
   port: 8080
   address: 0.0.0.0

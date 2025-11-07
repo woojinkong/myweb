@@ -20,6 +20,7 @@ public class AuthService {
 
      public User signup(SignupRequest r) {
         if (repo.existsByUserId(r.getUserId())) throw new RuntimeException("이미 존재하는 아이디");
+
         User u = User.builder()
                 .userId(r.getUserId())
                 .userPwd(encoder.encode(r.getUserPwd()))
@@ -45,4 +46,7 @@ public class AuthService {
     public String newRefreshToken(String userId) {
         return jwt.createRefreshToken(userId);
     }
+
+    
+
 }

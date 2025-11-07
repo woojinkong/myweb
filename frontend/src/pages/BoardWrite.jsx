@@ -2,27 +2,39 @@ import { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import Cookies from "js-cookie";
 
 export default function BoardWrite() {
   const navigate = useNavigate();
-  const { user } = useAuth(); // ✅ 로그인 유저 정보 가져오기
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     title: "",
     content: "",
-    category: "free", // ✅ 기본값
+    category: "free",
   });
-  const [image, setImage] = useState(null);
 
+  const [images, setImages] = useState([]); // ✅ 여러 장 이미지 저장
+  const [previews, setPreviews] = useState([]); // ✅ 미리보기 이미지 URL
+  const removeImage = (index) => {
+  setImages((prev) => prev.filter((_, i) => i !== index));
+  setPreviews((prev) => prev.filter((_, i) => i !== index));
+    };
+  // 입력값 변경
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 여러 장 이미지 선택
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    const files = Array.from(e.target.files);
+    setImages((prev) => [...prev, ...files]); // ✅ 누적 방식
+
+    // 미리보기 URL 생성
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+    setPreviews((prev) => [...prev, ...previewUrls]); // ✅ 기존 미리보기 유지
   };
 
+  // 폼 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -35,8 +47,12 @@ export default function BoardWrite() {
     const formData = new FormData();
     formData.append("title", form.title);
     formData.append("content", form.content);
-    formData.append("category", form.category); // ✅ 카테고리 전송
-    if (image) formData.append("image", image);
+    formData.append("category", form.category);
+
+    
+
+    // ✅ 여러 장 업로드
+    images.forEach((img) => formData.append("images", img));
 
     try {
       await axiosInstance.post("/board", formData, {
@@ -44,7 +60,7 @@ export default function BoardWrite() {
         withCredentials: true,
       });
       alert("게시글이 등록되었습니다!");
-      navigate(`/board?category=${form.category}`); // ✅ 선택한 카테고리로 이동
+      navigate(`/board?category=${form.category}`);
     } catch (err) {
       console.error(err);
       alert("등록 중 오류가 발생했습니다.");
@@ -55,7 +71,6 @@ export default function BoardWrite() {
     <div style={styles.container}>
       <h2 style={styles.title}>게시글 작성</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
-        {/* ✅ 카테고리 선택 */}
         <label style={styles.label}>
           📂 카테고리 선택:
           <select
@@ -89,7 +104,40 @@ export default function BoardWrite() {
           style={styles.textarea}
         />
 
-        <input type="file" accept="image/*" onChange={handleFileChange} />
+        {/* ✅ 여러 장 업로드 */}
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileChange}
+          style={{ marginTop: "10px" }}
+        />
+
+        {/* ✅ 미리보기 영역 */}
+        {previews.length > 0 && (
+          <div style={styles.previewContainer}>
+           {previews.map((src, idx) => (
+                <div key={idx} style={{ position: "relative" }}>
+                <img src={src} alt={`preview-${idx}`} style={styles.previewImage} />
+                <button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    background: "rgba(0,0,0,0.5)",
+                    color: "#fff",
+                    border: "none",
+                    cursor: "pointer",
+                    }}
+                >
+                    ❌
+                </button>
+                </div>
+            ))}
+          </div>
+        )}
 
         <button type="submit" style={styles.button}>
           등록하기
@@ -138,6 +186,19 @@ const styles = {
     height: "150px",
     padding: "10px",
     borderRadius: "5px",
+    border: "1px solid #ccc",
+  },
+  previewContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "10px",
+  },
+  previewImage: {
+    width: "100px",
+    height: "100px",
+    objectFit: "cover",
+    borderRadius: "6px",
     border: "1px solid #ccc",
   },
   button: {

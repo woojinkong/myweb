@@ -1,22 +1,48 @@
+// AuthProvider.jsx
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import Cookies from "js-cookie";
-import { AuthContext } from "./AuthContext"; // ✅ context import
+import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
-  // 로그인 상태 복원
+  // ✅ 로그인 상태 복원 (AccessToken 만료 시 refresh 자동 호출)
   useEffect(() => {
-    const token = Cookies.get("accessToken");
-    if (!token) return;
-    axiosInstance
-      .get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setUser(res.data))
-      .catch(() => setUser(null));
-  }, []);
+    // ✅ 로그인 필요 없는 공개 경로들
+    const publicPaths = [
+      "/",
+      "/login",
+      "/signup",
+      "/find-password",
+      "/reset-password",
+    ];
 
-  // 로그아웃
+    // ✅ 공개 경로라면 /auth/me 호출하지 않음 (깜빡임 방지)
+    if (publicPaths.includes(location.pathname)) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const res = await axiosInstance.get("/auth/me");
+        setUser(res.data);
+      } catch (err) {
+        console.warn("유저 정보 불러오기 실패:", err);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [location.pathname]);
+
+  // ✅ 로그아웃
   const logout = async () => {
     try {
       await axiosInstance.post("/auth/logout");
@@ -26,6 +52,8 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove("accessToken");
     setUser(null);
   };
+
+  if (loading) return <p>⏳ 로그인 상태 확인 중...</p>;
 
   return (
     <AuthContext.Provider value={{ user, setUser, logout }}>

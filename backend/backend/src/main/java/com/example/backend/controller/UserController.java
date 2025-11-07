@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -59,5 +60,30 @@ public class UserController {
 
         userService.updateProfileImage(userDetails.getUser().getUserNo(), imagePath);
         return ResponseEntity.ok("프로필 이미지가 성공적으로 업데이트되었습니다.");
+    }
+
+
+    @PostMapping("/find-password")
+    public ResponseEntity<String> findPassword(@RequestBody Map<String, String> request) {
+        try {
+            userService.sendPasswordResetLink(
+                    request.get("userId"),
+                    request.get("userName"),
+                    request.get("email")
+            );
+            return ResponseEntity.ok("비밀번호 재설정 링크가 이메일로 발송되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> request) {
+        try {
+            userService.resetPassword(request.get("token"), request.get("newPassword"));
+            return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

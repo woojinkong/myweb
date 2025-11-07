@@ -45,17 +45,29 @@ public class SecurityConfig {
 
             // ✅ 4. 요청별 권한 설정
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/uploads/**").permitAll()
+                // 인증 없이 접근 가능한 경로
+                .requestMatchers(
+                    "/api/auth/**",             // 로그인, 회원가입, 토큰
+                    "/api/user/find-password",  // 비밀번호 찾기
+                    "/api/user/reset-password", // 비밀번호 재설정
+                    "/uploads/**"               // 정적 리소스
+                ).permitAll()
+
+                // ✅ 게시판 및 댓글 조회는 허용
                 .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+
+                // ✅ 그 외는 인증 필요
                 .requestMatchers("/api/board/like/**").authenticated()
                 .requestMatchers("/api/board/**").authenticated()
                 .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
+
+                // 기타 요청은 허용
                 .anyRequest().permitAll()
             )
 
-            // ✅ 5. JWT 인증 필터를 UsernamePasswordAuthenticationFilter 앞에 등록
+            // ✅ 5. JWT 필터 등록
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -65,12 +77,24 @@ public class SecurityConfig {
     public CorsConfigurationSource corsSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ 프론트엔드 주소 (React 개발 서버)
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // ✅ React 개발 서버 (5173, localhost, LAN)
+        config.setAllowedOrigins(List.of(
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://192.168.123.107:5173"
+        ));
+
+        // ✅ 허용할 메서드
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // ✅ 허용할 헤더
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(true); // ✅ 쿠키 전송 허용 (핵심!)
-        config.setMaxAge(3600L); // 캐싱
+
+        // ✅ 쿠키 포함 요청 허용
+        config.setAllowCredentials(true);
+
+        // ✅ 캐시 유지 시간
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

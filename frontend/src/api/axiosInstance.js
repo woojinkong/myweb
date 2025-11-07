@@ -1,51 +1,56 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-// ✅ 일반 요청용 인스턴스
+// ✅ 기본 API 요청용 인스턴스 (모든 요청이 /api/** 로 향하게)
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8080/api",
-  withCredentials: true, // RefreshToken 쿠키 포함
+  baseURL: "http://192.168.123.107:8080/api", // ✅ 백엔드 주소 (포트 8080)
+  withCredentials: true, // ✅ 쿠키 포함 (refreshToken)
 });
 
-// ✅ Refresh 전용 인스턴스 (Authorization 헤더 추가 X)
+// ✅ Refresh 전용 인스턴스 (AccessToken 없이 쿠키만 보냄)
 const refreshAxios = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "http://192.168.123.107:8080/api",
   withCredentials: true,
 });
 
 // ✅ 요청 인터셉터 (AccessToken 자동 첨부)
 axiosInstance.interceptors.request.use((config) => {
   const token = Cookies.get("accessToken");
-  if (token && token !== "undefined" && token !== "null") { // ✅ 이 부분 추가
+  if (token && token !== "undefined" && token !== "null") {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// ✅ 응답 인터셉터 (AccessToken 만료 → 자동 재발급)
+// ✅ 응답 인터셉터 (401 → 토큰 자동 갱신)
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // 401 → AccessToken 만료로 판단
+    // ✅ accessToken 만료 시 refresh 시도 (단 1회만)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        // ✅ refreshAxios 사용 (중첩 방지)
-        const res = await refreshAxios.post("/auth/refresh");
-        const newToken = res.data.accessToken;
 
-       if (newToken) {
-        Cookies.set("accessToken", newToken, { sameSite: "strict" }); // ✅ 명시적으로 sameSite 설정
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return axiosInstance(originalRequest);
+      try {
+        const res = await refreshAxios.post("/auth/refresh", {}, { withCredentials: true });
+        const newAccessToken = res.data.accessToken;
+
+        if (newAccessToken) {
+          // ✅ 새 accessToken 저장
+          Cookies.set("accessToken", newAccessToken, {
+            sameSite: "Lax", // ✅ cross-origin에서도 안전하게 전송됨
+            expires: 1,
+          });
+
+          // ✅ 요청 헤더 갱신 후 재시도
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return axiosInstance(originalRequest);
         }
       } catch (refreshError) {
-        console.error("리프레시 토큰 갱신실패", refreshError);
-        console.warn("리프레시 토큰 만료 → 재로그인 필요");
+        console.error("리프레시 토큰 갱신 실패:", refreshError);
         Cookies.remove("accessToken");
-        window.location.href = "/login";
+        window.location.href = "/login"; // ✅ 무한 루프 방지용
       }
     }
 

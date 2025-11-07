@@ -14,5 +14,6 @@ public class CommentResponse {
     private String content;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
+    private String profileUrl; // ✅ 추가
     private List<CommentResponse> children = new ArrayList<>();
 }
