@@ -2,20 +2,21 @@ package com.example.backend.auth;
 
 import com.example.backend.service.CustomUserDetailsService;
 import com.example.backend.util.JwtUtil;
+import com.example.backend.config.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -30,40 +31,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // ✅ Authorization 헤더에서 토큰 추출
         String authHeader = request.getHeader("Authorization");
+        log.debug("🔑 [JwtAuthFilter] Authorization Header = {}", authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7); // "Bearer " 이후의 토큰만 추출
-
+        String token = authHeader.substring(7);
         try {
-            // ✅ 토큰 유효성 검증
-           if (!jwtUtil.validateToken(token)) {
-                log.warn("❌ Invalid or expired token");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 🔥 401 명시
+            if (!jwtUtil.validateToken(token)) {
+                log.warn("⚠️ JWT 검증 실패");
+                filterChain.doFilter(request, response);
                 return;
             }
 
             String userId = jwtUtil.getSubject(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+            log.debug("✅ [JwtAuthFilter] userId = {}", userId);
 
-            UsernamePasswordAuthenticationToken authToken =
+            // ✅ DB에서 실제 유저 정보 로드
+            CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(userId);
+
+            // ✅ SecurityContext에 인증 객체 저장
+            UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
                     );
 
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            log.debug("✅ [JwtAuthFilter] 인증 객체 SecurityContext에 저장 완료 (userId={})", userId);
+
         } catch (Exception e) {
-            log.error("JWT Filter error: ", e);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
+            log.error("❌ [JwtAuthFilter] JWT 처리 중 예외 발생:", e);
+            SecurityContextHolder.clearContext();
         }
 
-        // ✅ 다음 필터로 진행
         filterChain.doFilter(request, response);
     }
 }

@@ -11,8 +11,10 @@ import com.example.backend.dto.CommentRequest;
 import com.example.backend.dto.CommentResponse;
 import com.example.backend.entity.Board;
 import com.example.backend.entity.Comment;
+import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.CommentRepository;
+import com.example.backend.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     // ✅ 댓글 작성 (대댓글 포함)
     @Transactional
@@ -32,12 +36,12 @@ public class CommentService {
         Comment parent = null;
         if (req.getParentId() != null) {
             parent = commentRepository.findById(req.getParentId()).orElseThrow();
-            // 같은 게시물인지 가드
             if (!parent.getBoard().getBoardNo().equals(boardNo)) {
                 throw new IllegalArgumentException("부모 댓글과 게시글 불일치");
             }
         }
 
+        // ✅ 댓글 저장
         Comment saved = commentRepository.save(Comment.builder()
                 .board(board)
                 .userId(userId)
@@ -45,7 +49,35 @@ public class CommentService {
                 .parent(parent)
                 .build());
 
-        return toDto(saved, false); // 작성 직후라 children 필요 없음
+            // ✅ 게시글 작성자에게 알림 (자기 자신 제외)
+        if (!saved.getUserId().equals(board.getUserId())) {
+            userRepository.findByUserId(board.getUserId()).ifPresent(boardWriter -> {
+                notificationService.send(
+                    boardWriter.getUserNo(),
+                    saved.getUserId() + "님이 회원님의 게시글에 댓글을 달았습니다.",
+                    "/board/" + board.getBoardNo()
+                );
+            });
+        }
+
+        // ✅ 부모 댓글 작성자에게 알림 (대댓글일 경우)
+        // 단, 부모 댓글 작성자가 게시글 작성자와 다를 때만 알림 추가
+        if (saved.getParent() != null) {
+            Comment parentComment = saved.getParent();
+            if (!saved.getUserId().equals(parentComment.getUserId())
+                    && !parentComment.getUserId().equals(board.getUserId())) { // ✅ 중복 방지
+                userRepository.findByUserId(parentComment.getUserId()).ifPresent(parentWriter -> {
+                    notificationService.send(
+                        parentWriter.getUserNo(),
+                        saved.getUserId() + "님이 회원님의 댓글에 답글을 달았습니다.",
+                        "/board/" + board.getBoardNo()
+                    );
+                });
+            }
+        }
+
+
+        return toDto(saved, false);
     }
 
     // ✅ 댓글 수정 (작성자만)
@@ -69,14 +101,13 @@ public class CommentService {
         commentRepository.delete(c); // 자식은 orphanRemoval로 같이 삭제
     }
 
-    // ✅ 최상위 댓글 페이징 + 각 댓글의 대댓글 묶어 반환
+    // ✅ 댓글 리스트 (대댓글 포함)
     @Transactional
     public List<CommentResponse> listTree(Long boardNo, int page, int size) {
         Board board = boardRepository.findById(boardNo).orElseThrow();
         Page<Comment> tops = commentRepository
                 .findByBoardAndParentIsNullOrderByCreatedDateAsc(board, PageRequest.of(page, size));
 
-        // 필요 시 쿼리 수 줄이는 최적화도 가능하지만, 우선 각 top에 대한 children 조회
         return tops.getContent().stream()
                 .map(top -> {
                     CommentResponse dto = toDto(top, false);
@@ -92,19 +123,36 @@ public class CommentService {
         return commentRepository.countByBoard(board);
     }
 
-    // ====== Mapper ======
+    // ====== DTO 매퍼 ======
     private CommentResponse toDto(Comment c, boolean shallow) {
-        CommentResponse dto = CommentResponse.builder()
-                .commentNo(c.getCommentNo())
-                .parentId(c.getParent() != null ? c.getParent().getCommentNo() : null)
-                .userId(c.getUserId())
-                .content(c.getContent())
-                .createdDate(c.getCreatedDate())
-                .modifiedDate(c.getModifiedDate())
-                .build();
+    String profileUrl = null;
 
-        // shallow=false 이면서 필요하면 자식 재귀 매핑 가능
-        // 지금은 listTree에서 자식 따로 넣어주므로 기본은 비워둠
-        return dto;
+    // ✅ 유저의 프로필 이미지 조회
+    Optional<User> userOpt = userRepository.findByUserId(c.getUserId());
+    if (userOpt.isPresent()) {
+        User user = userOpt.get();
+        String img = user.getProfileImage();
+        if (img != null && !img.isEmpty()) {
+            // ✅ 이미지 경로가 이미 "/uploads/"로 시작하면 그대로 사용
+            if (img.startsWith("/uploads/")) {
+                profileUrl = img;
+            } else {
+                profileUrl = "/uploads/" + img;
+            }
+        }
     }
+
+    return CommentResponse.builder()
+            .commentNo(c.getCommentNo())
+            .parentId(c.getParent() != null ? c.getParent().getCommentNo() : null)
+            .userId(c.getUserId())
+            .content(c.getContent())
+            .createdDate(c.getCreatedDate())
+            .modifiedDate(c.getModifiedDate())
+            .profileUrl(profileUrl) // ✅ 프로필 이미지 경로 포함
+            .build();
+}
+
+
+
 }

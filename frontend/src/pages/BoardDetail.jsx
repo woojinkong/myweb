@@ -1,29 +1,30 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import useAuth from "../hooks/useAuth"; // ✅ 로그인 유저 확인용
+import useAuth from "../hooks/useAuth";
 import CommentSection from "./CommentSection";
+import { colors, buttons, cardBase } from "../styles/common";
+import UserProfilePopup from "./UserProfilepopup";// ✅ 추가
 
 export default function BoardDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth(); // ✅ 현재 로그인한 사용자
+  const { user } = useAuth();
+
   const [board, setBoard] = useState(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [showProfile, setShowProfile] = useState(false); // ✅ 프로필 팝업 상태
 
-  // ✅ 게시글 및 좋아요 정보 불러오기
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
+  // ✅ 게시글 + 좋아요 데이터 로드
   useEffect(() => {
-    let didFetch = false;
     const fetchData = async () => {
-      if (didFetch) return;
-      didFetch = true;
       try {
-        // 게시글 정보
         const boardRes = await axiosInstance.get(`/board/${id}`);
         setBoard(boardRes.data);
 
-        // 좋아요 개수
         const likeRes = await axiosInstance.get(`/board/like/${id}`);
         setLikeCount(likeRes.data);
       } catch (err) {
@@ -35,7 +36,7 @@ export default function BoardDetail() {
     fetchData();
   }, [id, navigate]);
 
-  // ✅ 좋아요 토글
+  // ✅ 좋아요 처리
   const handleLike = async () => {
     try {
       const res = await axiosInstance.post(`/board/like/${id}`);
@@ -65,49 +66,99 @@ export default function BoardDetail() {
   if (!board) return <p style={styles.loading}>⏳ 게시글을 불러오는 중...</p>;
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...cardBase, maxWidth: "900px", margin: "50px auto", padding: "30px", position: "relative" }}>
+      {/* ✅ 제목 */}
       <h2 style={styles.title}>{board.title}</h2>
-      <p style={styles.meta}>
-        👤 {board.userId} &nbsp; | &nbsp; 🕓{" "}
-        {new Date(board.createdDate).toLocaleString()} &nbsp; | &nbsp; 👁{" "}
-        {board.viewCount}
-      </p>
+
+      {/* ✅ 작성자 프로필 + 정보 */}
+      <div style={styles.metaBox}>
+        <img
+          src={
+            board.profileUrl
+              ? `${BASE_URL}${board.profileUrl}`
+              : "/default-profile.png"
+          }
+          alt="프로필"
+          style={styles.profileImg}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/default-profile.png";
+          }}
+        />
+
+        <div style={styles.metaText}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <p style={styles.writer}>{board.userId}</p>
+
+            {/* ✅ 유저 프로필 버튼 */}
+            <button
+              onClick={() => setShowProfile((prev) => !prev)}
+              style={styles.profileBtn}
+              title="작성자 프로필 보기"
+            >
+              👤
+            </button>
+          </div>
+
+          <p style={styles.date}>
+            🕓 {new Date(board.createdDate).toLocaleString()} | 👁 {board.viewCount}
+          </p>
+        </div>
+      </div>
+
+      {/* ✅ 프로필 팝업 */}
+      {showProfile && (
+        <UserProfilePopup
+          userId={board.userId}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
 
       {/* ✅ 좋아요 버튼 */}
       <button onClick={handleLike} style={styles.likeButton}>
         {liked ? "❤️" : "🤍"} {likeCount}
       </button>
 
-      {board.imagePath && (
-        <img
-          src={`http://localhost:8080${board.imagePath}`}
-          alt="게시글 이미지"
-          style={styles.image}
-        />
+      {/* ✅ 여러 장 이미지 표시 */}
+      {board.images && board.images.length > 0 ? (
+        <div style={styles.imageContainer}>
+          {board.images.map((img, idx) => (
+            <img
+              key={idx}
+              src={`${BASE_URL}${img.imagePath}`}
+              alt={`이미지 ${idx + 1}`}
+              style={styles.image}
+            />
+          ))}
+        </div>
+      ) : (
+        <p style={styles.noImage}>🖼️ 첨부된 이미지가 없습니다.</p>
       )}
 
+      {/* ✅ 본문 내용 */}
       <div style={styles.contentBox}>
         <p style={styles.content}>{board.content}</p>
       </div>
-      
-      {/* ✅ 댓글 섹션 */}
+
+      {/* ✅ 댓글 영역 */}
       <CommentSection boardId={Number(id)} />
 
+      {/* ✅ 버튼 영역 */}
       <div style={styles.buttons}>
-        <Link to="/board" style={styles.backButton}>
+        <Link to="/board" style={{ ...buttons.outline, textDecoration: "none" }}>
           🔙 목록으로
         </Link>
 
-        {/* ✅ 작성자일 때만 수정/삭제 버튼 표시 */}
-        {user && user.userId === board.userId && (
+        {/* ✅ 작성자 or 관리자만 수정/삭제 가능 */}
+        {user && (user.userId === board.userId || user.role === "ADMIN") && (
           <>
             <button
               onClick={() => navigate(`/board/edit/${board.boardNo}`)}
-              style={styles.editButton}
+              style={buttons.secondary}
             >
               ✏️ 수정
             </button>
-            <button onClick={handleDelete} style={styles.deleteButton}>
+            <button onClick={handleDelete} style={buttons.danger}>
               🗑️ 삭제
             </button>
           </>
@@ -118,39 +169,70 @@ export default function BoardDetail() {
 }
 
 const styles = {
-  container: {
-    maxWidth: "800px",
-    margin: "60px auto",
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-  },
   title: {
-    fontSize: "28px",
+    fontSize: "26px",
     fontWeight: "700",
-    marginBottom: "10px",
-    color: "#333",
+    marginBottom: "15px",
+    color: colors.text.main,
   },
-  meta: {
-    color: "#777",
-    fontSize: "14px",
-    marginBottom: "10px",
+  metaBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "20px",
+  },
+  profileImg: {
+    width: 48,
+    height: 48,
+    borderRadius: "50%",
+    border: "1px solid #ddd",
+    objectFit: "cover",
+  },
+  metaText: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  writer: {
+    fontSize: "16px",
+    fontWeight: "600",
+    color: colors.text.main,
+    marginBottom: "4px",
+  },
+  profileBtn: {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "17px",
+  },
+  date: {
+    color: colors.text.light,
+    fontSize: "13px",
   },
   likeButton: {
-    border: "none",
-    background: "transparent",
-    fontSize: "18px",
-    cursor: "pointer",
+    ...buttons.outline,
+    padding: "6px 12px",
+    fontSize: "15px",
     marginBottom: "15px",
+  },
+  imageContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginBottom: "20px",
   },
   image: {
     width: "100%",
+    maxWidth: "380px",
     borderRadius: "10px",
+    objectFit: "cover",
+  },
+  noImage: {
+    textAlign: "center",
+    color: colors.text.light,
     marginBottom: "20px",
   },
   contentBox: {
-    backgroundColor: "#fafafa",
+    backgroundColor: colors.background.page,
     borderRadius: "8px",
     padding: "20px",
     lineHeight: "1.6",
@@ -158,7 +240,7 @@ const styles = {
   },
   content: {
     whiteSpace: "pre-line",
-    color: "#444",
+    color: colors.text.sub,
   },
   buttons: {
     marginTop: "25px",
@@ -166,31 +248,9 @@ const styles = {
     justifyContent: "flex-end",
     gap: "10px",
   },
-  backButton: {
-    padding: "8px 16px",
-    background: "#4CAF50",
-    color: "#fff",
-    borderRadius: "6px",
-    textDecoration: "none",
-  },
-  editButton: {
-    padding: "8px 16px",
-    background: "#007BFF",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-  deleteButton: {
-    padding: "8px 16px",
-    background: "#DC3545",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
   loading: {
     textAlign: "center",
+    color: colors.text.light,
     marginTop: "50px",
   },
 };

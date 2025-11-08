@@ -1,3 +1,4 @@
+// App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -8,10 +9,21 @@ import BoardList from "./pages/BoardList";
 import BoardWrite from "./pages/BoardWrite";
 import BoardDetail from "./pages/BoardDetail";
 import BoardEdit from "./pages/BoardEdit";
+import BoardSearch from "./pages/BoardSearch";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
 import MyPage from "./pages/MyPage";
 import { useState } from "react";
+import NotificationPage from "./pages/NotificationPage";
+import Footer from "./components/Footer";
+import FindPassword from "./pages/FindPassword";
+import ResetPassword from "./pages/ResetPassword";
+import AdminUsers from "./pages/AdminUsers";
+import AdminDashboard from "./pages/AdminDashboard";
+
+// ✅ 쪽지함 페이지 (messages 폴더가 아닌 pages 루트)
+import InBox from "./pages/Inbox";
+import Outbox from "./pages/outbox";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -19,24 +31,30 @@ function App() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div style={styles.layout}>
           <Navbar isSidebarOpen={isSidebarOpen} />
           <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+
           <main
             style={{
               ...styles.content,
               marginLeft: isSidebarOpen ? "200px" : "70px",
               width: isSidebarOpen ? "calc(100% - 200px)" : "calc(100% - 70px)",
-              
             }}
           >
             <Routes>
+              {/* 🏠 홈 */}
               <Route path="/" element={<Home />} />
+
+              {/* 👤 인증 관련 */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/find-password" element={<FindPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
+              {/* 🧾 게시판 관련 */}
               <Route
                 path="/board"
                 element={
@@ -69,7 +87,44 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/board/search"
+                element={
+                  <ProtectedRoute>
+                    <BoardSearch />
+                  </ProtectedRoute>
+                }
+              />
 
+              {/* 🔔 알림페이지 */}
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <NotificationPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ✉️ 쪽지함 */}
+              <Route
+                path="/inbox"
+                element={
+                  <ProtectedRoute>
+                    <InBox />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/outbox"
+                element={
+                  <ProtectedRoute>
+                    <Outbox />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* 🙍 마이페이지 */}
               <Route
                 path="/mypage"
                 element={
@@ -78,11 +133,31 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* 👑 관리자용 */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
+
+          <Footer />
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
@@ -90,19 +165,17 @@ const styles = {
   layout: {
     display: "flex",
     flexDirection: "column",
-    height: "100vh",
+    minHeight: "100vh",
   },
-    content: {
+  content: {
     flex: 1,
-    marginTop: "60px", // ✅ Navbar 높이 반영 (fixed라 필수)
+    marginTop: "60px",
     padding: "20px",
     background: "#fff",
     overflowY: "auto",
     overflowX: "hidden",
-    boxSizing: "border-box",
     transition: "margin-left 0.3s ease",
   },
-
 };
 
 export default App;

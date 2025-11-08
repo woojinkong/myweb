@@ -1,15 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
+import { FiVolume2, FiMessageSquare, FiInfo } from "react-icons/fi"; // ✅ 깔끔한 아이콘들 (Feather Icons)
+import { colors, shadows, radius } from "../styles/common";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
   const currentCategory = new URLSearchParams(location.search).get("category");
 
   const getActiveStyle = (category) => ({
-  backgroundColor: currentCategory === category ? "#4CAF50" : "transparent",
-  color: currentCategory === category ? "#fff" : "#333",
-  fontWeight: currentCategory === category ? "600" : "500",
-  transition: "all 0.2s ease",
-});
+    backgroundColor:
+      currentCategory === category ? colors.primary : "transparent",
+    color: currentCategory === category ? "#fff" : colors.text.main,
+    fontWeight: currentCategory === category ? "600" : "500",
+  });
 
   return (
     <div
@@ -18,7 +20,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         width: isOpen ? "200px" : "70px",
       }}
     >
-      {/* ✅ 상단 햄버거 + 로고 */}
+      {/* ✅ 상단 햄버거 버튼 */}
       <div style={styles.header}>
         <button onClick={toggleSidebar} style={styles.hamburger}>
           ☰
@@ -28,21 +30,32 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       {/* ✅ 메뉴 리스트 */}
       <ul style={styles.list}>
         <li style={styles.item}>
-          <Link to="/board?category=notice" style={{ ...styles.link, ...getActiveStyle("notice") }}>
-            📢 {isOpen && "공지"}
+          <Link
+            to="/board?category=notice"
+            style={{ ...styles.link, ...getActiveStyle("notice") }}
+          >
+            <FiVolume2 style={styles.icon} />
+            {isOpen && <span>공지사항</span>}
           </Link>
         </li>
         <li style={styles.item}>
-          <Link to="/board?category=free" style={{ ...styles.link, ...getActiveStyle("free") }}>
-            💬 {isOpen && "자유"}
+          <Link
+            to="/board?category=free"
+            style={{ ...styles.link, ...getActiveStyle("free") }}
+          >
+            <FiMessageSquare style={styles.icon} />
+            {isOpen && <span>자유게시판</span>}
           </Link>
         </li>
         <li style={styles.item}>
-          <Link to="/board?category=inform" style={{ ...styles.link, ...getActiveStyle("inform") }}>
-            ℹ️  {isOpen && "정보"}
+          <Link
+            to="/board?category=inform"
+            style={{ ...styles.link, ...getActiveStyle("inform") }}
+          >
+            <FiInfo style={styles.icon} />
+            {isOpen && <span>정보공유</span>}
           </Link>
         </li>
-        <hr style={{ width: "80%", border: "none", borderTop: "1px solid #ddd", margin: "15px auto" }} />
       </ul>
     </div>
   );
@@ -54,8 +67,9 @@ const styles = {
     top: 0,
     left: 0,
     height: "100vh",
-    background: "#f8f9fa",
-    borderRight: "1px solid #e0e0e0",
+    background: "#fff",
+    borderRight: "1px solid #eee",
+    boxShadow: shadows.soft,
     boxSizing: "border-box",
     display: "flex",
     flexDirection: "column",
@@ -68,35 +82,41 @@ const styles = {
   header: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
     justifyContent: "center",
     width: "100%",
-    paddingBottom: "10px",
+    paddingBottom: "15px",
   },
   hamburger: {
     fontSize: "20px",
     background: "transparent",
     border: "none",
     cursor: "pointer",
+    color: colors.text.main,
   },
   list: {
     listStyle: "none",
     padding: 0,
-    marginTop: "20px",
+    marginTop: "10px",
     width: "100%",
   },
   item: {
-    marginBottom: "10px",
     textAlign: "center",
+    marginBottom: "10px",
   },
   link: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    justifyContent: "center",
     textDecoration: "none",
-    color: "#333",
-    fontSize: "16px",
+    color: colors.text.main,
+    fontSize: "15px",
     fontWeight: "500",
-    padding: "10px 15px",
-    display: "block",
-    borderRadius: "8px",
-    transition: "background 0.2s ease",
+    padding: "10px 12px",
+    borderRadius: radius.medium,
+    transition: "all 0.2s ease",
+  },
+  icon: {
+    fontSize: "18px",
   },
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { colors, buttons, cardBase } from "../styles/common";
 
 export default function Home() {
   const [boards, setBoards] = useState({
@@ -9,12 +10,11 @@ export default function Home() {
     inform: [],
   });
   const navigate = useNavigate();
-
+  const BASE_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchBoardsByCategory = async (category) => {
       try {
         const res = await axiosInstance.get(`/board?category=${category}`);
-        // 최신순 정렬 후 상위 5개만
         return res.data
           .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
           .slice(0, 5);
@@ -37,10 +37,27 @@ export default function Home() {
   }, []);
 
   const renderSection = (title, category, list, icon) => (
-    <section key={category} style={styles.section}>
+    <section
+      key={category}
+      style={{
+        ...cardBase,
+        minHeight: "260px",
+        padding: "12px 14px",
+        transition: "all 0.25s ease",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-4px)";
+        e.currentTarget.style.boxShadow = "0 6px 14px rgba(0,0,0,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "none";
+        e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)";
+      }}
+    >
       <div style={styles.header}>
         <h2 style={styles.sectionTitle}>
-          <span style={{ marginRight: "8px" }}>{icon}</span> {title}
+          <span style={{ marginRight: "6px" }}>{icon}</span> {title}
         </h2>
         <Link to={`/board?category=${category}`} style={styles.moreBtn}>
           더보기 →
@@ -57,8 +74,10 @@ export default function Home() {
             >
               <div style={styles.thumbBox}>
                 {board.imagePath ? (
+
+
                   <img
-                    src={`http://localhost:8080${board.imagePath}`}
+                    src={`${BASE_URL}${board.imagePath}`}
                     alt="썸네일"
                     style={styles.thumbnail}
                   />
@@ -69,9 +88,28 @@ export default function Home() {
 
               <div style={styles.textBox}>
                 <h3 style={styles.title}>{board.title}</h3>
+
+                {/* ✅ 유저 + 날짜 한 줄 + 날짜 연하게 처리 */}
                 <div style={styles.meta}>
-                  <span>👤 {board.userId}</span>
-                  <span>🕓 {new Date(board.createdDate).toLocaleDateString()}</span>
+                  <img
+                    src={
+                      board.profileUrl
+                        ? `${BASE_URL}${board.profileUrl}`
+                        : "/default-profile.png"
+                    }
+                    alt="프로필"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: "1px solid #ddd",
+                    }}
+                  />
+                  <span style={{ fontWeight: 500 }}>{board.userId}</span>
+                  <span style={{ opacity: 0.6, fontSize: "10.5px" }}>
+                    • {new Date(board.createdDate).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </li>
@@ -85,10 +123,10 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.grid} className="home-grid">
-        {renderSection("공지사항", "notice", boards.notice, "📢")}
-        {renderSection("자유게시판", "free", boards.free, "💬")}
-        {renderSection("정보게시판", "inform", boards.inform, "ℹ️")}
+      <div style={styles.grid}>
+        {renderSection("공지사항", "notice", boards.notice, "")}
+        {renderSection("자유게시판", "free", boards.free, "")}
+        {renderSection("정보게시판", "inform", boards.inform, "")}
       </div>
     </div>
   );
@@ -97,130 +135,88 @@ export default function Home() {
 const styles = {
   container: {
     width: "100%",
-    maxWidth: "1400px",
+    maxWidth: "940px", // ✅ 전체폭 줄임
     margin: "0 auto",
-    padding: "20px 20px",
-    boxSizing: "border-box", // ✅ 꼭 추가!
+    padding: "10px 15px",
   },
-
-  // ✅ 반응형 3→2→1열 고정
   grid: {
-    width: "100%",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", // ✅ 카드 크기 축소
+    gap: "16px",
   },
-
-  // ✅ 미디어쿼리 대신 JS로 대응
-  "@media (max-width: 1400px)": {
-    grid: {
-      gridTemplateColumns: "repeat(2, 1fr)",
-    },
-  },
-  "@media (max-width: 900px)": {
-    grid: {
-      gridTemplateColumns: "repeat(1, 1fr)",
-    },
-  },
-
-  // ✅ 카드 높이 통일 + 정렬 유지
-  section: {
-    background: "#fff",
-    padding: "20px 25px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    minHeight: "400px", // ✅ 카드 높이 통일
-  },
-
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "15px",
+    marginBottom: "10px",
   },
-
   sectionTitle: {
-    fontSize: "20px",
+    fontSize: "16.5px",
     fontWeight: "700",
-    color: "#333",
-    display: "flex",
-    alignItems: "center",
+    color: colors.text.main,
   },
-
   moreBtn: {
-    color: "#4CAF50",
-    fontWeight: "600",
-    textDecoration: "none",
+    ...buttons.outline,
+    padding: "2px 6px",
+    fontSize: "12px",
   },
-
   list: {
     listStyle: "none",
     padding: 0,
     margin: 0,
-    flexGrow: 1,
   },
-
   listItem: {
     display: "flex",
     alignItems: "center",
-    padding: "8px 0",
+    padding: "5px 0",
     borderBottom: "1px solid #eee",
     cursor: "pointer",
-    transition: "background 0.2s",
+    transition: "all 0.15s ease",
   },
-
   thumbBox: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "6px",
+    width: "42px",
+    height: "42px",
+    borderRadius: "5px",
     overflow: "hidden",
     background: "#f1f1f1",
     flexShrink: 0,
   },
-
   thumbnail: {
     width: "100%",
     height: "100%",
     objectFit: "cover",
   },
-
   noThumb: {
     width: "100%",
     height: "100%",
-    fontSize: "12px",
+    fontSize: "10px",
     color: "#aaa",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },
-
   textBox: {
-    marginLeft: "12px",
+    marginLeft: "8px",
     flex: 1,
   },
-
   title: {
-    fontSize: "15px",
+    fontSize: "13.5px",
     fontWeight: "600",
-    color: "#333",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
+    color: colors.text.main,
+    lineHeight: "1.4",
   },
-
   meta: {
-    fontSize: "12px",
-    color: "#777",
     display: "flex",
-    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "5px",
+    marginTop: "3px",
+    fontSize: "11px",
+    color: colors.text.light,
   },
-
   noData: {
     textAlign: "center",
-    color: "#aaa",
-    fontSize: "14px",
-    marginTop: "15px",
+    color: colors.text.light,
+    fontSize: "12px",
+    marginTop: "10px",
   },
 };
-

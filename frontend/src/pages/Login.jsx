@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext"; // ✅ 추가
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -30,7 +31,13 @@ export default function Login() {
       const user = res.data.user;
 
       // ✅ accessToken 저장
-      Cookies.set("accessToken", accessToken, { expires: 1 });
+      // ✅ accessToken 저장 (반드시 sameSite 지정)
+      Cookies.set("accessToken", accessToken, {
+        sameSite: "None", // 또는 "None" (HTTPS 환경일 경우)
+        secure: false, // ✅ 로컬에서는 반드시 false
+        expires: 1,      // 하루 유지
+      });
+
 
       // ✅ 전역 상태 갱신 (핵심)
       setUser(user);
@@ -72,12 +79,20 @@ export default function Login() {
 
       {error && <p style={styles.error}>{error}</p>}
 
-      <p style={{ marginTop: "15px" }}>
+            <p style={{ marginTop: "15px" }}>
         아직 회원이 아니신가요?{" "}
-        <a href="/signup" style={{ color: "#007BFF" }}>
-          회원가입
-        </a>
-      </p>
+        <Link to="/signup" style={{ color: "#007BFF", textDecoration: "none" }}>
+            회원가입
+        </Link>
+        <br /> {/* ✅ 줄바꿈 추가 */}
+            <Link
+                to="/find-password"
+                style={{ color: "#4CAF50", fontSize: "13px", marginTop: "8px", display: "inline-block" }}
+            >
+                비밀번호를 잊으셨나요?
+            </Link>
+
+        </p>
     </div>
   );
 }
