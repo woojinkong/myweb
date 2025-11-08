@@ -45,25 +45,32 @@ public class SecurityConfig {
 
             // ✅ 4. 요청별 권한 설정
             .authorizeHttpRequests(auth -> auth
-                // 인증 없이 접근 가능한 경로
+                // ⭕ 인증 없이 접근 가능한 경로
                 .requestMatchers(
-                    "/api/auth/**",             // 로그인, 회원가입, 토큰
+                    "/api/auth/**",             // 로그인, 회원가입, 토큰 관련
                     "/api/user/find-password",  // 비밀번호 찾기
                     "/api/user/reset-password", // 비밀번호 재설정
-                    "/uploads/**"               // 정적 리소스
+                    "/uploads/**"               // 이미지 업로드된 파일 접근
                 ).permitAll()
 
-                // ✅ 게시판 및 댓글 조회는 허용
+                // ✅ 게시판 / 댓글 조회는 누구나 가능
                 .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
-                // ✅ 그 외는 인증 필요
-                .requestMatchers("/api/board/like/**").authenticated()
+                // ✅ 관리자 전용 경로
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+
+                // ✅ 일반 인증 필요 (USER, ADMIN 둘 다 가능)
                 .requestMatchers("/api/board/**").authenticated()
                 .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
+                .requestMatchers("/api/board/like/**").authenticated()
+                .requestMatchers("/api/notifications/**").authenticated()
+                .requestMatchers("/api/message/**").authenticated()
 
-                // 기타 요청은 허용
+
+                // ✅ 그 외 요청은 허용
                 .anyRequest().permitAll()
             )
 
@@ -73,27 +80,20 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // ✅ 6. CORS 설정
     @Bean
     public CorsConfigurationSource corsSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ React 개발 서버 (5173, localhost, LAN)
+        // ✅ React 개발 서버 (로컬 + LAN)
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
             "http://127.0.0.1:5173",
             "http://192.168.123.107:5173"
         ));
-
-        // ✅ 허용할 메서드
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // ✅ 허용할 헤더
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-        // ✅ 쿠키 포함 요청 허용
         config.setAllowCredentials(true);
-
-        // ✅ 캐시 유지 시간
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -101,6 +101,7 @@ public class SecurityConfig {
         return source;
     }
 
+    // ✅ 7. AuthenticationManager 등록
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

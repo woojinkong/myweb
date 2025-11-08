@@ -1,0 +1,70 @@
+package com.example.backend.controller;
+
+import com.example.backend.entity.User;
+import com.example.backend.repository.BoardRepository;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.service.VisitService;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/admin")
+@RequiredArgsConstructor
+public class AdminController {
+
+    private final UserRepository userRepository;
+    private final BoardRepository boardRepository;
+    private final VisitService visitService;
+
+    // ✅ 전체 회원 조회
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return ResponseEntity.ok(users);
+    }
+
+    // ✅ 회원 강제 삭제
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
+        User user = userRepository.findByUserId(userId).orElse(null);
+        if (user == null) return ResponseEntity.notFound().build();
+
+        userRepository.delete(user);
+        return ResponseEntity.ok("회원이 삭제되었습니다: " + userId);
+    }
+
+    // ✅ 권한 변경 (USER ↔ ADMIN)
+    @PutMapping("/users/{userId}/role")
+    public ResponseEntity<?> updateRole(@PathVariable String userId, @RequestParam String role) {
+        User user = userRepository.findByUserId(userId).orElse(null);
+        if (user == null) return ResponseEntity.notFound().build();
+
+        user.setRole(role);
+        userRepository.save(user);
+        return ResponseEntity.ok("권한이 변경되었습니다: " + role);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Long>> getStats() {
+        long userCountToday = userRepository.countByUserCreateDateAfter(
+                LocalDate.now().atStartOfDay());
+        long visitCountToday = visitService.countTodayVisits(); // 선택 (없으면 0)
+        long totalBoardCount = boardRepository.count();
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("todayUsers", userCountToday);
+        stats.put("todayVisits", visitCountToday);
+        stats.put("totalBoards", totalBoardCount);
+
+        return ResponseEntity.ok(stats);
+    }
+
+
+}

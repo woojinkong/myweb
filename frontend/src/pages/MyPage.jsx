@@ -8,6 +8,7 @@ export default function MyPage() {
   const [form, setForm] = useState({});
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -16,7 +17,7 @@ export default function MyPage() {
         setUserInfo(res.data);
         setForm(res.data);
         if (res.data.profileImage)
-          setPreview(`http://localhost:8080${res.data.profileImage}`);
+          setPreview(`${BASE_URL}${res.data.profileImage}`);
       } catch (err) {
         console.error("내 정보 불러오기 실패:", err);
       }
@@ -76,7 +77,7 @@ export default function MyPage() {
           src={
             preview ||
             (userInfo.profileImage
-              ? `http://localhost:8080${userInfo.profileImage}`
+              ? `${BASE_URL}${userInfo.profileImage}`
               : "https://via.placeholder.com/120?text=Profile")
           }
           alt="프로필"

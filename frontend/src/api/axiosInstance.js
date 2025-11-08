@@ -16,6 +16,7 @@ const refreshAxios = axios.create({
 // ✅ 요청 인터셉터 (AccessToken 자동 첨부)
 axiosInstance.interceptors.request.use((config) => {
   const token = Cookies.get("accessToken");
+  console.log("📦 axiosInstance에서 accessToken:", token);
   if (token && token !== "undefined" && token !== "null") {
     config.headers.Authorization = `Bearer ${token}`;
   }

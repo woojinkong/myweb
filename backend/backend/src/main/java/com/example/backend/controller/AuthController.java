@@ -39,7 +39,7 @@ public class AuthController {
         User u = service.authenticate(r);
         if (u == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        String access = service.newAccessToken(u.getUserId());
+        String access = service.newAccessToken(u);
         String refresh = service.newRefreshToken(u.getUserId());
 
         String serverHost = "192.168.123.107"; // 기본값
@@ -85,7 +85,7 @@ public class AuthController {
             }
 
             var user = repo.findByUserId(userId).orElseThrow();
-            String newAccess = service.newAccessToken(userId);
+            String newAccess = service.newAccessToken(user);
             user.setUserPwd(null);
 
             return ResponseEntity.ok(new AuthResponse(newAccess, user));

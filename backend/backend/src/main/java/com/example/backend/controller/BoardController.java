@@ -42,7 +42,7 @@ public class BoardController {
         }
     }
 
-    // ✅ 단일 게시글 조회 (프로필 포함)
+    // ✅ 단일 게시글 조회
     @GetMapping("/{id}")
     public ResponseEntity<BoardDetailResponse> getOne(@PathVariable Long id) {
         BoardDetailResponse board = service.findByIdForRead(id);
@@ -61,6 +61,14 @@ public class BoardController {
 
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // ✅ 공지사항은 관리자만 작성 가능
+        if ("notice".equalsIgnoreCase(category)) {
+            String role = userDetails.getUser().getRole();
+            if (role == null || !role.equalsIgnoreCase("ADMIN")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
         }
 
         String userId = userDetails.getUser().getUserId();
@@ -101,6 +109,7 @@ public class BoardController {
     // ✅ 게시글 수정
     @PutMapping("/{id}")
     public ResponseEntity<Board> update(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
@@ -109,9 +118,23 @@ public class BoardController {
             @RequestParam(value = "remainImageIds", required = false) String remainImageIdsJson
     ) throws IOException {
 
+        if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         Board existing = service.findByIdRaw(id);
-        if (existing == null) {
-            return ResponseEntity.notFound().build();
+        if (existing == null) return ResponseEntity.notFound().build();
+
+        String role = userDetails.getUser().getRole();
+        String me = userDetails.getUser().getUserId();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(role);
+
+        // ✅ 작성자 또는 관리자만 수정 가능
+        if (!isAdmin && !existing.getUserId().equals(me)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // ✅ 공지사항 카테고리로 변경 시 관리자만 허용
+        if (category != null && "notice".equalsIgnoreCase(category) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         existing.setTitle(title);
@@ -120,6 +143,7 @@ public class BoardController {
             existing.setCategory(category);
         }
 
+        // ✅ 유지할 이미지 식별
         List<Long> remainIds = new ArrayList<>();
         if (remainImageIdsJson != null && !remainImageIdsJson.isBlank()) {
             ObjectMapper mapper = new ObjectMapper();
@@ -169,10 +193,22 @@ public class BoardController {
 
     // ✅ 게시글 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id
+    ) {
+        if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         Board existing = service.findByIdRaw(id);
-        if (existing == null) {
-            return ResponseEntity.notFound().build();
+        if (existing == null) return ResponseEntity.notFound().build();
+
+        String role = userDetails.getUser().getRole();
+        String me = userDetails.getUser().getUserId();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(role);
+
+        // ✅ 작성자 또는 관리자만 삭제 가능
+        if (!isAdmin && !existing.getUserId().equals(me)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         if (existing.getImages() != null) {

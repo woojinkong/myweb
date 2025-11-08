@@ -2,16 +2,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { fetchUnreadCount } from "../api/notificationApi";
+import { fetchUnreadMessages } from "../api/messageApi"; // ✅ 추가
+import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail } from "react-icons/fi";
 
-// ✅ Feather 아이콘 통일
-import {
-  FiSearch,
-  FiBell,
-  FiUser,
-  FiLogIn,
-  FiLogOut,
-  FiUserPlus,
-} from "react-icons/fi";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function Navbar({ isSidebarOpen }) {
   const { user, logout } = useContext(AuthContext);
@@ -20,20 +14,25 @@ export default function Navbar({ isSidebarOpen }) {
   const [showSearch, setShowSearch] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [type, setType] = useState("title");
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0); // 알림
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0); // ✅ 쪽지 개수
 
+  // ✅ 알림 + 쪽지 읽지 않은 개수 불러오기
   useEffect(() => {
     if (user) {
       const loadUnread = async () => {
         try {
-          const count = await fetchUnreadCount();
-          setUnreadCount(count);
+          const [notiCount, msgCount] = await Promise.all([
+            fetchUnreadCount(),
+            fetchUnreadMessages(),
+          ]);
+          setUnreadCount(notiCount);
+          setUnreadMsgCount(msgCount);
         } catch (err) {
-          console.error("알림 개수 조회 실패:", err);
+          console.error("알림/쪽지 개수 조회 실패:", err);
         }
       };
       loadUnread();
-
       const interval = setInterval(loadUnread, 30000);
       return () => clearInterval(interval);
     }
@@ -41,10 +40,7 @@ export default function Navbar({ isSidebarOpen }) {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!keyword.trim()) {
-      alert("검색어를 입력하세요!");
-      return;
-    }
+    if (!keyword.trim()) return alert("검색어를 입력하세요!");
     navigate(`/board/search?keyword=${keyword}&type=${type}`);
     setShowSearch(false);
     setKeyword("");
@@ -70,7 +66,11 @@ export default function Navbar({ isSidebarOpen }) {
         {/* 🔍 검색 */}
         {showSearch ? (
           <form onSubmit={handleSearchSubmit} style={styles.searchForm}>
-            <select value={type} onChange={(e) => setType(e.target.value)} style={styles.select}>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              style={styles.select}
+            >
               <option value="title">제목</option>
               <option value="content">내용</option>
               <option value="userId">작성자</option>
@@ -115,16 +115,59 @@ export default function Navbar({ isSidebarOpen }) {
           </div>
         )}
 
+        {/* 📬 쪽지함 */}
+        {user && (
+          <div
+            style={styles.notificationBox}
+            onClick={() => navigate("inbox")}
+            title="쪽지함"
+          >
+            <FiMail style={styles.iconBase} />
+            {unreadMsgCount > 0 && (
+              <span style={{ ...styles.badge, background: "orange" }}>
+                {unreadMsgCount}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* 👤 로그인 상태별 */}
         {user ? (
           <>
+            {/* 👑 관리자 */}
+            {user.role === "ADMIN" && (
+              <button
+                onClick={() => navigate("/admin/dashboard")}
+                style={styles.adminButton}
+                title="관리자 페이지"
+              >
+                👑
+              </button>
+            )}
+
+            {/* 🧍 프로필 사진 */}
             <button
               onClick={() => navigate("/mypage")}
-              style={styles.iconButton}
+              style={styles.profileButton}
               title="내 정보"
             >
-              <FiUser />
+              <img
+                src={
+                  user.profileImage
+                    ? user.profileImage.startsWith("http")
+                      ? user.profileImage
+                      : `${BASE_URL}${user.profileImage}`
+                    : "/images/default_profile.png"
+                }
+                alt="프로필"
+                style={styles.profileImage}
+                onError={(e) =>
+                  (e.currentTarget.src = "/images/default_profile.png")
+                }
+              />
             </button>
+
+            {/* 🚪 로그아웃 */}
             <button onClick={logout} style={styles.iconButton} title="로그아웃">
               <FiLogOut />
             </button>
@@ -188,13 +231,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
   },
-  iconBase: {
-    fontSize: "20px",
-    color: "#444",
-  },
-  iconActive: {
-    color: "#4CAF50",
-  },
   notificationBox: {
     position: "relative",
     fontSize: "20px",
@@ -209,5 +245,26 @@ const styles = {
     borderRadius: "50%",
     fontSize: "11px",
     padding: "2px 5px",
+  },
+  profileButton: {
+    background: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+  },
+  profileImage: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "1px solid #ddd",
+  },
+  adminButton: {
+    background: "transparent",
+    border: "none",
+    fontSize: "22px",
+    cursor: "pointer",
+    transition: "transform 0.2s ease, color 0.2s ease",
+    color: "#ffbb00",
   },
 };

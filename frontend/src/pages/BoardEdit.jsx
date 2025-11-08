@@ -25,7 +25,7 @@ export default function BoardEdit() {
         const board = res.data;
 
         // 권한 검사
-        if (!user || user.userId !== board.userId) {
+        if (!user ||(user.userId !== board.userId && user.role !== "ADMIN")) {
           alert("수정 권한이 없습니다!");
           navigate("/board");
           return;

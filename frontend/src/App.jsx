@@ -18,6 +18,12 @@ import NotificationPage from "./pages/NotificationPage";
 import Footer from "./components/Footer";
 import FindPassword from "./pages/FindPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AdminUsers from "./pages/AdminUsers";
+import AdminDashboard from "./pages/AdminDashboard";
+
+// ✅ 쪽지함 페이지 (messages 폴더가 아닌 pages 루트)
+import InBox from "./pages/Inbox";
+import Outbox from "./pages/outbox";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -25,7 +31,6 @@ function App() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    // ✅ Router를 최상단에 두고 AuthProvider를 그 안으로 이동
     <Router>
       <AuthProvider>
         <div style={styles.layout}>
@@ -82,8 +87,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
-              {/* 🔍 검색 페이지 */}
               <Route
                 path="/board/search"
                 element={
@@ -103,6 +106,24 @@ function App() {
                 }
               />
 
+              {/* ✉️ 쪽지함 */}
+              <Route
+                path="/inbox"
+                element={
+                  <ProtectedRoute>
+                    <InBox />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/outbox"
+                element={
+                  <ProtectedRoute>
+                    <Outbox />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* 🙍 마이페이지 */}
               <Route
                 path="/mypage"
@@ -112,10 +133,27 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* 👑 관리자용 */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
 
-          {/* ✅ Footer */}
           <Footer />
         </div>
       </AuthProvider>

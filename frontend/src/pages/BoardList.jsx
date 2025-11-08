@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { colors, buttons, cardBase } from "../styles/common";
+import useAuth from "../hooks/useAuth";
 
 export default function BoardList() {
   const [boards, setBoards] = useState([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const BASE_URL = import.meta.env.VITE_API_URL;
+  const { user } = useAuth();
 
   const category = searchParams.get("category") || "notice";
 
@@ -43,25 +46,28 @@ export default function BoardList() {
            {categoryNameMap[category]} 목록
         </h2>
 
-        <Link
-          to="/board/write"
-          style={{
-            ...buttons.primary,
-            fontSize: "14px",
-            padding: "6px 12px",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            textDecoration: "none",
-            backgroundColor: "#4CAF50",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#45A049")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#4CAF50")}
-        >
-          ✏️ <span style={{ fontWeight: "600" }}>새 글</span>
-        </Link>
+        {/* ✅ 글쓰기 버튼 표시 조건 */}
+        {(category !== "notice" || (user && user.role === "ADMIN")) && (
+          <Link
+            to="/board/write"
+            style={{
+              ...buttons.primary,
+              fontSize: "14px",
+              padding: "6px 12px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              textDecoration: "none",
+              backgroundColor: "#4CAF50",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#45A049")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#4CAF50")}
+          >
+            ✏️ <span style={{ fontWeight: "600" }}>새 글</span>
+          </Link>
+        )}
       </div>
 
       {/* ✅ 카테고리 버튼 */}
@@ -114,7 +120,7 @@ export default function BoardList() {
               {/* ✅ 썸네일 */}
               {board.imagePath ? (
                 <img
-                  src={`http://localhost:8080${board.imagePath}`}
+                  src={`${BASE_URL}${board.imagePath}`}
                   alt="썸네일"
                   style={{
                     width: "100%",
@@ -166,7 +172,7 @@ export default function BoardList() {
                   <img
                     src={
                       board.profileUrl
-                        ? `http://localhost:8080${board.profileUrl}`
+                        ? `${BASE_URL}${board.profileUrl}`
                         : "/default-profile.png"
                     }
                     alt="프로필"

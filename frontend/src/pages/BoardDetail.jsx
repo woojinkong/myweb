@@ -3,16 +3,22 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import useAuth from "../hooks/useAuth";
 import CommentSection from "./CommentSection";
-import { colors, buttons, cardBase } from "../styles/common"; // ✅ 공통 스타일 적용
+import { colors, buttons, cardBase } from "../styles/common";
+import UserProfilePopup from "./UserProfilepopup";// ✅ 추가
 
 export default function BoardDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [board, setBoard] = useState(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [showProfile, setShowProfile] = useState(false); // ✅ 프로필 팝업 상태
 
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
+  // ✅ 게시글 + 좋아요 데이터 로드
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,6 +36,7 @@ export default function BoardDetail() {
     fetchData();
   }, [id, navigate]);
 
+  // ✅ 좋아요 처리
   const handleLike = async () => {
     try {
       const res = await axiosInstance.post(`/board/like/${id}`);
@@ -42,6 +49,7 @@ export default function BoardDetail() {
     }
   };
 
+  // ✅ 게시글 삭제
   const handleDelete = async () => {
     if (!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) return;
 
@@ -58,7 +66,7 @@ export default function BoardDetail() {
   if (!board) return <p style={styles.loading}>⏳ 게시글을 불러오는 중...</p>;
 
   return (
-    <div style={{ ...cardBase, maxWidth: "900px", margin: "50px auto", padding: "30px" }}>
+    <div style={{ ...cardBase, maxWidth: "900px", margin: "50px auto", padding: "30px", position: "relative" }}>
       {/* ✅ 제목 */}
       <h2 style={styles.title}>{board.title}</h2>
 
@@ -67,7 +75,7 @@ export default function BoardDetail() {
         <img
           src={
             board.profileUrl
-              ? `http://localhost:8080${board.profileUrl}`
+              ? `${BASE_URL}${board.profileUrl}`
               : "/default-profile.png"
           }
           alt="프로필"
@@ -77,13 +85,34 @@ export default function BoardDetail() {
             e.target.src = "/default-profile.png";
           }}
         />
+
         <div style={styles.metaText}>
-          <p style={styles.writer}> {board.userId}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <p style={styles.writer}>{board.userId}</p>
+
+            {/* ✅ 유저 프로필 버튼 */}
+            <button
+              onClick={() => setShowProfile((prev) => !prev)}
+              style={styles.profileBtn}
+              title="작성자 프로필 보기"
+            >
+              👤
+            </button>
+          </div>
+
           <p style={styles.date}>
             🕓 {new Date(board.createdDate).toLocaleString()} | 👁 {board.viewCount}
           </p>
         </div>
       </div>
+
+      {/* ✅ 프로필 팝업 */}
+      {showProfile && (
+        <UserProfilePopup
+          userId={board.userId}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
 
       {/* ✅ 좋아요 버튼 */}
       <button onClick={handleLike} style={styles.likeButton}>
@@ -96,7 +125,7 @@ export default function BoardDetail() {
           {board.images.map((img, idx) => (
             <img
               key={idx}
-              src={`http://localhost:8080${img.imagePath}`}
+              src={`${BASE_URL}${img.imagePath}`}
               alt={`이미지 ${idx + 1}`}
               style={styles.image}
             />
@@ -120,7 +149,8 @@ export default function BoardDetail() {
           🔙 목록으로
         </Link>
 
-        {user && user.userId === board.userId && (
+        {/* ✅ 작성자 or 관리자만 수정/삭제 가능 */}
+        {user && (user.userId === board.userId || user.role === "ADMIN") && (
           <>
             <button
               onClick={() => navigate(`/board/edit/${board.boardNo}`)}
@@ -167,6 +197,12 @@ const styles = {
     fontWeight: "600",
     color: colors.text.main,
     marginBottom: "4px",
+  },
+  profileBtn: {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "17px",
   },
   date: {
     color: colors.text.light,

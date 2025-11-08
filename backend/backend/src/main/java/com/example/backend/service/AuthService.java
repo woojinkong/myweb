@@ -39,9 +39,10 @@ public class AuthService {
         return encoder.matches(r.getUserPwd(), u.getUserPwd()) ? u : null;
     }
 
-    public String newAccessToken(String userId) {
-        return jwt.createAccessToken(userId);
+    public String newAccessToken(User user) {
+    return jwt.createAccessToken(user.getUserId(), user.getRole());
     }
+
 
     public String newRefreshToken(String userId) {
         return jwt.createRefreshToken(userId);

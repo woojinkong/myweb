@@ -21,23 +21,24 @@ public class JwtUtil {
             @Value("${konghome.jwt.refresh-exp-days}") long refreshExpDays
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        this.accessExpMs = accessExpMin * 60_000; // 분 → 밀리초
-        this.refreshExpMs = refreshExpDays * 24 * 60 * 60 * 1000L; // 일 → 밀리초
+        this.accessExpMs = accessExpMin * 60_000;
+        this.refreshExpMs = refreshExpDays * 24 * 60 * 60 * 1000L;
     }
 
-    // ✅ Access Token 생성
-    public String createAccessToken(String subject) {
+    // ✅ Access Token 생성 (role 포함)
+    public String createAccessToken(String userId, String role) {
         return Jwts.builder()
-                .setSubject(subject)
+                .setSubject(userId)
+                .claim("role", role) // ✅ 역할 정보 포함
                 .setExpiration(new Date(System.currentTimeMillis() + accessExpMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // ✅ Refresh Token 생성
-    public String createRefreshToken(String subject) {
+    public String createRefreshToken(String userId) {
         return Jwts.builder()
-                .setSubject(subject)
+                .setSubject(userId)
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -46,10 +47,7 @@ public class JwtUtil {
     // ✅ 토큰 유효성 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
             System.out.println("⚠️ JWT 만료됨: " + e.getMessage());
@@ -59,17 +57,28 @@ public class JwtUtil {
         return false;
     }
 
-    // ✅ 토큰에서 subject(userId) 추출
+    // ✅ 토큰에서 userId(subject) 추출
     public String getSubject(String token) {
         try {
-            return Jwts.parserBuilder()
+            return Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token).getBody().getSubject();
+        } catch (Exception e) {
+            System.out.println("❌ JWT subject 추출 실패: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ✅ 토큰에서 role 추출
+    public String getRole(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
+                    .getBody();
+            return claims.get("role", String.class);
         } catch (Exception e) {
-            System.out.println("❌ JWT subject 추출 실패: " + e.getMessage());
+            System.out.println("❌ JWT role 추출 실패: " + e.getMessage());
             return null;
         }
     }

@@ -10,7 +10,7 @@ export default function Home() {
     inform: [],
   });
   const navigate = useNavigate();
-
+  const BASE_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchBoardsByCategory = async (category) => {
       try {
@@ -74,8 +74,10 @@ export default function Home() {
             >
               <div style={styles.thumbBox}>
                 {board.imagePath ? (
+
+
                   <img
-                    src={`http://localhost:8080${board.imagePath}`}
+                    src={`${BASE_URL}${board.imagePath}`}
                     alt="썸네일"
                     style={styles.thumbnail}
                   />
@@ -92,7 +94,7 @@ export default function Home() {
                   <img
                     src={
                       board.profileUrl
-                        ? `http://localhost:8080${board.profileUrl}`
+                        ? `${BASE_URL}${board.profileUrl}`
                         : "/default-profile.png"
                     }
                     alt="프로필"

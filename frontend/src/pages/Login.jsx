@@ -31,7 +31,13 @@ export default function Login() {
       const user = res.data.user;
 
       // ✅ accessToken 저장
-      Cookies.set("accessToken", accessToken, { expires: 1 });
+      // ✅ accessToken 저장 (반드시 sameSite 지정)
+      Cookies.set("accessToken", accessToken, {
+        sameSite: "None", // 또는 "None" (HTTPS 환경일 경우)
+        secure: false, // ✅ 로컬에서는 반드시 false
+        expires: 1,      // 하루 유지
+      });
+
 
       // ✅ 전역 상태 갱신 (핵심)
       setUser(user);

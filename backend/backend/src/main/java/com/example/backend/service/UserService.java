@@ -104,5 +104,12 @@ public class UserService {
     }
 
 
+    // ✅ 특정 userId로 유저 조회
+public User findByUserId(String userId) {
+    return userRepository.findByUserId(userId).orElse(null);
+}
+
+
+
 
 }
