@@ -17,11 +17,25 @@ const refreshAxios = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   const token = Cookies.get("accessToken");
   console.log("📦 axiosInstance에서 accessToken:", token);
+  
+  // ✅ 로그인하지 않은 경우 → 인증 필요 API 요청 막기
+  const openUrls = [
+    "/auth/",
+    "/user/find-password",
+    "/user/reset-password"
+  ];
+  const isOpenUrl = openUrls.some((url) => config.url.includes(url));
+
   if (token && token !== "undefined" && token !== "null") {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (!isOpenUrl && config.url.startsWith("/user")) {
+    console.warn("🚫 로그인 안 된 상태의 요청 차단:", config.url);
+    return Promise.reject({ response: { status: 401 } });
   }
+
   return config;
 });
+
 
 // ✅ 응답 인터셉터 (401 → 토큰 자동 갱신)
 axiosInstance.interceptors.response.use(

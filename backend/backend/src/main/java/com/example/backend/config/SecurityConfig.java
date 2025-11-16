@@ -56,16 +56,12 @@ public class SecurityConfig {
                 // ✅ 게시판 / 댓글 조회는 누구나 가능
                 .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                 // ✅ 관리자 전용 경로
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
 
                 // ✅ 일반 인증 필요 (USER, ADMIN 둘 다 가능)
-                .requestMatchers("/api/board/**").authenticated()
                 .requestMatchers("/api/user/**").authenticated()
-                .requestMatchers("/api/comments/**").authenticated()
-                .requestMatchers("/api/board/like/**").authenticated()
                 .requestMatchers("/api/notifications/**").authenticated()
                 .requestMatchers("/api/message/**").authenticated()
 

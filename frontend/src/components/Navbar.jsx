@@ -19,7 +19,7 @@ export default function Navbar({ isSidebarOpen }) {
 
   // ✅ 알림 + 쪽지 읽지 않은 개수 불러오기
   useEffect(() => {
-    if (user) {
+    if (user && user.userId) {
       const loadUnread = async () => {
         try {
           const [notiCount, msgCount] = await Promise.all([
@@ -29,6 +29,10 @@ export default function Navbar({ isSidebarOpen }) {
           setUnreadCount(notiCount);
           setUnreadMsgCount(msgCount);
         } catch (err) {
+          if (err.response?.status === 401 || err.response?.status === 403) {
+          // 인증 오류는 무시 (상태 갱신 안 함)
+          return;
+  }
           console.error("알림/쪽지 개수 조회 실패:", err);
         }
       };
@@ -46,6 +50,21 @@ export default function Navbar({ isSidebarOpen }) {
     setKeyword("");
   };
 
+
+  const getProfileSrc = (user) => {
+  try {
+    if (user?.profileImage) {
+      return user.profileImage.startsWith("http")
+        ? user.profileImage
+        : `${BASE_URL}${user.profileImage}`;
+    }
+    return "/default_profile.png"; // ✅ 프로젝트 루트의 public/default_profile.png
+  } catch {
+    return "/default_profile.png";
+  }
+};
+
+
   return (
     <nav
       style={{
@@ -57,7 +76,7 @@ export default function Navbar({ isSidebarOpen }) {
       {/* 로고 */}
       <div style={styles.logoBox}>
         <Link to="/" style={styles.logo}>
-          KONGHOME
+          KongHome
         </Link>
       </div>
 
@@ -152,19 +171,16 @@ export default function Navbar({ isSidebarOpen }) {
               title="내 정보"
             >
               <img
-                src={
-                  user.profileImage
-                    ? user.profileImage.startsWith("http")
-                      ? user.profileImage
-                      : `${BASE_URL}${user.profileImage}`
-                    : "/images/default_profile.png"
-                }
+                src={getProfileSrc(user)}
                 alt="프로필"
                 style={styles.profileImage}
-                onError={(e) =>
-                  (e.currentTarget.src = "/images/default_profile.png")
-                }
+                onError={(e) => {
+                  if (!e.currentTarget.src.endsWith("/default_profile.png")) {
+                    e.currentTarget.src = "/default_profile.png";
+                  }
+                }}
               />
+
             </button>
 
             {/* 🚪 로그아웃 */}
