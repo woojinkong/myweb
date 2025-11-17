@@ -162,7 +162,9 @@ export default function Home() {
     <div style={styles.container}>
       <div style={styles.grid}>
         {groups.length > 0 ? (
-          groups.map((group) => renderSection(group))
+          groups
+           .filter((group) => group.type !== "DIVIDER")   // ← ⭐ 추가된 부분
+            .map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
             게시판이 없습니다.

@@ -42,8 +42,8 @@ function App() {
           <main
             style={{
               ...styles.content,
-              marginLeft: isSidebarOpen ? "200px" : "70px",
-              width: isSidebarOpen ? "calc(100% - 200px)" : "calc(100% - 70px)",
+              marginLeft: isSidebarOpen ? "150px" : "50px",
+              width: isSidebarOpen ? "calc(100% - 150px)" : "calc(100% - 50px)",
             }}
           >
             <Routes>

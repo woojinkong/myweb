@@ -35,5 +35,12 @@ public class BoardLikeService {
         Board board = boardRepository.findById(boardNo).orElseThrow();
         return likeRepository.countByBoard(board);
     }
+
+    // ⭐ 추가: 특정 유저가 해당 글에 좋아요 눌렀는지 여부
+    public boolean isLiked(Long boardNo, String userId) {
+        Board board = boardRepository.findById(boardNo)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        return likeRepository.existsByBoardAndUserId(board, userId);
+    }
     
 }
