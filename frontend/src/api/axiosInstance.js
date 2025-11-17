@@ -13,7 +13,13 @@ const PUBLIC_API = [
   "/auth/send-email-code",
   "/auth/verify-email-code",
   "/auth/login",
-  "/auth/refresh"
+  "/auth/refresh",
+
+   // ⭐ 비로그인 허용 API
+  "/board-group",
+  "/board",
+  "/comments",
+
 ];
 
 // refresh 전용

@@ -46,6 +46,15 @@ export default function Login() {
       navigate("/");
     } catch (err) {
       console.error(err);
+
+      // 🚫 정지된 계정 처리 (403 에러)
+      if (err.response && err.response.status === 403) {
+        const data = err.response.data;
+        setError(`🚫 ${data.message}\n사유: ${data.reason}`);
+        // ⭐ Access Token 쿠키 제거!
+      Cookies.remove("accessToken");
+        return;
+      }
       setError("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
   };

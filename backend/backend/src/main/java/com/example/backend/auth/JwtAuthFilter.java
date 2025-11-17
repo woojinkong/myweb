@@ -1,5 +1,6 @@
 package com.example.backend.auth;
 
+import com.example.backend.entity.User;
 import com.example.backend.service.CustomUserDetailsService;
 import com.example.backend.util.JwtUtil;
 import com.example.backend.config.CustomUserDetails;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -25,7 +27,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
 
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
@@ -40,6 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
         log.debug("🔑 [JwtAuthFilter] Authorization Header = {}", authHeader);
+
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -59,6 +61,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             // ✅ DB에서 실제 유저 정보 로드
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(userId);
+
+            User user = userDetails.getUser();
+
+            // 🚫 정지된 유저라면 차단
+            if (user.isBanned()) {
+                log.warn("🚫 정지된 사용자 접근 차단: {}", userId);
+
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                response.setContentType("application/json; charset=UTF-8");
+                response.getWriter().write(
+                        "{\"message\": \"정지된 계정입니다.\", \"reason\": \"" +
+                                user.getBanReason() + "\"}"
+                );
+                return;
+            }
 
             // ✅ SecurityContext에 인증 객체 저장
             UsernamePasswordAuthenticationToken authentication =

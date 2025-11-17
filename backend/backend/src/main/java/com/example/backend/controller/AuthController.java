@@ -35,9 +35,20 @@ public class AuthController {
 
     // ✅ 로그인 (access 반환 + refresh 쿠키)
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest r) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest r) {
         User u = service.authenticate(r);
+
+
         if (u == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        // 2) 🚫 여기서 정지 유저 체크 추가!
+        if (u.isBanned()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "message", "정지된 계정입니다.",
+                            "reason", u.getBanReason()
+                    ));
+        }
 
         String access = service.newAccessToken(u);
         String refresh = service.newRefreshToken(u.getUserId());

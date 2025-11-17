@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,20 +33,24 @@ public class AdminController {
 
     // ✅ 전체 회원 조회
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userRepository.findAll();
-        return ResponseEntity.ok(users);
+        List<UserDTO> dtos = users.stream()
+                .map(UserDTO::fromEntity)
+                .toList();
+        return ResponseEntity.ok(dtos);
     }
+
 
     // ✅ 회원 강제 삭제
-    @DeleteMapping("/users/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
-        User user = userRepository.findByUserId(userId).orElse(null);
-        if (user == null) return ResponseEntity.notFound().build();
-
-        userRepository.delete(user);
-        return ResponseEntity.ok("회원이 삭제되었습니다: " + userId);
-    }
+//    @DeleteMapping("/users/{userId}")
+//    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
+//        User user = userRepository.findByUserId(userId).orElse(null);
+//        if (user == null) return ResponseEntity.notFound().build();
+//
+//        userRepository.delete(user);
+//        return ResponseEntity.ok("회원이 삭제되었습니다: " + userId);
+//    }
 
     // ✅ 권한 변경 (USER ↔ ADMIN)
     @PutMapping("/users/{userId}/role")
@@ -88,6 +94,41 @@ public class AdminController {
 
         return ResponseEntity.ok("전체 게시글 + 이미지 삭제 완료");
     }
+
+
+    // ✅ 회원 영구 정지
+    @PutMapping("/users/{userId}/ban")
+    public ResponseEntity<?> banUser(
+            @PathVariable String userId,
+            @RequestParam String reason
+    ) {
+        User user = userRepository.findByUserId(userId).orElse(null);
+        if (user == null) return ResponseEntity.notFound().build();
+
+        user.setBanned(true);
+        user.setBanReason(reason);
+        user.setBannedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok("해당 회원이 영구 정지되었습니다.");
+    }
+
+    // ✅ 정지 해제
+    @PutMapping("/users/{userId}/unban")
+    public ResponseEntity<?> unbanUser(@PathVariable String userId) {
+        User user = userRepository.findByUserId(userId).orElse(null);
+        if (user == null) return ResponseEntity.notFound().build();
+
+        user.setBanned(false);
+        user.setBanReason(null);
+        user.setBannedAt(null);
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok("회원 정지가 해제되었습니다.");
+    }
+
 
 
 

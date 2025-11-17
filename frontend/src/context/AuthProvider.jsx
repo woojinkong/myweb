@@ -35,6 +35,15 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data);
       } catch (err) {
         console.warn("유저 정보 불러오기 실패:", err);
+         // ⭐ 403이면 정지된 계정 → 강제 로그아웃
+        if (err.response?.status === 403) {
+            Cookies.remove("accessToken");
+            setUser(null);
+            return;
+        }
+
+        // 그 외 오류도 로그인 초기화
+        Cookies.remove("accessToken");
         setUser(null);
       } finally {
         setLoading(false);

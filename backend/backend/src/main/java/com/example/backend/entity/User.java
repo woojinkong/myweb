@@ -45,5 +45,15 @@ public class User {
     public void onCreate() {
         this.userCreateDate = LocalDateTime.now();
     }
-    
+
+
+    @Column(nullable = false)
+    private boolean banned = false;  // 정지 여부
+
+    private String banReason;        // 정지 사유
+    private LocalDateTime bannedAt;  // 정지 날짜
+
+
+
+
 }
