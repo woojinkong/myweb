@@ -80,14 +80,14 @@ useEffect(() => {
           </div>
         </div>
 
-        <div style={styles.infoBox}>
+        {/* <div style={styles.infoBox}>
           <p>
             <strong>이름:</strong> {profile.userName}
           </p>
           <p>
             <strong>이메일:</strong> {profile.email || "비공개"}
           </p>
-        </div>
+        </div> */}
 
         <div style={styles.buttons}>
           <button

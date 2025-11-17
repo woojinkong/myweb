@@ -21,3 +21,9 @@ export const markAsRead = async (id) => {
 export const markAllAsRead = async () => {
   await axiosInstance.post(`/notifications/read-all`);
 };
+
+// ⭐ 전체 삭제
+export const deleteAllNotifications = async () => {
+  const res = await axiosInstance.delete("/notifications/delete-all");
+  return res.data;
+};

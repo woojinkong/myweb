@@ -50,5 +50,11 @@ public class NotificationService {
     repository.saveAll(list);
     }
 
+    // 🔥 전체 삭제 정식 버전
+    @Transactional
+    public void deleteAll(Long userNo) {
+        repository.deleteAllByUserNo(userNo);
+    }
+
 
 }

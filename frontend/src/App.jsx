@@ -20,6 +20,8 @@ import FindPassword from "./pages/FindPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminUsers from "./pages/AdminUsers";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminBoardGroups from "./pages/AdminBoardGroups";
+import "./styles/Common.css";
 
 // ✅ 쪽지함 페이지 (messages 폴더가 아닌 pages 루트)
 import InBox from "./pages/Inbox";
@@ -148,6 +150,14 @@ function App() {
                 element={
                   <ProtectedRoute adminOnly>
                     <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/board-groups"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminBoardGroups />
                   </ProtectedRoute>
                 }
               />

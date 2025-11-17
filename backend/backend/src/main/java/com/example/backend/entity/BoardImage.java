@@ -22,5 +22,6 @@ public class BoardImage {
     @JsonBackReference
     private Board board;
 
+
     private String imagePath; // 실제 파일 경로
 }

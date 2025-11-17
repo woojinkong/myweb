@@ -1,212 +1,253 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
+// TipTap
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+
+// 서버 확장 이미지 업로드 기능
+import { ImageUpload } from "../api/ImageUpload";
+import Image from "@tiptap/extension-image";
 export default function BoardWrite() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
-  const [form, setForm] = useState({
-    title: "",
-    content: "",
-    category: "free",
-  });
+  const groupId = new URLSearchParams(location.search).get("groupId");
+  const [title, setTitle] = useState("");
 
-  const [images, setImages] = useState([]); // ✅ 여러 장 이미지 저장
-  const [previews, setPreviews] = useState([]); // ✅ 미리보기 이미지 URL
-  const removeImage = (index) => {
-  setImages((prev) => prev.filter((_, i) => i !== index));
-  setPreviews((prev) => prev.filter((_, i) => i !== index));
-    };
-  // 입력값 변경
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // 여러 장 이미지 선택
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages((prev) => [...prev, ...files]); // ✅ 누적 방식
-
-    // 미리보기 URL 생성
-    const previewUrls = files.map((file) => URL.createObjectURL(file));
-    setPreviews((prev) => [...prev, ...previewUrls]); // ✅ 기존 미리보기 유지
-  };
-
-  // 폼 제출
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  /* ------------------------------------
+     🔐 로그인 + groupId 체크
+  ------------------------------------ */
+  useEffect(() => {
     if (!user) {
       alert("로그인이 필요합니다!");
       navigate("/login");
+    }
+    if (!groupId) {
+      alert("올바르지 않은 게시판 접근입니다.");
+      navigate("/");
+    }
+  }, [user, groupId, navigate]);
+
+
+  const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      src: { default: null },
+      style: {
+        default:
+          "max-width:100%; height:auto; display:block; margin:12px auto; border-radius:8px;",
+      },
+    };
+  },
+});
+
+
+  /* ------------------------------------
+     📝 TipTap Editor 초기화
+  ------------------------------------ */
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      CustomImage,
+      ImageUpload, // ⭐ 서버 업로드 기능 확장
+      Placeholder.configure({
+        placeholder: "내용을 입력하세요…",
+      }),
+    ],
+
+    editorProps: {
+      attributes: {
+        style:
+          "min-height:300px; line-height:1.6; padding:10px; overflow-wrap:break-word;",
+      },
+    },
+    content: "",
+  });
+
+  /* ------------------------------------
+     ▶ 링크 삽입 핸들러
+  ------------------------------------ */
+  const setLink = useCallback(() => {
+    const url = window.prompt("링크 URL을 입력하세요:");
+    if (url === null) return;
+
+    if (url === "") {
+      editor.chain().focus().unsetLink().run();
       return;
     }
+    editor.chain().focus().setLink({ href: url }).run();
+  }, [editor]);
 
-    const formData = new FormData();
-    formData.append("title", form.title);
-    formData.append("content", form.content);
-    formData.append("category", form.category);
+  /* ------------------------------------
+     📤 게시글 등록
+  ------------------------------------ */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    
+    if (!title.trim()) return alert("제목을 입력하세요!");
+    if (!editor?.getHTML()?.trim()) return alert("내용을 입력하세요!");
 
-    // ✅ 여러 장 업로드
-    images.forEach((img) => formData.append("images", img));
+    const fd = new FormData();
+    fd.append("title", title);
+    fd.append("content", editor.getHTML());
+    fd.append("groupId", groupId);
 
     try {
-      await axiosInstance.post("/board", formData, {
+      await axiosInstance.post("/board", fd, {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
       });
+
       alert("게시글이 등록되었습니다!");
-      navigate(`/board?category=${form.category}`);
+      navigate(`/board?groupId=${groupId}`);
     } catch (err) {
       console.error(err);
-      alert("등록 중 오류가 발생했습니다.");
+      alert("등록 중 오류 발생!");
     }
   };
 
+  if (!editor) return null;
+
+  /* ------------------------------------
+     🎨 Toolbar 버튼 UI
+  ------------------------------------ */
+  const Toolbar = () => (
+  <div style={styles.toolbar}>
+    <button type="button" onClick={() => editor.chain().focus().toggleBold().run()}>
+      <b>B</b>
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()}>
+      <i>I</i>
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()}>
+      <u>U</u>
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()}>
+      <s>S</s>
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+      H2
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+      H3
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+      • List
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+      1. List
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+      ❝ Quote
+    </button>
+
+    <button type="button" onClick={setLink}>🔗 Link</button>
+
+    <button type="button" onClick={() => editor.commands.uploadImage()}>
+      🖼️ Image
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().undo().run()}>
+      ↶ Undo
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().redo().run()}>
+      ↷ Redo
+    </button>
+  </div>
+);
+
+
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>게시글 작성</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <label style={styles.label}>
-          📂 카테고리 선택:
-          <select
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            style={styles.select}
-          >
-            <option value="notice">공지</option>
-            <option value="free">자유</option>
-            <option value="inform">정보</option>
-          </select>
-        </label>
+      <h2 style={styles.title}>📋 게시글 작성</h2>
 
+      <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
-          name="title"
-          placeholder="제목"
-          value={form.title}
-          onChange={handleChange}
-          required
+          placeholder="제목을 입력하세요"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           style={styles.input}
-        />
-
-        <textarea
-          name="content"
-          placeholder="내용"
-          value={form.content}
-          onChange={handleChange}
           required
-          style={styles.textarea}
         />
 
-        {/* ✅ 여러 장 업로드 */}
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileChange}
-          style={{ marginTop: "10px" }}
-        />
+        <Toolbar />
 
-        {/* ✅ 미리보기 영역 */}
-        {previews.length > 0 && (
-          <div style={styles.previewContainer}>
-           {previews.map((src, idx) => (
-                <div key={idx} style={{ position: "relative" }}>
-                <img src={src} alt={`preview-${idx}`} style={styles.previewImage} />
-                <button
-                    type="button"
-                    onClick={() => removeImage(idx)}
-                    style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    background: "rgba(0,0,0,0.5)",
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                    }}
-                >
-                    ❌
-                </button>
-                </div>
-            ))}
-          </div>
-        )}
+        <div style={styles.editorBox} className="tiptap">
+          <EditorContent editor={editor} />
+        </div>
 
-        <button type="submit" style={styles.button}>
-          등록하기
-        </button>
+        <button type="submit" style={styles.button}>등록하기</button>
       </form>
     </div>
   );
 }
 
+/* ------------------------------------
+   🎨 스타일
+------------------------------------ */
 const styles = {
   container: {
-    maxWidth: "600px",
+    maxWidth: "750px",
     margin: "50px auto",
-    padding: "20px",
+    padding: "25px",
+    background: "#fff",
     border: "1px solid #ddd",
-    borderRadius: "10px",
-    backgroundColor: "#fff",
+    borderRadius: "12px",
   },
   title: {
     textAlign: "center",
     marginBottom: "20px",
+    fontSize: "22px",
+    fontWeight: "700",
   },
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
-  },
-  label: {
-    fontWeight: "bold",
-    marginBottom: "5px",
-  },
-  select: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    marginTop: "5px",
-    marginBottom: "10px",
+    gap: "15px",
   },
   input: {
-    padding: "10px",
-    borderRadius: "5px",
+    padding: "12px",
     border: "1px solid #ccc",
-  },
-  textarea: {
-    height: "150px",
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  previewContainer: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    marginTop: "10px",
-  },
-  previewImage: {
-    width: "100px",
-    height: "100px",
-    objectFit: "cover",
     borderRadius: "6px",
+    fontSize: "15px",
+  },
+  toolbar: {
+    display: "flex",
+    gap: "6px",
+    flexWrap: "wrap",
+    padding: "10px",
+    border: "1px solid #ddd",
+    borderRadius: "6px",
+    background: "#f9f9f9",
+  },
+  editorBox: {
+    minHeight: "300px",
     border: "1px solid #ccc",
+    borderRadius: "6px",
+    padding: "10px",
+    background: "#fff",
   },
   button: {
-    padding: "10px",
-    backgroundColor: "#4CAF50",
-    color: "white",
+    padding: "12px",
+    background: "#4CAF50",
+    color: "#fff",
     border: "none",
-    borderRadius: "5px",
+    borderRadius: "6px",
+    fontSize: "16px",
     cursor: "pointer",
   },
 };

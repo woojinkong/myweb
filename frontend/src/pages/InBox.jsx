@@ -1,15 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { FiMail, FiSend, FiEye, FiTrash2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import UserProfilePopup from "./UserProfilepopup";
 
 export default function InBox() {
   const [messages, setMessages] = useState([]);
   const [selectedMsg, setSelectedMsg] = useState(null);
+  const [openProfileId, setOpenProfileId] = useState(null); // 🔥 추가
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   // ✅ 받은 쪽지 목록 불러오기
   useEffect(() => {
+    if (!user || !user.userId) return;
+
     const fetchMessages = async () => {
       try {
         const res = await axiosInstance.get("/message/received");
@@ -18,29 +24,32 @@ export default function InBox() {
         console.error("쪽지 목록 불러오기 실패:", err);
       }
     };
+
     fetchMessages();
-  }, []);
+  }, [user]);
 
   // ✅ 쪽지 읽음 처리
   const handleRead = async (msg) => {
     setSelectedMsg(msg);
-    if (!msg.isRead) {
-      try {
-        await axiosInstance.post(`/message/${msg.messageNo}/read`);
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.messageNo === msg.messageNo ? { ...m, isRead: true } : m
-          )
-        );
-      } catch (err) {
-        console.error("읽음 처리 실패:", err);
-      }
+
+    if (msg.isRead) return;
+
+    try {
+      await axiosInstance.post(`/message/${msg.messageNo}/read`);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.messageNo === msg.messageNo ? { ...m, isRead: true } : m
+        )
+      );
+    } catch (err) {
+      console.error("읽음 처리 실패:", err);
     }
   };
 
   // ✅ 쪽지 삭제
   const handleDelete = async (msgNo) => {
     if (!window.confirm("정말 이 쪽지를 삭제하시겠습니까?")) return;
+
     try {
       await axiosInstance.delete(`/message/${msgNo}`);
       setMessages((prev) => prev.filter((m) => m.messageNo !== msgNo));
@@ -81,25 +90,43 @@ export default function InBox() {
                 background: msg.isRead ? "#fafafa" : "#e8f5ff",
               }}
             >
-              <span style={{ flex: 2, fontWeight: "600" }}>{msg.senderId}</span>
+              {/* 🔥 보낸 사람 클릭 → 프로필 팝업 */}
+              <span
+                style={{
+                  flex: 2,
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  color: "#007bff",
+                }}
+                onClick={() => setOpenProfileId(msg.senderId)}
+              >
+                {msg.senderId}
+              </span>
+
               <span
                 style={{ flex: 5, cursor: "pointer" }}
                 onClick={() => handleRead(msg)}
-                title="내용 보기"
               >
                 {msg.content.length > 35
                   ? msg.content.slice(0, 35) + "..."
                   : msg.content}
               </span>
+
               <span style={{ flex: 2, fontSize: "13px", color: "#666" }}>
                 {new Date(msg.sendDate).toLocaleString("ko-KR", {
                   dateStyle: "medium",
                   timeStyle: "short",
                 })}
               </span>
+
               <span style={{ flex: 1 }}>
-                {msg.isRead ? <FiEye color="#888" /> : <FiMail color="#007bff" />}
+                {msg.isRead ? (
+                  <FiEye color="#888" />
+                ) : (
+                  <FiMail color="#007bff" />
+                )}
               </span>
+
               <span style={{ flex: 1 }}>
                 <FiTrash2
                   color="#d33"
@@ -112,22 +139,22 @@ export default function InBox() {
         )}
       </div>
 
-      {/* ✅ 선택한 쪽지 내용 모달 */}
+      {/* 📌 쪽지 내용 모달 */}
       {selectedMsg && (
         <div style={styles.overlay} onClick={() => setSelectedMsg(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>✉️ 쪽지 내용</h3>
+
             <p>
               <strong>보낸 사람:</strong> {selectedMsg.senderId}
             </p>
             <p>
               <strong>받은 날짜:</strong>{" "}
-              {new Date(selectedMsg.sendDate).toLocaleString("ko-KR", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
+              {new Date(selectedMsg.sendDate).toLocaleString("ko-KR")}
             </p>
+
             <div style={styles.modalContent}>{selectedMsg.content}</div>
+
             <button
               style={styles.closeBtn}
               onClick={() => setSelectedMsg(null)}
@@ -137,9 +164,18 @@ export default function InBox() {
           </div>
         </div>
       )}
+
+      {/* 📌 프로필 팝업 (UserProfilePopup) */}
+      {openProfileId && (
+        <UserProfilePopup
+          userId={openProfileId}
+          onClose={() => setOpenProfileId(null)}
+        />
+      )}
     </div>
   );
 }
+
 const styles = {
   container: {
     maxWidth: "900px",

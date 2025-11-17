@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Board {
      @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,8 +26,10 @@ public class Board {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
+
 
     @Column(nullable = false)
     private String userId; // 작성자 (userId 또는 nickname)
@@ -47,11 +51,9 @@ public class Board {
     @PrePersist
     public void prePersist() {
         this.createdDate = LocalDateTime.now();
-        this.viewCount = 0; // ✅ 게시글 생성 시 초기값 0
-        if (this.category == null || this.category.isBlank()) {
-        this.category = "free"; // ✅ 기본값
+        this.viewCount = 0;
     }
-    }
+
 
     @PreUpdate
     public void preUpdate() {
@@ -68,7 +70,14 @@ public class Board {
     @com.fasterxml.jackson.annotation.JsonIgnore  // ⚠️ Board 응답에 댓글 전체를 싣지 않도록
     private List<Comment> comments = new ArrayList<>();
 
-    @Column(nullable = false)
-    private String category; // 예: "free", "game", "notice"
+//    @Column(nullable = false)
+//    private String category; // 예: "free", "game", "notice"
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_group_id", nullable = false)
+    private BoardGroup boardGroup;
+
+
+
 
 }

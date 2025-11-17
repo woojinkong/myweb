@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useContext } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { FiInbox, FiTrash2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Outbox() {
   const [messages, setMessages] = useState([]);
   const [selectedMsg, setSelectedMsg] = useState(null);
   const navigate = useNavigate();
+  const {user} = useContext(AuthContext);
 
   // ✅ 보낸 쪽지 목록 불러오기
   useEffect(() => {
+    if (!user || !user.userId) return;
     const fetchMessages = async () => {
       try {
         const res = await axiosInstance.get("/message/sent");

@@ -19,24 +19,28 @@ export default function Navbar({ isSidebarOpen }) {
 
   // ✅ 알림 + 쪽지 읽지 않은 개수 불러오기
   useEffect(() => {
-    if (user) {
-      const loadUnread = async () => {
-        try {
-          const [notiCount, msgCount] = await Promise.all([
-            fetchUnreadCount(),
-            fetchUnreadMessages(),
-          ]);
-          setUnreadCount(notiCount);
-          setUnreadMsgCount(msgCount);
-        } catch (err) {
-          console.error("알림/쪽지 개수 조회 실패:", err);
-        }
-      };
-      loadUnread();
-      const interval = setInterval(loadUnread, 30000);
-      return () => clearInterval(interval);
+  if (!user || !user.userId) return;
+
+  const loadUnread = async () => {
+    try {
+      const [notiCount, msgCount] = await Promise.all([
+        fetchUnreadCount(),
+        fetchUnreadMessages(),
+      ]);
+      setUnreadCount(notiCount);
+      setUnreadMsgCount(msgCount);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) return;
+      console.error("알림/쪽지 개수 조회 실패:", err);
     }
-  }, [user]);
+  };
+
+  loadUnread();
+  const interval = setInterval(loadUnread, 30000);
+  return () => clearInterval(interval);
+
+}, [user]);
+
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -45,6 +49,17 @@ export default function Navbar({ isSidebarOpen }) {
     setShowSearch(false);
     setKeyword("");
   };
+
+
+  const getProfileSrc = (user) => {
+  if (!user?.profileImage) return "/default_profile.png";
+
+  if (user.profileImage.startsWith("http")) return user.profileImage;
+
+  return `http://192.168.123.107:8080${user.profileImage}`;
+};
+
+
 
   return (
     <nav
@@ -57,7 +72,7 @@ export default function Navbar({ isSidebarOpen }) {
       {/* 로고 */}
       <div style={styles.logoBox}>
         <Link to="/" style={styles.logo}>
-          KONGHOME
+          KongHome
         </Link>
       </div>
 
@@ -141,7 +156,7 @@ export default function Navbar({ isSidebarOpen }) {
                 style={styles.adminButton}
                 title="관리자 페이지"
               >
-                👑
+                ⚙️
               </button>
             )}
 
@@ -152,19 +167,16 @@ export default function Navbar({ isSidebarOpen }) {
               title="내 정보"
             >
               <img
-                src={
-                  user.profileImage
-                    ? user.profileImage.startsWith("http")
-                      ? user.profileImage
-                      : `${BASE_URL}${user.profileImage}`
-                    : "/images/default_profile.png"
-                }
+                src={getProfileSrc(user)}
                 alt="프로필"
                 style={styles.profileImage}
-                onError={(e) =>
-                  (e.currentTarget.src = "/images/default_profile.png")
-                }
+                onError={(e) => {
+                  if (!e.currentTarget.src.endsWith("/default_profile.png")) {
+                    e.currentTarget.src = "/default_profile.png";
+                  }
+                }}
               />
+
             </button>
 
             {/* 🚪 로그아웃 */}

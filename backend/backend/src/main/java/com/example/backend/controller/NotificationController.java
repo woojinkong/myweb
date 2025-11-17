@@ -51,5 +51,16 @@ public class NotificationController {
     return ResponseEntity.noContent().build();
     }
 
+    // ✅ 전체 알림 삭제
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<Void> deleteAll(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long userNo = userDetails.getUser().getUserNo();
+        service.deleteAll(userNo);
+        return ResponseEntity.noContent().build(); // 204
+    }
+
+
 
 }
