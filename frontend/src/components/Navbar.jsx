@@ -65,8 +65,8 @@ export default function Navbar({ isSidebarOpen }) {
     <nav
       style={{
         ...styles.nav,
-        left: isSidebarOpen ? "200px" : "70px",
-        width: isSidebarOpen ? "calc(100vw - 200px)" : "calc(100vw - 70px)",
+        left: isSidebarOpen ? "150px" : "50px",
+        width: isSidebarOpen ? "calc(100vw - 150px)" : "calc(100vw - 50px)",
       }}
     >
       {/* 로고 */}

@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { FiFolder } from "react-icons/fi";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
@@ -26,46 +25,58 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     loadGroups();
   }, [loadGroups, location.pathname]);
 
-  // 📌 활성화 스타일
+  // 📌 활성화 강조 스타일
   const getActiveStyle = (id) => {
     const isActive = String(currentGroupId) === String(id);
     return isActive ? styles.active : {};
   };
 
+  let numberCounter = 1;
+
   return (
-    <div style={{ ...styles.sidebar, width: isOpen ? "200px" : "70px" }}>
-      {/* ☰ 햄버거 버튼 */}
+    <div style={{ ...styles.sidebar, width: isOpen ? "150px" : "50px" }}>
       <div style={styles.header}>
         <button onClick={toggleSidebar} style={styles.hamburger}>☰</button>
       </div>
 
-      {/* 🔄 로딩 표시 */}
       {loading && (
         <p style={{ textAlign: "center", color: "#888", fontSize: "13px" }}>
           불러오는 중...
         </p>
       )}
 
-      {/* 📂 그룹 목록 */}
       <ul style={styles.list}>
-        {groups.map((group) => (
-          <li key={group.id} style={styles.item}>
-            <Link
-              to={`/board?groupId=${group.id}`}
-              style={{ ...styles.link, ...getActiveStyle(group.id) }}
-            >
-              <FiFolder style={styles.icon} />
-              {isOpen && <span>{group.name}</span>}
-            </Link>
-          </li>
-        ))}
+        {groups.map((group) => {
+          // 🔥 구분선은 번호 없음 + 번호 증가 X
+          if (group.type === "DIVIDER") {
+            return (
+              <li key={group.id} style={styles.item}>
+                <div style={isOpen ? styles.dividerOpen : styles.dividerClosed}>
+                  {isOpen && ` ${group.name} `}
+                  {!isOpen && "─"}
+                </div>
+              </li>
+            );
+          }
 
-        {/* ⚠ 그룹이 없을 경우 */}
-        {!loading && groups.length === 0 && (
-          <li style={{ color: "#999", textAlign: "center", fontSize: "14px", marginTop: "10px" }}>
-            게시판 없음
-          </li>
-        )}
+          // 🔥 BOARD 전용 번호
+          const number = numberCounter;
+          numberCounter++;
+
+          return (
+            <li key={group.id} style={styles.item}>
+              <Link
+                to={`/board?groupId=${group.id}`}
+                style={{ ...styles.link, ...getActiveStyle(group.id) }}
+              >
+                {/* 번호만 표시 */}
+                <span style={styles.number}>{number}.</span>
+
+                {isOpen && <span>{group.name}</span>}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -86,7 +97,7 @@ const styles = {
   },
   header: {
     display: "flex",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     marginBottom: "15px",
   },
   hamburger: {
@@ -105,7 +116,7 @@ const styles = {
   link: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "8px",
     padding: "10px",
     textDecoration: "none",
     color: "#333",
@@ -117,7 +128,26 @@ const styles = {
     color: "#fff",
     fontWeight: "700",
   },
-  icon: {
-    fontSize: "18px",
+
+  /* 번호 텍스트만 */
+  number: {
+    fontSize: "14px",
+    fontWeight: "600",
+    width: "20px",
+    textAlign: "right",
+  },
+
+  dividerOpen: {
+    textAlign: "center",
+    fontWeight: 500,
+    color: "#777",
+    padding: "0px 0",
+    borderBottom: "1px solid #ddd",
+    margin: "6px 6px",
+  },
+  dividerClosed: {
+    textAlign: "center",
+    color: "#777",
+    padding: "6px 0",
   },
 };

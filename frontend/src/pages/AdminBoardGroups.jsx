@@ -23,9 +23,9 @@ export default function AdminBoardGroups() {
     allowComment: true,
   });
 
-  // ================================
-  //   관리자 체크
-  // ================================
+  /* ===============================
+      관리자 체크
+  =============================== */
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
       alert("관리자만 접근 가능합니다.");
@@ -33,16 +33,15 @@ export default function AdminBoardGroups() {
     }
   }, [user, navigate]);
 
-  // ================================
-  //   게시판 목록 조회
-  // ================================
+  /* ===============================
+      게시판 목록 조회
+  =============================== */
   const loadGroups = async () => {
     try {
       const res = await axiosInstance.get("/board-group");
       setGroups(res.data);
     } catch (err) {
       console.error("📛 게시판 목록 조회 실패:", err);
-      alert("게시판 목록을 불러오지 못했습니다.");
     }
   };
 
@@ -50,47 +49,62 @@ export default function AdminBoardGroups() {
     loadGroups();
   }, []);
 
-  // ================================
-  //   게시판 생성
-  // ================================
+  /* ===============================
+      게시판 생성
+  =============================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      await axiosInstance.post("/board-group", form);
-
+      await axiosInstance.post("/board-group", { ...form, type: "BOARD" });
       alert("게시판이 생성되었습니다!");
       setForm({ name: "", adminOnlyWrite: false, allowComment: true });
-
       loadGroups();
     } catch (err) {
-      console.error("📛 게시판 생성 실패:", err);
-      alert("게시판 생성에 실패했습니다.");
+      alert("게시판 생성 실패",err);
     }
   };
 
-  // ================================
-  //   게시판 삭제
-  // ================================
+  /* ===============================
+      구분선(DIVIDER) 생성
+  =============================== */
+  const createDivider = async () => {
+    const title = prompt("구분선 제목을 입력하세요:");
+    if (!title) return;
+
+    try {
+      await axiosInstance.post("/board-group", {
+        name: title,
+        type: "DIVIDER",
+        adminOnlyWrite: false,
+        allowComment: false,
+      });
+
+      alert("구분선이 생성되었습니다!");
+      loadGroups();
+    } catch (err) {
+      console.error("구분선 생성 실패:", err);
+      alert("구분선 생성 실패");
+    }
+  };
+
+  /* ===============================
+      게시판 삭제
+  =============================== */
   const handleDelete = async (id) => {
-    const ok = window.confirm(
-      "정말 삭제하시겠습니까?\n해당 게시판의 게시글도 함께 삭제될 수 있습니다."
-    );
-    if (!ok) return;
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
     try {
       await axiosInstance.delete(`/board-group/${id}`);
-      alert("게시판이 삭제되었습니다.");
       loadGroups();
     } catch (err) {
-      console.error("📛 게시판 삭제 실패:", err);
-      alert("게시판 삭제에 실패했습니다.");
+      alert("삭제 실패",err);
     }
   };
 
-  // ================================
-  //   수정 모드 활성화
-  // ================================
+  /* ===============================
+      수정 모드
+  =============================== */
   const startEdit = (g) => {
     setEditingId(g.id);
     setEditForm({
@@ -100,24 +114,20 @@ export default function AdminBoardGroups() {
     });
   };
 
-  // ================================
-  //   수정 저장
-  // ================================
   const submitEdit = async (id) => {
     try {
       await axiosInstance.put(`/board-group/${id}`, editForm);
-
-      alert("수정이 완료되었습니다!");
+      alert("수정 완료");
       setEditingId(null);
       loadGroups();
     } catch (err) {
-      alert("수정 실패!",err);
+      alert("수정 실패",err);
     }
   };
 
-  // ================================
-  //   순서 변경
-  // ================================
+  /* ===============================
+      순서 변경
+  =============================== */
   const moveUp = async (id) => {
     await axiosInstance.post(`/board-group/${id}/move-up`);
     loadGroups();
@@ -132,9 +142,9 @@ export default function AdminBoardGroups() {
     <div style={{ ...cardBase, maxWidth: "900px", margin: "50px auto", padding: "40px" }}>
       <h2 style={styles.title}>📋 게시판 관리</h2>
 
-      {/* -------------------------------- */}
+      {/* ====================== */}
       {/* 새 게시판 생성 폼 */}
-      {/* -------------------------------- */}
+      {/* ====================== */}
       <form onSubmit={handleSubmit} style={{ marginBottom: "30px" }}>
         <input
           type="text"
@@ -164,19 +174,30 @@ export default function AdminBoardGroups() {
         </label>
 
         <button type="submit" style={{ ...buttons.primary, marginTop: "8px" }}>
-          생성하기
+          게시판 생성
         </button>
+
+        {/* ⭐ 구분선 추가 */}
+        <label
+          style={{ ...styles.label, cursor: "pointer", color: "#555", marginTop: "10px" }}
+          onClick={createDivider}
+        >
+          ➕ 구분선 추가
+        </label>
       </form>
 
-      {/* -------------------------------- */}
+      {/* ====================== */}
       {/* 게시판 목록 */}
-      {/* -------------------------------- */}
-      <h3 style={styles.listTitle}>📚 생성된 게시판 목록</h3>
+      {/* ====================== */}
+      <h3 style={styles.listTitle}>📚 생성된 항목 목록</h3>
 
       <ul style={styles.list}>
         {groups.map((g, index) => (
           <li key={g.id} style={styles.listItem}>
+
+            {/* ====================== */}
             {/* 수정 모드 */}
+            {/* ====================== */}
             {editingId === g.id ? (
               <>
                 <input
@@ -185,50 +206,57 @@ export default function AdminBoardGroups() {
                   style={styles.inputSmall}
                 />
 
-                <label style={styles.label}>
-                  <input
-                    type="checkbox"
-                    checked={editForm.adminOnlyWrite}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, adminOnlyWrite: e.target.checked })
-                    }
-                  />
-                  관리자만 글쓰기
-                </label>
+                {g.type !== "DIVIDER" && (
+                  <>
+                    <label style={styles.label}>
+                      <input
+                        type="checkbox"
+                        checked={editForm.adminOnlyWrite}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, adminOnlyWrite: e.target.checked })
+                        }
+                      />
+                      관리자만 글쓰기
+                    </label>
 
-                <label style={styles.label}>
-                  <input
-                    type="checkbox"
-                    checked={editForm.allowComment}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, allowComment: e.target.checked })
-                    }
-                  />
-                  댓글 허용
-                </label>
+                    <label style={styles.label}>
+                      <input
+                        type="checkbox"
+                        checked={editForm.allowComment}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, allowComment: e.target.checked })
+                        }
+                      />
+                      댓글 허용
+                    </label>
+                  </>
+                )}
 
-                <button onClick={() => submitEdit(g.id)} style={styles.saveBtn}>
-                  저장
-                </button>
-
-                <button onClick={() => setEditingId(null)} style={styles.cancelBtn}>
-                  취소
-                </button>
+                <button onClick={() => submitEdit(g.id)} style={styles.saveBtn}>저장</button>
+                <button onClick={() => setEditingId(null)} style={styles.cancelBtn}>취소</button>
               </>
             ) : (
               <>
-                {/* 일반 표시 모드 */}
-                <div>
-                  <strong>{g.name}</strong>{" "}
-                  {g.adminOnlyWrite && "👑"}
-                  {!g.allowComment && " 🚫"}
-                  <span style={{ color: "#555", marginLeft: "10px" }}>
-                    ({g.boardCount}개 글)
-                  </span>
-                </div>
+                {/* ======================
+                    일반 표시 (DIVIDER 포함)
+                ====================== */}
+
+                {g.type === "DIVIDER" ? (
+                  <div style={styles.dividerBox}>
+                    ── {g.name} ──
+                  </div>
+                ) : (
+                  <div>
+                    <strong>{g.name}</strong>{" "}
+                    {g.adminOnlyWrite && "👑"}
+                    {!g.allowComment && " 🚫"}
+                    <span style={{ color: "#555", marginLeft: "10px" }}>
+                      ({g.boardCount}개 글)
+                    </span>
+                  </div>
+                )}
 
                 <div style={styles.btnGroup}>
-                  {/* 순서 변경 버튼 */}
                   <button
                     onClick={() => moveUp(g.id)}
                     disabled={index === 0}
@@ -236,6 +264,7 @@ export default function AdminBoardGroups() {
                   >
                     ⬆
                   </button>
+
                   <button
                     onClick={() => moveDown(g.id)}
                     disabled={index === groups.length - 1}
@@ -244,22 +273,12 @@ export default function AdminBoardGroups() {
                     ⬇
                   </button>
 
-                  {/* 수정 버튼 */}
-                  <button onClick={() => startEdit(g)} style={styles.editBtn}>
-                    수정
-                  </button>
-
-                  {/* 삭제 버튼 */}
-                  <button onClick={() => handleDelete(g.id)} style={styles.deleteBtn}>
-                    삭제
-                  </button>
-
-
-                    
-
+                  <button onClick={() => startEdit(g)} style={styles.editBtn}>수정</button>
+                  <button onClick={() => handleDelete(g.id)} style={styles.deleteBtn}>삭제</button>
                 </div>
               </>
             )}
+
           </li>
         ))}
       </ul>
@@ -267,9 +286,9 @@ export default function AdminBoardGroups() {
   );
 }
 
-// ================================
-//   스타일 모음
-// ================================
+/* ===============================
+      스타일
+=============================== */
 const styles = {
   title: {
     fontSize: "22px",
@@ -318,6 +337,11 @@ const styles = {
   btnGroup: {
     display: "flex",
     gap: "8px",
+  },
+  dividerBox: {
+    fontWeight: "700",
+    color: "#777",
+    padding: "5px 0",
   },
   moveBtn: {
     padding: "5px 8px",

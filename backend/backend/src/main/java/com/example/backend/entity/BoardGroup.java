@@ -41,6 +41,9 @@ public class BoardGroup {
     @Transient
     private int boardCount;
 
+    @Column(nullable = false)
+    private String type = "BOARD";  // ⭐ 기본값은 무조건 BOARD !!
+
 
 
 
