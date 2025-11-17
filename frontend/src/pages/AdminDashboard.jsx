@@ -70,6 +70,13 @@ export default function AdminDashboard() {
         >
           📋 게시판 관리
         </button>
+        <button
+          onClick={() => navigate("/admin/reports")}
+          style={{ ...buttons.primary, fontSize: "15px", padding: "10px" }}
+        >
+          🚨 신고된 게시글 목록
+        </button>
+
 
         <button
           onClick={async () => {

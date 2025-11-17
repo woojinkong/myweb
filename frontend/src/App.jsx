@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AdminUsers from "./pages/AdminUsers";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBoardGroups from "./pages/AdminBoardGroups";
+import AdminReports from "./pages/Reports";
 import "./styles/Common.css";
 
 // ✅ 쪽지함 페이지 (messages 폴더가 아닌 pages 루트)
@@ -158,6 +159,14 @@ function App() {
                 element={
                   <ProtectedRoute adminOnly>
                     <AdminBoardGroups />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminReports />
                   </ProtectedRoute>
                 }
               />
