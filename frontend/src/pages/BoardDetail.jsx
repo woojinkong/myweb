@@ -81,6 +81,22 @@ export default function BoardDetail() {
     }
   };
 
+
+  // 신고 기능
+const handleReport = async () => {
+  const reason = prompt("신고 사유를 입력하세요:");
+  if (!reason) return;
+
+  try {
+    await axiosInstance.post(`/board/report/${id}`, { reason });
+    alert("신고가 접수되었습니다.");
+  } catch (err) {
+    console.error("신고 실패:", err);
+    alert("신고 중 오류가 발생했습니다.");
+  }
+};
+
+
   if (!board)
     return <p style={styles.loading}>⏳ 게시글을 불러오는 중...</p>;
 
@@ -94,7 +110,13 @@ export default function BoardDetail() {
         position: "relative",
       }}
     >
-      <h2 style={styles.title}>{board.title}</h2>
+      <div style={styles.titleRow}>
+        <h2 style={styles.title}>{board.title}</h2>
+        <button style={styles.reportBtn} onClick={handleReport}>
+          🚨 신고
+        </button>
+      </div>
+
 
       {/* 작성자 정보 */}
       <div style={styles.metaBox}>
@@ -245,4 +267,21 @@ const styles = {
     marginTop: "60px",
     color: colors.text.light,
   },
+  titleRow: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "15px",
+},
+
+reportBtn: {
+  background: "transparent",
+  border: "1px solid #ff4d4d",
+  color: "#ff4d4d",
+  padding: "5px 10px",
+  fontSize: "12px",
+  borderRadius: "5px",
+  cursor: "pointer",
+},
+
 };
