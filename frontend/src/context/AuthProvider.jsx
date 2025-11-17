@@ -21,8 +21,10 @@ export const AuthProvider = ({ children }) => {
       "/reset-password",
     ];
 
+    const publicPrefixes = ["/user"];
+
     // ✅ 공개 경로라면 /auth/me 호출하지 않음 (깜빡임 방지)
-    if (publicPaths.includes(location.pathname)) {
+    if (publicPaths.includes(location.pathname) || publicPrefixes.some((prefix) => location.pathname.startsWith(prefix))) {
       setLoading(false);
       return;
     }

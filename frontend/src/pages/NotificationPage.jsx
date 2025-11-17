@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { fetchNotifications, markAsRead, markAllAsRead } from "../api/notificationApi";
+import { fetchNotifications, markAsRead, markAllAsRead,deleteAllNotifications } from "../api/notificationApi";
 import { useNavigate } from "react-router-dom";
+
 
 export default function NotificationPage() {
   const [notifications, setNotifications] = useState([]);
@@ -40,16 +41,38 @@ export default function NotificationPage() {
     }
   };
 
+  // ⭐ 전체 삭제 기능
+  const handleDeleteAll = async () => {
+    if (!window.confirm("정말 모든 알림을 삭제하시겠습니까?")) return;
+
+    try {
+      await deleteAllNotifications();
+      setNotifications([]); // 즉시 화면 반영
+    } catch (err) {
+      console.error("전체 삭제 실패:", err);
+    }
+  };
+
+
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>🔔 내 알림함</h2>
+
         {notifications.length > 0 && (
-          <button onClick={handleMarkAllRead} style={styles.readAllBtn}>
-            전체 읽음 처리
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={handleMarkAllRead} style={styles.readAllBtn}>
+              전체 읽음 처리
+            </button>
+
+            <button onClick={handleDeleteAll} style={styles.deleteAllBtn}>
+              전체 삭제
+            </button>
+          </div>
         )}
       </div>
+
 
       {notifications.length === 0 ? (
         <p style={styles.empty}>새로운 알림이 없습니다.</p>
@@ -130,5 +153,14 @@ const styles = {
     fontSize: "13px",
     color: "#888",
     marginTop: "4px",
+  },
+
+  deleteAllBtn: {
+    padding: "8px 16px",
+    backgroundColor: "#d9534f",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
   },
 };

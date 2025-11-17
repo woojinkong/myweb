@@ -1,0 +1,9 @@
+/* 게시판 본문 공통 스타일 */
+.board-content img,
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 12px auto;
+  border-radius: 8px;
+}

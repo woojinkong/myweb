@@ -64,6 +64,30 @@ export default function AdminDashboard() {
         >
           👥 회원 관리
         </button>
+        <button
+          onClick={() => navigate("/admin/board-groups")}
+          style={{ ...buttons.primary, fontSize: "15px", padding: "10px" }}
+        >
+          📋 게시판 관리
+        </button>
+
+        <button
+          onClick={async () => {
+            if (!window.confirm("정말 전체 게시글을 삭제할까요?")) return;
+            try {
+              await axiosInstance.delete("/admin/boards");
+              alert("전체 게시글 삭제 완료!");
+              window.location.reload();
+            } catch (err) {
+              alert("삭제 중 오류 발생!");
+              console.error(err);
+            }
+          }}
+          style={{ ...buttons.danger, fontSize: "15px", padding: "10px" }}
+        >
+          🗑 전체 게시글 삭제
+        </button>
+
         
       </div>
     </div>

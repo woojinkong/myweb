@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,69 +21,93 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository; // ✅ 추가
+    private final UserRepository userRepository;
 
-    // ✅ 전체 게시글 조회 + 댓글 수 + 프로필 이미지
+    // ===============================================================
+    //   📌 전체 게시글 조회 (관리자용 / 테스트용)
+    // ===============================================================
     public List<BoardListResponse> findAllWithCommentCount() {
-        List<Board> boards = boardRepository.findAll(Sort.by(Sort.Direction.DESC, "boardNo"));
+        List<Board> boards = boardRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "boardNo")
+        );
 
         return boards.stream()
-                .map(board -> {
-                    String profileUrl = getProfileUrl(board.getUserId());
-                    return BoardListResponse.builder()
-                            .boardNo(board.getBoardNo())
-                            .title(board.getTitle())
-                            .userId(board.getUserId())
-                            .viewCount(board.getViewCount())
-                            .createdDate(board.getCreatedDate())
-                            .commentCount(commentRepository.countByBoard(board))
-                            .imagePath(
-                                    (board.getImages() != null && !board.getImages().isEmpty())
-                                            ? board.getImages().get(0).getImagePath()
-                                            : null
-                            )
-                            .category(board.getCategory())
-                            .profileUrl(profileUrl)
-                            .build();
-                })
-                .collect(Collectors.toList());
+                .map(this::toListDto)
+                .toList();
     }
 
-    // ✅ 카테고리별 게시글 조회 + 댓글 수 + 프로필 이미지
-    public List<BoardListResponse> findAllWithCommentCountByCategory(String category) {
-        List<Board> boards = boardRepository.findByCategoryOrderByCreatedDateDesc(category);
+    // ===============================================================
+    //   📌 특정 게시판(BoardGroup) 기준 목록 조회
+    // ===============================================================
+    public List<BoardListResponse> findAllByBoardGroup(Long groupId) {
+
+        List<Board> boards = boardRepository
+                .findByBoardGroupIdOrderByCreatedDateDesc(groupId);
 
         return boards.stream()
-                .map(board -> {
-                    String profileUrl = getProfileUrl(board.getUserId());
-                    return BoardListResponse.builder()
-                            .boardNo(board.getBoardNo())
-                            .title(board.getTitle())
-                            .userId(board.getUserId())
-                            .viewCount(board.getViewCount())
-                            .createdDate(board.getCreatedDate())
-                            .commentCount(commentRepository.countByBoard(board))
-                            .imagePath(
-                                    (board.getImages() != null && !board.getImages().isEmpty())
-                                            ? board.getImages().get(0).getImagePath()
-                                            : null
-                            )
-                            .category(board.getCategory())
-                            .profileUrl(profileUrl)
-                            .build();
-                })
-                .collect(Collectors.toList());
+                .map(this::toListDto)
+                .toList();
     }
 
-    // ✅ 상세 게시글 조회 (조회수 증가 + 프로필 포함)
+    // ===============================================================
+    //   📌 게시글 상세 조회 — 조회수 증가 포함
+    // ===============================================================
     public BoardDetailResponse findByIdForRead(Long id) {
+
         Board board = boardRepository.findById(id).orElse(null);
         if (board == null) return null;
 
+        increaseViewCount(board);
+
+        return toDetailDto(board);
+    }
+
+    // 조회수 증가
+    private void increaseViewCount(Board board) {
         board.setViewCount(board.getViewCount() + 1);
         boardRepository.save(board);
+    }
 
-        String profileUrl = getProfileUrl(board.getUserId());
+    // ===============================================================
+    //   📌 검색 기능
+    // ===============================================================
+    public List<BoardListResponse> searchBoards(String keyword, String type) {
+
+        List<Board> boards = switch (type) {
+            case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword);
+            case "content" -> boardRepository.findByContentContainingIgnoreCase(keyword);
+            case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword);
+            default -> List.of();
+        };
+
+        return boards.stream()
+                .map(this::toListDto)
+                .toList();
+    }
+
+    // ===============================================================
+    //   📌 Board → BoardListResponse 변환 (공통 변환 메서드)
+    // ===============================================================
+    private BoardListResponse toListDto(Board board) {
+
+        return BoardListResponse.builder()
+                .boardNo(board.getBoardNo())
+                .title(board.getTitle())
+                .userId(board.getUserId())
+                .viewCount(board.getViewCount())
+                .createdDate(board.getCreatedDate())
+                .commentCount(commentRepository.countByBoard(board))
+                .imagePath(getFirstImage(board))
+                .groupId(board.getBoardGroup().getId())
+                .groupName(board.getBoardGroup().getName())
+                .profileUrl(getProfileUrl(board.getUserId()))
+                .build();
+    }
+
+    // ===============================================================
+    //   📌 Board → BoardDetailResponse 변환
+    // ===============================================================
+    private BoardDetailResponse toDetailDto(Board board) {
 
         return BoardDetailResponse.builder()
                 .boardNo(board.getBoardNo())
@@ -93,59 +116,60 @@ public class BoardService {
                 .userId(board.getUserId())
                 .createdDate(board.getCreatedDate())
                 .viewCount(board.getViewCount())
-                .category(board.getCategory())
+                .groupId(board.getBoardGroup().getId())
+                .groupName(board.getBoardGroup().getName())
                 .images(board.getImages())
-                .profileUrl(profileUrl)
+                .profileUrl(getProfileUrl(board.getUserId()))
+                .allowComment(board.getBoardGroup().isAllowComment())
+
                 .build();
     }
 
-    // ✅ 프로필 URL 추출 메서드 (중복 제거)
-    private String getProfileUrl(String userId) {
-        Optional<User> userOpt = userRepository.findByUserId(userId);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            String img = user.getProfileImage();
-            if (img != null && !img.isEmpty()) {
-                return img.startsWith("/uploads/") ? img : "/uploads/" + img;
-            }
+    // ===============================================================
+    //   📌 이미지 경로 추출
+    // ===============================================================
+    private String getFirstImage(Board board) {
+        if (board.getImages() == null || board.getImages().isEmpty()) {
+            return null;
         }
-        return null;
+        return board.getImages().get(0).getImagePath();
     }
 
-    // ✅ 단순 조회 (조회수 증가 X)
+    // ===============================================================
+    //   📌 유저 프로필 이미지 URL 변환
+    // ===============================================================
+    private String getProfileUrl(String userId) {
+        Optional<User> opt = userRepository.findByUserId(userId);
+        if (opt.isEmpty()) return null;
+
+        String img = opt.get().getProfileImage();
+        if (img == null || img.isBlank()) return null;
+
+        return img.startsWith("/uploads/") ? img : "/uploads/" + img;
+    }
+
+    // ===============================================================
+    //   📌 단순 조회 (조회수 증가 X)
+    // ===============================================================
     public Board findByIdRaw(Long id) {
         return boardRepository.findById(id).orElse(null);
     }
 
-    // ✅ 저장
+    // ===============================================================
+    //   📌 저장 / 삭제
+    // ===============================================================
     public Board save(Board board) {
         return boardRepository.save(board);
     }
 
-    // ✅ 삭제
     public void delete(Long id) {
         boardRepository.deleteById(id);
     }
 
-    // ✅ 카테고리별 단순 목록
-    public List<Board> findByCategory(String category) {
-        return boardRepository.findByCategoryOrderByCreatedDateDesc(category);
+
+    public void deleteAllBoards() {
+        boardRepository.deleteAll();
     }
 
-    // ✅ 검색
-    public List<BoardListResponse> searchBoards(String keyword, String type) {
-        switch (type) {
-            case "title":
-                return boardRepository.findByTitleContainingIgnoreCase(keyword)
-                        .stream().map(BoardListResponse::new).toList();
-            case "content":
-                return boardRepository.findByContentContainingIgnoreCase(keyword)
-                        .stream().map(BoardListResponse::new).toList();
-            case "userId":
-                return boardRepository.findByUserIdContainingIgnoreCase(keyword)
-                        .stream().map(BoardListResponse::new).toList();
-            default:
-                return List.of();
-        }
-    }
+
 }

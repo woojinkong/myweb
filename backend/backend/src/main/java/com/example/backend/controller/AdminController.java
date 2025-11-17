@@ -3,12 +3,15 @@ package com.example.backend.controller;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.service.BoardService;
 import com.example.backend.service.VisitService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +25,9 @@ public class AdminController {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final VisitService visitService;
+    private final BoardService boardService;
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     // ✅ 전체 회원 조회
     @GetMapping("/users")
@@ -65,6 +71,24 @@ public class AdminController {
 
         return ResponseEntity.ok(stats);
     }
+
+    @DeleteMapping("/boards")
+    public ResponseEntity<?> deleteAllBoards() {
+
+        // 서비스에 삭제 맡기기
+        boardService.deleteAllBoards();
+
+        // 이미지 삭제
+        File folder = new File(uploadDir);
+        if (folder.exists() && folder.isDirectory()) {
+            for (File file : folder.listFiles()) {
+                file.delete();
+            }
+        }
+
+        return ResponseEntity.ok("전체 게시글 + 이미지 삭제 완료");
+    }
+
 
 
 }

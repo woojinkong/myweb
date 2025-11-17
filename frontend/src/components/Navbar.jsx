@@ -19,28 +19,28 @@ export default function Navbar({ isSidebarOpen }) {
 
   // ✅ 알림 + 쪽지 읽지 않은 개수 불러오기
   useEffect(() => {
-    if (user && user.userId) {
-      const loadUnread = async () => {
-        try {
-          const [notiCount, msgCount] = await Promise.all([
-            fetchUnreadCount(),
-            fetchUnreadMessages(),
-          ]);
-          setUnreadCount(notiCount);
-          setUnreadMsgCount(msgCount);
-        } catch (err) {
-          if (err.response?.status === 401 || err.response?.status === 403) {
-          // 인증 오류는 무시 (상태 갱신 안 함)
-          return;
-  }
-          console.error("알림/쪽지 개수 조회 실패:", err);
-        }
-      };
-      loadUnread();
-      const interval = setInterval(loadUnread, 30000);
-      return () => clearInterval(interval);
+  if (!user || !user.userId) return;
+
+  const loadUnread = async () => {
+    try {
+      const [notiCount, msgCount] = await Promise.all([
+        fetchUnreadCount(),
+        fetchUnreadMessages(),
+      ]);
+      setUnreadCount(notiCount);
+      setUnreadMsgCount(msgCount);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) return;
+      console.error("알림/쪽지 개수 조회 실패:", err);
     }
-  }, [user]);
+  };
+
+  loadUnread();
+  const interval = setInterval(loadUnread, 30000);
+  return () => clearInterval(interval);
+
+}, [user]);
+
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -52,17 +52,13 @@ export default function Navbar({ isSidebarOpen }) {
 
 
   const getProfileSrc = (user) => {
-  try {
-    if (user?.profileImage) {
-      return user.profileImage.startsWith("http")
-        ? user.profileImage
-        : `${BASE_URL}${user.profileImage}`;
-    }
-    return "/default_profile.png"; // ✅ 프로젝트 루트의 public/default_profile.png
-  } catch {
-    return "/default_profile.png";
-  }
+  if (!user?.profileImage) return "/default_profile.png";
+
+  if (user.profileImage.startsWith("http")) return user.profileImage;
+
+  return `http://192.168.123.107:8080${user.profileImage}`;
 };
+
 
 
   return (
@@ -160,7 +156,7 @@ export default function Navbar({ isSidebarOpen }) {
                 style={styles.adminButton}
                 title="관리자 페이지"
               >
-                👑
+                ⚙️
               </button>
             )}
 

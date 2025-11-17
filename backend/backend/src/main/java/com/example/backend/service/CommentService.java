@@ -41,6 +41,12 @@ public class CommentService {
             }
         }
 
+        // 댓글 작성 불가 게시판 체크
+        if (!board.getBoardGroup().isAllowComment()) {
+            throw new RuntimeException("이 게시판은 댓글 작성이 허용되지 않습니다.");
+        }
+
+
         // ✅ 댓글 저장
         Comment saved = commentRepository.save(Comment.builder()
                 .board(board)
@@ -105,6 +111,12 @@ public class CommentService {
     @Transactional
     public List<CommentResponse> listTree(Long boardNo, int page, int size) {
         Board board = boardRepository.findById(boardNo).orElseThrow();
+
+        // 🔥 댓글 금지 게시판 → 빈 리스트 반환
+        if (!board.getBoardGroup().isAllowComment()) {
+            return List.of(); // 빈 리스트
+        }
+
         Page<Comment> tops = commentRepository
                 .findByBoardAndParentIsNullOrderByCreatedDateAsc(board, PageRequest.of(page, size));
 
