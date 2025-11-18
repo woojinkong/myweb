@@ -33,7 +33,7 @@ export default function BoardList() {
 
         // ⭐ 이미지 경로는 상대경로 → 화면에서 BASE_URL 붙여서 렌더링
         setBoards(boardRes.data);
-        console.log("📌 boardRes.data:", boardRes.data);
+        //console.log("📌 boardRes.data:", boardRes.data);
       } catch (err) {
         console.error("🔥 게시판 정보 로드 실패:", err);
       } finally {
@@ -108,7 +108,7 @@ export default function BoardList() {
 ====================================================== */
 function BoardCard({ board, navigate, BASE_URL }) {
 
-  console.log("📌 board.imagePath:", board.imagePath);
+  //console.log("📌 board.imagePath:", board.imagePath);
 
   // 1) DB에 imagePath가 있다면 사용
   let thumbnailSrc = board.imagePath
@@ -124,7 +124,7 @@ function BoardCard({ board, navigate, BASE_URL }) {
     }
   }
 
-  console.log("📌 최종 thumbnailSrc:", thumbnailSrc);
+  //console.log("📌 최종 thumbnailSrc:", thumbnailSrc);
 
   const profileSrc = board.profileUrl
     ? `${BASE_URL}${board.profileUrl}`

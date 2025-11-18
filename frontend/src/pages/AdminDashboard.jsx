@@ -11,6 +11,7 @@ export default function AdminDashboard() {
     todayUsers: 0,
     todayVisits: 0,
     totalBoards: 0,
+    activeUsers: 0
   });
 
   // 🚫 관리자 체크
@@ -33,6 +34,22 @@ export default function AdminDashboard() {
     };
     fetchStats();
   }, []);
+
+  //접속자확인
+  useEffect(() => {
+  const load = async () => {
+    const [statsRes, activeRes] = await Promise.all([
+      axiosInstance.get("/admin/stats"),
+      axiosInstance.get("/admin/active-users")
+    ]);
+
+    setStats({
+      ...statsRes.data,
+      activeUsers: activeRes.data
+    });
+  };
+  load();
+}, []);
 
   // 🌟 관리자 기능 목록 정의
   const menuItems = [
@@ -91,6 +108,11 @@ export default function AdminDashboard() {
           <p style={styles.cardTitle}>총 게시글 수</p>
           <h3 style={styles.cardValue}>{stats.totalBoards}</h3>
         </div>
+        <div style={styles.card}>
+        <p style={styles.cardTitle}>현재 접속 중</p>
+        <h3 style={styles.cardValue}>{stats.activeUsers}</h3>
+       </div>
+
       </div>
 
       {/* 🔹 기능 메뉴 (Grid) */}

@@ -1,6 +1,7 @@
 package com.example.backend.auth;
 
 import com.example.backend.entity.User;
+import com.example.backend.service.ActiveUserService;
 import com.example.backend.service.CustomUserDetailsService;
 import com.example.backend.util.JwtUtil;
 import com.example.backend.config.CustomUserDetails;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +28,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    @Autowired
+    private ActiveUserService activeUserService;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -97,6 +101,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            activeUserService.updateActivity(userId);
+
 
             log.debug("✅ [JwtAuthFilter] 인증 객체 SecurityContext에 저장 완료 (userId={})", userId);
 

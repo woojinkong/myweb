@@ -4,6 +4,7 @@ import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.service.ActiveUserService;
 import com.example.backend.service.BoardService;
 import com.example.backend.service.VisitService;
 
@@ -28,6 +29,7 @@ public class AdminController {
     private final BoardRepository boardRepository;
     private final VisitService visitService;
     private final BoardService boardService;
+    private final ActiveUserService activeUserService;
     @Value("${file.upload-dir}")
     private String uploadDir;
 
@@ -128,6 +130,13 @@ public class AdminController {
 
         return ResponseEntity.ok("회원 정지가 해제되었습니다.");
     }
+
+
+    @GetMapping("/active-users")
+    public long getActiveUsers() {
+        return activeUserService.getActiveUserCount();
+    }
+
 
 
 
