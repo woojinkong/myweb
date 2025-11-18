@@ -8,6 +8,8 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
+
 
 // 이미지 업로드 기능
 import { ImageUpload } from "../api/ImageUpload";
@@ -21,15 +23,32 @@ export default function BoardEdit() {
   const [groupId, setGroupId] = useState("");
 
 
+  //   const CustomImage = Image.extend({
+  //   addAttributes() {
+  //     return {
+  //       ...this.parent?.(),
+  //       src: {
+  //         default: null,
+  //       },
+  //     };
+  //   },
+  // });
   const CustomImage = Image.extend({
   addAttributes() {
     return {
+      ...this.parent?.(),
       src: {
         default: null,
       },
-      style: {
-        default:
-          "max-width:100%; height:auto; display:block; margin:12px auto; border-radius:8px;",
+      textAlign: {
+        default: null,
+        parseHTML: element => element.style.textAlign || null,
+        renderHTML: attributes => {
+          if (!attributes.textAlign) return {};
+          return {
+            style: `text-align: ${attributes.textAlign}; margin: 0 auto;`
+          };
+        },
       },
     };
   },
@@ -42,20 +61,13 @@ export default function BoardEdit() {
     extensions: [
       StarterKit,
       CustomImage,
-      // Image.extend({
-      //   addAttributes() {
-      //     return {
-      //       style: {
-      //         default:
-      //           "max-width:100%; height:auto; display:block; margin:12px auto; border-radius:8px;",
-      //       },
-      //     };
-      //   },
-      // }),
       ImageUpload,
       Placeholder.configure({
         placeholder: "내용을 입력하세요…",
       }),
+      TextAlign.configure({
+      types: ["heading", "paragraph", "image"],  // ⭐ 이미지에도 정렬 적용
+    }),
     ],
 
     editorProps: {
@@ -178,6 +190,22 @@ export default function BoardEdit() {
 
     <button type="button" onClick={() => editor.chain().focus().redo().run()}>
       ↷ Redo
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()}>
+      left
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()}>
+      center
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
+      right
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().unsetTextAlign().run()}>
+      basic
     </button>
   </div>
 );

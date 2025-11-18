@@ -33,7 +33,7 @@ const refreshAxios = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   const cleanUrl = config.url.split("?")[0];
 
-  if (PUBLIC_API.includes(cleanUrl)) {
+  if (PUBLIC_API.some(prefix => cleanUrl.startsWith(prefix))) {
     delete config.headers.Authorization;
     return config;
   }
