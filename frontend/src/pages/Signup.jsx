@@ -76,11 +76,21 @@ export default function Signup() {
     if (!emailRegex.test(form.email)) return alert("올바른 이메일 형식이 아닙니다!");
 
     try {
-      await axiosInstance.post("/auth/send-email-code", { email: form.email });
-      setEmailSent(true);
+      const res = await axiosInstance.post("/auth/send-email-code", { email: form.email });
+      if(res.data.success){
+        setEmailSent(true);
       alert("인증번호가 이메일로 발송되었습니다!");
+      }
     } catch (err) {
       console.error(err);
+
+      // 🛑 이메일 중복일 경우 서버에서 409 반환
+    if (err.response?.status === 409) {
+      alert("이미 가입된 이메일입니다.");
+      return;
+    }
+
+
       alert("이메일 전송 중 오류가 발생했습니다.");
     }
   };

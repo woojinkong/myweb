@@ -67,11 +67,6 @@ public class SecurityConfig {
                                 ).permitAll()
 
                         /* ============================
-                           📁 업로드 이미지 접근 허용
-                         ============================ */
-                        .requestMatchers("/uploads/**").permitAll()
-
-                        /* ============================
                            📌 게시판/댓글 조회 (비로그인 허용)
                          ============================ */
                         .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()

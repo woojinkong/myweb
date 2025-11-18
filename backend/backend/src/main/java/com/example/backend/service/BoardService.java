@@ -6,8 +6,10 @@ import com.example.backend.entity.Board;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.CommentRepository;
+import com.example.backend.repository.ReportRepository;
 import com.example.backend.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final ReportRepository reportRepository;
 
     // ===============================================================
     //   📌 전체 게시글 조회 (관리자용 / 테스트용)
@@ -162,9 +165,14 @@ public class BoardService {
         return boardRepository.save(board);
     }
 
+    @Transactional
     public void delete(Long id) {
+        // 1) 해당 게시글을 참조하는 신고 먼저 삭제
+        reportRepository.deleteByBoard_BoardNo(id);
         boardRepository.deleteById(id);
     }
+
+
 
 
     public void deleteAllBoards() {

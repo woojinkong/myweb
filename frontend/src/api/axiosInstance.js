@@ -14,13 +14,10 @@ const PUBLIC_API = [
   "/auth/verify-email-code",
   "/auth/login",
   "/auth/refresh",
-
-   // ⭐ 비로그인 허용 API
   "/board-group",
-  "/board",
-  "/comments",
-
+  "/board/search",
 ];
+
 
 // refresh 전용
 const refreshAxios = axios.create({
@@ -34,9 +31,9 @@ const refreshAxios = axios.create({
    ➤ PUBLIC_API 는 토큰을 아예 붙이지 않음!!
 ============================================================ */
 axiosInstance.interceptors.request.use((config) => {
+  const cleanUrl = config.url.split("?")[0];
 
-  // public API는 Authorization 헤더 제거
-  if (PUBLIC_API.some((url) => config.url.startsWith(url))) {
+  if (PUBLIC_API.includes(cleanUrl)) {
     delete config.headers.Authorization;
     return config;
   }
@@ -58,9 +55,9 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const cleanUrl = originalRequest.url.split("?")[0];
 
-    // 🔥 Public API는 refresh 시도하지 않게 막아야 한다
-    if (PUBLIC_API.some((url) => originalRequest.url.startsWith(url))) {
+    if (PUBLIC_API.includes(cleanUrl)) {
       return Promise.reject(error);
     }
 
@@ -81,7 +78,7 @@ axiosInstance.interceptors.response.use(
           return axiosInstance(originalRequest);
         }
       } catch (err) {
-        console.error("🔴 refresh 실패:", err);
+        console.error("Refresh error:", err);
         Cookies.remove("accessToken");
         if (!window.location.pathname.startsWith("/login")) {
           window.location.href = "/login";
@@ -92,5 +89,7 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+
 
 export default axiosInstance;
