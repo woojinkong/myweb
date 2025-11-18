@@ -18,7 +18,7 @@ export default function Navbar({ isSidebarOpen }) {
   const [unreadCount, setUnreadCount] = useState(0); // 알림
   const [unreadMsgCount, setUnreadMsgCount] = useState(0); // ✅ 쪽지 개수
   const [siteTitle, setSiteTitle] = useState("KongHome");
-
+  const API_BASE = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
     const loadSiteName = async () => {
@@ -80,7 +80,7 @@ export default function Navbar({ isSidebarOpen }) {
 
   if (user.profileImage.startsWith("http")) return user.profileImage;
 
-  return `http://192.168.123.107:8080${user.profileImage}`;
+  return `${API_BASE}${user.profileImage}`;
 };
 
 

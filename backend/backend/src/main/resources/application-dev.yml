@@ -27,6 +27,7 @@ spring:
             enable: true
 
 konghome:
+  frontend-url: "http://192.168.123.107:5173"
   cors:
     allowed-origins:
       - "http://localhost:5173"
