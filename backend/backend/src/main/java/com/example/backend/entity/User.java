@@ -54,6 +54,9 @@ public class User {
     private LocalDateTime bannedAt;  // 정지 날짜
 
 
+    //point기능
+    @Column(nullable = false)
+    private int point = 0;
 
 
 }

@@ -74,7 +74,8 @@ export default function BoardDetail() {
     try {
       await axiosInstance.delete(`/board/${id}`);
       alert("삭제되었습니다.");
-      navigate("/board");
+      navigate(`/board?groupId=${board.groupId}`);
+
     } catch (err) {
       console.error(err);
       alert("삭제 중 오류.");
@@ -180,7 +181,7 @@ const handleReport = async () => {
 
       {/* 버튼 영역 */}
       <div style={styles.buttons}>
-        <Link to="/board" style={{ ...buttons.outline, textDecoration: "none" }}>
+        <Link to={`/board?groupId=${board.groupId}`} style={{ ...buttons.outline, textDecoration: "none" }}>
           🔙 목록
         </Link>
 

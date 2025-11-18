@@ -7,12 +7,17 @@ import { cardBase, colors } from "../styles/common";
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [stats, setStats] = useState({
     todayUsers: 0,
     todayVisits: 0,
     totalBoards: 0,
     activeUsers: 0
   });
+
+  // ⭐ 사이트 이름 관리
+  const [siteName, setSiteName] = useState("");
+  const [editName, setEditName] = useState("");
 
   // 🚫 관리자 체크
   useEffect(() => {
@@ -21,6 +26,34 @@ export default function AdminDashboard() {
       navigate("/");
     }
   }, [user, navigate]);
+
+  // 📌 사이트 이름 로드
+  useEffect(() => {
+    const loadName = async () => {
+      try {
+        const res = await axiosInstance.get("/site/name");
+        setSiteName(res.data);
+        setEditName(res.data);
+      } catch (err) {
+        console.error("사이트 이름 불러오기 실패:", err);
+      }
+    };
+    loadName();
+  }, []);
+
+  // 📌 사이트 이름 저장
+  const updateName = async () => {
+    if (!editName.trim()) return alert("값을 입력하세요!");
+
+    try {
+      await axiosInstance.put("/site/name", { siteName: editName });
+      alert("사이트 이름이 변경되었습니다.");
+      setSiteName(editName);
+    } catch (err) {
+      alert("변경 실패!");
+      console.error(err);
+    }
+  };
 
   // 📊 통계 불러오기
   useEffect(() => {
@@ -35,21 +68,21 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  //접속자확인
+  // 접속자 확인
   useEffect(() => {
-  const load = async () => {
-    const [statsRes, activeRes] = await Promise.all([
-      axiosInstance.get("/admin/stats"),
-      axiosInstance.get("/admin/active-users")
-    ]);
+    const load = async () => {
+      const [statsRes, activeRes] = await Promise.all([
+        axiosInstance.get("/admin/stats"),
+        axiosInstance.get("/admin/active-users")
+      ]);
 
-    setStats({
-      ...statsRes.data,
-      activeUsers: activeRes.data
-    });
-  };
-  load();
-}, []);
+      setStats({
+        ...statsRes.data,
+        activeUsers: activeRes.data
+      });
+    };
+    load();
+  }, []);
 
   // 🌟 관리자 기능 목록 정의
   const menuItems = [
@@ -81,7 +114,7 @@ export default function AdminDashboard() {
           alert("전체 게시글 삭제 완료!");
           window.location.reload();
         } catch (err) {
-          alert("삭제 중 오류 발생!",err);
+          alert("삭제 중 오류 발생!", err);
         }
       },
       color: "#dc3545",
@@ -93,6 +126,48 @@ export default function AdminDashboard() {
       <h2 style={{ fontSize: "26px", fontWeight: "700", color: colors.text.main, marginBottom: "25px" }}>
         👑 관리자 대시보드
       </h2>
+
+      {/* 🔥 🔥 🔥 사이트 이름 설정 UI (추가됨) */}
+      <div style={{
+        padding: "20px",
+        background: "#f9f9f9",
+        borderRadius: "10px",
+        marginBottom: "30px",
+        border: "1px solid #ddd"
+      }}>
+        <h3 style={{ marginBottom: "10px" }}>🏷️ 사이트 이름 설정</h3>
+
+        <p style={{ marginBottom: "8px" }}>
+          현재 사이트 이름: <strong>{siteName}</strong>
+        </p>
+
+        <input
+          value={editName}
+          onChange={(e) => setEditName(e.target.value)}
+          style={{
+            width: "250px",
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            marginRight: "10px"
+          }}
+        />
+
+        <button
+          onClick={updateName}
+          style={{
+            padding: "8px 14px",
+            background: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer"
+          }}
+        >
+          저장
+        </button>
+      </div>
+      {/* 🔥 사이트 이름 설정 끝 */}
 
       {/* 🔹 통계 카드 */}
       <div style={styles.statsGrid}>
@@ -109,13 +184,11 @@ export default function AdminDashboard() {
           <h3 style={styles.cardValue}>{stats.totalBoards}</h3>
         </div>
         <div style={styles.card}>
-        <p style={styles.cardTitle}>현재 접속 중</p>
-        <h3 style={styles.cardValue}>{stats.activeUsers}</h3>
-       </div>
-
+          <p style={styles.cardTitle}>현재 접속 중</p>
+          <h3 style={styles.cardValue}>{stats.activeUsers}</h3>
+        </div>
       </div>
 
-      {/* 🔹 기능 메뉴 (Grid) */}
       <h3 style={{ marginTop: "40px", marginBottom: "15px", color: "#444" }}>
         📌 관리자 기능
       </h3>

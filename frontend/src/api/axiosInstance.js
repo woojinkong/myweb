@@ -14,7 +14,6 @@ const PUBLIC_API = [
   "/auth/verify-email-code",
   "/auth/login",
   "/auth/refresh",
-  "/board-group",
   "/board/search",
 ];
 
