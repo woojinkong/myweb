@@ -1,16 +1,19 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.PointRequest;
 import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.ActiveUserService;
 import com.example.backend.service.BoardService;
+import com.example.backend.service.PointService;
 import com.example.backend.service.VisitService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -30,6 +33,8 @@ public class AdminController {
     private final VisitService visitService;
     private final BoardService boardService;
     private final ActiveUserService activeUserService;
+    private final PointService pointService;
+
     @Value("${file.upload-dir}")
     private String uploadDir;
 
@@ -138,7 +143,16 @@ public class AdminController {
     }
 
 
+    // ⭐ 관리자 권한만 허용
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/users/{userNo}/points")
+    public ResponseEntity<?> givePoints(@PathVariable Long userNo,
+                                        @RequestBody PointRequest request) {
 
+        pointService.addPoint(userNo, request.getAmount(), "ADMIN_GIVE");
+
+        return ResponseEntity.ok("포인트 지급 완료");
+    }
 
 
 }

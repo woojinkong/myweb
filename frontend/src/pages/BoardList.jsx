@@ -86,9 +86,9 @@ export default function BoardList() {
       </div>
 
       {boards.length > 0 ? (
-        <div style={styles.grid}>
+        <div style={styles.list}>
           {boards.map((board) => (
-            <BoardCard
+            <BoardRow
               key={board.boardNo}
               board={board}
               BASE_URL={BASE_URL}
@@ -103,81 +103,134 @@ export default function BoardList() {
   );
 }
 
-/* ======================================================
-   📌 카드 개별 컴포넌트 (이미지 경로 통일 반영)
-====================================================== */
-function BoardCard({ board, navigate, BASE_URL }) {
 
-  //console.log("📌 board.imagePath:", board.imagePath);
-
-  // 1) DB에 imagePath가 있다면 사용
+function BoardRow({ board, navigate, BASE_URL }) {
   let thumbnailSrc = board.imagePath
     ? `${BASE_URL}${board.imagePath}`
     : null;
-  
-  // 2) imagePath 없으면 content에서 첫 번째 이미지 자동 추출
+
   if (!thumbnailSrc && board.content) {
     const match = board.content.match(/<img[^>]+src="([^">]+)"/);
-    if (match) {
-      // match[1]은 absolute URL 또는 BASE_URL 포함 URL
-      thumbnailSrc = match[1];
-    }
+    if (match) thumbnailSrc = match[1];
   }
-
-  //console.log("📌 최종 thumbnailSrc:", thumbnailSrc);
 
   const profileSrc = board.profileUrl
     ? `${BASE_URL}${board.profileUrl}`
     : "/default-profile.png";
 
-
-
   return (
     <div
-      style={styles.card}
+      style={styles.row}
       onClick={() => navigate(`/board/${board.boardNo}`)}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "none";
-        e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)";
-      }}
     >
       {/* 썸네일 */}
       {thumbnailSrc ? (
         <img
           src={thumbnailSrc}
-          alt="썸네일"
-          style={styles.thumbnail}
+          style={styles.rowThumbnail}
           onError={(e) => (e.currentTarget.style.display = "none")}
         />
       ) : (
-        <div style={styles.noThumb}>No Image</div>
+        <div style={styles.noRowThumb}>No</div>
       )}
 
-      <h3 style={styles.cardTitle}>
-        {board.title} [{board.commentCount}]
-      </h3>
-
-      <div style={styles.cardFooter}>
-        <div style={styles.writerBox}>
-          <img
-            src={profileSrc}
-            style={styles.profileImg}
-            onError={(e) => (e.currentTarget.src = "/default-profile.png")}
-          />
-          <span style={styles.writerName}>{board.userId}</span>
+      {/* 제목 + 정보 */}
+      <div style={styles.rowContent}>
+        <div style={styles.rowTitle}>
+          {board.title} <span style={styles.comment}>[{board.commentCount}]</span>
         </div>
 
-        <span style={styles.date}>
-          🕓 {new Date(board.createdDate).toLocaleDateString()}
-        </span>
+        <div style={styles.rowInfo}>
+          <img src={profileSrc} style={{ width: 18, height: 18, borderRadius: "50%" }} />
+          <span>{board.userId}</span>
+          <span>·</span>
+          <span>{new Date(board.createdDate).toLocaleDateString()}</span>
+        </div>
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+// /* ======================================================
+//    📌 카드 개별 컴포넌트 (이미지 경로 통일 반영)
+// ====================================================== */
+// function BoardCard({ board, navigate, BASE_URL }) {
+
+//   //console.log("📌 board.imagePath:", board.imagePath);
+
+//   // 1) DB에 imagePath가 있다면 사용
+//   let thumbnailSrc = board.imagePath
+//     ? `${BASE_URL}${board.imagePath}`
+//     : null;
+  
+//   // 2) imagePath 없으면 content에서 첫 번째 이미지 자동 추출
+//   if (!thumbnailSrc && board.content) {
+//     const match = board.content.match(/<img[^>]+src="([^">]+)"/);
+//     if (match) {
+//       // match[1]은 absolute URL 또는 BASE_URL 포함 URL
+//       thumbnailSrc = match[1];
+//     }
+//   }
+
+//   //console.log("📌 최종 thumbnailSrc:", thumbnailSrc);
+
+//   const profileSrc = board.profileUrl
+//     ? `${BASE_URL}${board.profileUrl}`
+//     : "/default-profile.png";
+
+
+
+//   return (
+//     <div
+//       style={styles.card}
+//       onClick={() => navigate(`/board/${board.boardNo}`)}
+//       onMouseEnter={(e) => {
+//         e.currentTarget.style.transform = "translateY(-4px)";
+//         e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
+//       }}
+//       onMouseLeave={(e) => {
+//         e.currentTarget.style.transform = "none";
+//         e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)";
+//       }}
+//     >
+//       {/* 썸네일 */}
+//       {thumbnailSrc ? (
+//         <img
+//           src={thumbnailSrc}
+//           alt="썸네일"
+//           style={styles.thumbnail}
+//           onError={(e) => (e.currentTarget.style.display = "none")}
+//         />
+//       ) : (
+//         <div style={styles.noThumb}>No Image</div>
+//       )}
+
+//       <h3 style={styles.cardTitle}>
+//         {board.title} [{board.commentCount}]
+//       </h3>
+
+//       <div style={styles.cardFooter}>
+//         <div style={styles.writerBox}>
+//           <img
+//             src={profileSrc}
+//             style={styles.profileImg}
+//             onError={(e) => (e.currentTarget.src = "/default-profile.png")}
+//           />
+//           <span style={styles.writerName}>{board.userId}</span>
+//         </div>
+
+//         <span style={styles.date}>
+//           🕓 {new Date(board.createdDate).toLocaleDateString()}
+//         </span>
+//       </div>
+//     </div>
+//   );
+// }
 /* ======================================================
    📌 스타일
 ====================================================== */
@@ -263,5 +316,71 @@ const styles = {
     textAlign: "center",
     color: colors.text.light,
     marginTop: "20px",
+  },
+   list: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+
+  row: {
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+    padding: "10px",
+    borderRadius: "8px",
+    background: "#fff",
+    cursor: "pointer",
+    transition: "background 0.2s",
+    border: "1px solid #eee",
+  },
+
+  rowThumbnail: {
+    width: "80px",
+    height: "60px",
+    objectFit: "cover",
+    borderRadius: "6px",
+  },
+
+  noRowThumb: {
+    width: "80px",
+    height: "60px",
+    borderRadius: "6px",
+    background: "#eee",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#aaa",
+    fontSize: "12px",
+  },
+
+  rowContent: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+
+  rowTitle: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: colors.text.main,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  comment: {
+    color: colors.text.light,
+    fontSize: "13px",
+  },
+
+  rowInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "13px",
+    color: colors.text.light,
+    marginTop: "4px",
   },
 };

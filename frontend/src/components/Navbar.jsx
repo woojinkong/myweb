@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { fetchUnreadCount } from "../api/notificationApi";
+import { fetchSiteName } from "../api/siteApi";
 import { fetchUnreadMessages } from "../api/messageApi"; // ✅ 추가
 import Cookies from "js-cookie";
 import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail } from "react-icons/fi";
@@ -16,6 +17,21 @@ export default function Navbar({ isSidebarOpen }) {
   const [type, setType] = useState("title");
   const [unreadCount, setUnreadCount] = useState(0); // 알림
   const [unreadMsgCount, setUnreadMsgCount] = useState(0); // ✅ 쪽지 개수
+  const [siteTitle, setSiteTitle] = useState("KongHome");
+
+
+    useEffect(() => {
+  const loadSiteName = async () => {
+    try {
+      const name = await fetchSiteName();
+      setSiteTitle(name);
+    } catch (err) {
+      console.error("사이트 이름 로드 실패:", err);
+    }
+  };
+
+  loadSiteName();
+}, []);
 
   // ✅ 알림 + 쪽지 읽지 않은 개수 불러오기
   useEffect(() => {
@@ -24,7 +40,7 @@ export default function Navbar({ isSidebarOpen }) {
     const token = Cookies.get("accessToken");
     
     if(loading) return;
-    
+
   if (!user || !user.userId || !token) return;
     
   const loadUnread = async () => {
@@ -80,7 +96,7 @@ export default function Navbar({ isSidebarOpen }) {
       {/* 로고 */}
       <div style={styles.logoBox}>
         <Link to="/" style={styles.logo}>
-          KongHome
+          {siteTitle}
         </Link>
       </div>
 

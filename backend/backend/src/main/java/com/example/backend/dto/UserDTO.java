@@ -21,6 +21,7 @@ public class UserDTO {
     private boolean banned;
     private String banReason;
     private LocalDateTime bannedAt;
+    private int point;
 
 
     public static UserDTO fromEntity(User user) {
@@ -35,7 +36,8 @@ public class UserDTO {
                 .banned(user.isBanned())
                 .banReason(user.getBanReason())
                 .bannedAt(user.getBannedAt())
-                .profileImage(user.getProfileImage()) // 백엔드에서 /uploads/... 경로로 저장됨
+                .profileImage(user.getProfileImage())
+                .point(user.getPoint())
                 .build();
     }
 }

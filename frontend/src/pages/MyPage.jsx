@@ -132,6 +132,11 @@ export default function MyPage() {
             userInfo.phone
           )}
         </p>
+        <p>
+          <strong>현재 포인트:</strong> 
+          {userInfo.point?.toLocaleString()} P
+        </p>
+
 
         <div style={styles.buttonBox}>
           {editMode ? (

@@ -100,6 +100,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/board-group/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/admin/**").hasAuthority("ADMIN")
+
+
 
                         /* ============================
                            📌 나머지는 로그인 필수
