@@ -98,7 +98,11 @@ export default function InBox() {
                   cursor: "pointer",
                   color: "#007bff",
                 }}
-                onClick={() => setOpenProfileId(msg.senderId)}
+                onClick={(e) => setOpenProfileId({
+                  id: msg.senderId,
+                  x: e.clientX,
+                  y: e.clientY
+                })}
               >
                 {msg.senderId}
               </span>
@@ -168,7 +172,8 @@ export default function InBox() {
       {/* 📌 프로필 팝업 (UserProfilePopup) */}
       {openProfileId && (
         <UserProfilePopup
-          userId={openProfileId}
+          userId={openProfileId.id}
+          position={{ x: openProfileId.x, y: openProfileId.y }}
           onClose={() => setOpenProfileId(null)}
         />
       )}

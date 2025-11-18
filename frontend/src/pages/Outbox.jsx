@@ -3,12 +3,15 @@ import axiosInstance from "../api/axiosInstance";
 import { FiInbox, FiTrash2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import UserProfilePopup from "./UserProfilepopup";
 
 export default function Outbox() {
   const [messages, setMessages] = useState([]);
   const [selectedMsg, setSelectedMsg] = useState(null);
   const navigate = useNavigate();
   const {user} = useContext(AuthContext);
+  const [openProfileId, setOpenProfileId] = useState(null);
+
 
   // ✅ 보낸 쪽지 목록 불러오기
   useEffect(() => {
@@ -66,7 +69,15 @@ export default function Outbox() {
                 background: "#fafafa",
               }}
             >
-              <span style={{ flex: 2, fontWeight: "600" }}>{msg.receiverId}</span>
+              <span style={{ flex: 2, fontWeight: "600", cursor: "pointer", color: "#007bff" }}
+              onClick={(e) =>
+                setOpenProfileId({
+                  id: msg.receiverId,
+                  x: e.clientX,
+                  y: e.clientY,
+                })
+              }
+              >{msg.receiverId}</span>
               <span
                 style={{ flex: 5, cursor: "pointer" }}
                 onClick={() => setSelectedMsg(msg)}
@@ -93,6 +104,16 @@ export default function Outbox() {
           ))
         )}
       </div>
+
+        {/* 📌 프로필 팝업 */}
+        {openProfileId && (
+          <UserProfilePopup
+            userId={openProfileId.id}
+            position={{ x: openProfileId.x, y: openProfileId.y }}
+            onClose={() => setOpenProfileId(null)}
+          />
+        )}
+
 
       {/* ✅ 선택한 쪽지 내용 모달 */}
       {selectedMsg && (

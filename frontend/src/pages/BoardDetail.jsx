@@ -14,7 +14,7 @@ export default function BoardDetail() {
   const [board, setBoard] = useState(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [popupUserId, setPopupUserId] = useState(null);
 
   const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -128,6 +128,11 @@ const handleReport = async () => {
               : "/default-profile.png"
           }
           alt="프로필"
+          onClick={(e) => setPopupUserId({
+          id: board.userId,
+          x: e.clientX,
+          y: e.clientY
+        })}
           style={styles.profileImg}
           onError={(e) => (e.target.src = "/default-profile.png")}
         />
@@ -135,12 +140,12 @@ const handleReport = async () => {
         <div style={styles.metaText}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <p style={styles.writer}>{board.userId}</p>
-            <button
+            {/* <button
               onClick={() => setShowProfile((prev) => !prev)}
               style={styles.profileBtn}
             >
               👤
-            </button>
+            </button> */}
           </div>
 
           <p style={styles.date}>
@@ -151,10 +156,11 @@ const handleReport = async () => {
       </div>
 
       {/* 프로필 팝업 */}
-      {showProfile && (
+      {popupUserId && (
         <UserProfilePopup
-          userId={board.userId}
-          onClose={() => setShowProfile(false)}
+          userId={popupUserId.id}
+          position={{ x: popupUserId.x, y: popupUserId.y }}
+          onClose={() => setPopupUserId(null)}
         />
       )}
 
@@ -172,7 +178,7 @@ const handleReport = async () => {
 
       {/* 댓글 */}
       {board.allowComment ? (
-        <CommentSection boardId={Number(id)} />
+        <CommentSection boardId={Number(id)} setPopupUserId={setPopupUserId} />
       ) : (
         <p style={{ color: "#888", marginTop: "20px" }}>
           🚫 댓글이 허용되지 않은 게시판입니다.
@@ -222,6 +228,7 @@ const styles = {
     borderRadius: "50%",
     border: "1px solid #ddd",
     objectFit: "cover",
+    cursor: "pointer",   // ← 마우스를 손가락 모양으로 변경
   },
   metaText: {
     display: "flex",
@@ -284,5 +291,7 @@ reportBtn: {
   borderRadius: "5px",
   cursor: "pointer",
 },
+
+
 
 };

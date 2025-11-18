@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { FiMail, FiFileText, FiX } from "react-icons/fi";
 import SendMessageModal from "./SendMessageModal"; // ✅ 쪽지 모달
+import { useNavigate } from "react-router-dom";
 
-export default function UserProfilePopup({ userId, onClose }) {
+
+export default function UserProfilePopup({ userId, onClose, position }) {
   const popupRef = useRef(null);
   const [profile, setProfile] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const BASE_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+
 
   // ✅ 외부 클릭 시 닫기
   // ✅ 외부 클릭 시 닫기 (단, 쪽지 모달이나 오버레이 클릭은 무시)
@@ -55,7 +59,12 @@ useEffect(() => {
 
   return (
     <>
-      <div ref={popupRef} style={styles.popup}>
+      <div ref={popupRef} 
+      style={{
+        ...styles.popup,
+        top: position.y + 10,  // 클릭 지점 아래로 살짝
+        left: position.x + 10, // 클릭 지점 오른쪽으로 살짝
+      }}>
         <button onClick={onClose} style={styles.closeBtn}>
           <FiX />
         </button>
@@ -75,7 +84,7 @@ useEffect(() => {
           <div>
             <h3 style={styles.name}>{profile.userId}</h3> {/* ✅ 아이디 표시 */}
             <p style={styles.role}>
-              {profile.role === "ADMIN" ? "👑 관리자" : "일반 회원"}
+              {profile.role === "ADMIN" ? "관리자" : "일반 회원"}
             </p>
           </div>
         </div>
@@ -99,7 +108,7 @@ useEffect(() => {
           <button
             style={styles.actionBtn}
             onClick={() =>
-              (window.location.href = `/board/search?type=userId&keyword=${profile.userId}`)
+              navigate(`/board/search?type=userId&keyword=${profile.userId}`)
             }
           >
             <FiFileText /> 작성글 보기
@@ -120,16 +129,13 @@ useEffect(() => {
 
 const styles = {
   popup: {
-    position: "absolute",
-    top: "80px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    background: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-    padding: "20px",
-    width: "280px",
-    zIndex: 9999,
+    position: "fixed",
+  background: "#fff",
+  borderRadius: "10px",
+  boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+  padding: "20px",
+  width: "280px",
+  zIndex: 9999,
   },
   closeBtn: {
     position: "absolute",

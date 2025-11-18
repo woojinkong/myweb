@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
+import UserProfilePopup from "./UserProfilepopup";
 
-export default function CommentSection({ boardId }) {
+
+export default function CommentSection({ boardId  }) {
   const [comments, setComments] = useState([]);
   const [content, setContent] = useState("");
   const [replyTarget, setReplyTarget] = useState(null); // 대댓글 대상
-
+  const [popupUserId, setPopupUserId] = useState(null);
+  const BASE_URL = import.meta.env.VITE_API_URL;
   // ✅ 댓글 목록 불러오기
   const fetchComments = async () => {
     try {
@@ -83,7 +86,8 @@ export default function CommentSection({ boardId }) {
               {/* ✅ 프로필 이미지 (없으면 회색 원 표시) */}
               {comment.profileUrl ? (
                 <img
-                  src={`http://localhost:8080${comment.profileUrl}`}
+
+                  src={`${BASE_URL}${comment.profileUrl}`}
                   alt="프로필"
                   style={{
                     width: 28,
@@ -91,7 +95,10 @@ export default function CommentSection({ boardId }) {
                     borderRadius: "50%",
                     objectFit: "cover",
                     border: "1px solid #dee2e6",
+                    cursor: "pointer",        // ⭐ 손가락 모양
                   }}
+                  onClick={(e) => setPopupUserId({ id: comment.userId, x: e.clientX, y: e.clientY })}
+                   
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/default-profile.png"; // ✅ 로컬 fallback 이미지
@@ -181,8 +188,21 @@ export default function CommentSection({ boardId }) {
           <p style={{ color: "#6c757d", margin: 0 }}>댓글이 없습니다.</p>
         )}
       </div>
+
+      {/* 프로필 팝업 */}
+      {popupUserId && (
+        <UserProfilePopup 
+          userId={popupUserId.id}
+          position={{ x: popupUserId.x, y: popupUserId.y }}
+          onClose={() => setPopupUserId(null)}
+        />
+      )}
+
     </div>
+
+    
   );
+  
 }
 
 const BASE_THREAD_COLOR = "#e9ecef";

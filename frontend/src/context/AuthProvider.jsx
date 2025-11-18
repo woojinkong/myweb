@@ -19,6 +19,9 @@ export const AuthProvider = ({ children }) => {
     "/uploads",
     "/board-group",
     "/board/search",
+
+    "/board",
+    "/board/",
   ];
 
   useEffect(() => {

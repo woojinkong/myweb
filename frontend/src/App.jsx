@@ -61,9 +61,7 @@ function App() {
               <Route
                 path="/board"
                 element={
-                  <ProtectedRoute>
                     <BoardList />
-                  </ProtectedRoute>
                 }
               />
               <Route
@@ -77,9 +75,7 @@ function App() {
               <Route
                 path="/board/:id"
                 element={
-                  <ProtectedRoute>
                     <BoardDetail />
-                  </ProtectedRoute>
                 }
               />
               <Route
@@ -93,9 +89,7 @@ function App() {
               <Route
                 path="/board/search"
                 element={
-                  <ProtectedRoute>
                     <BoardSearch />
-                  </ProtectedRoute>
                 }
               />
 

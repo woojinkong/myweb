@@ -79,4 +79,23 @@ public class EmailService {
         for (int i = 0; i < 6; i++) sb.append(random.nextInt(10));
         return sb.toString();
     }
+
+    // ===============================
+    // 📌 관리자용 커스텀 이메일 보내기
+    // ===============================
+    public void sendCustomEmail(String to, String subject, String content) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content.replace("\n", "<br>"), true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("메일 전송 실패: " + e.getMessage());
+        }
+    }
+
 }

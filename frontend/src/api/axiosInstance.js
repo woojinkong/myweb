@@ -6,37 +6,42 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-// 🔥 인증이 필요 없는 공개 API 리스트
-const PUBLIC_API = [
-  "/auth/check-id",
-  "/auth/signup",
-  "/auth/send-email-code",
-  "/auth/verify-email-code",
-  "/auth/login",
-  "/auth/refresh",
+// 🔥 GET 전용 공개 API 리스트 (로그인 없어도 됨)
+const PUBLIC_GET_PREFIX = [
+  "/board",
+  "/board/",
+  "/board-group",
+  "/board-group/",
+  "/comments",      // 댓글 조회(GET)만 공개
+  "/site/name",
   "/board/search",
 ];
 
-
-// refresh 전용
+// 🔄 Refresh 전용 axios
 const refreshAxios = axios.create({
   baseURL: "http://192.168.123.107:8080/api",
   withCredentials: true,
 });
 
-
 /* ============================================================
-   ✅ 요청 인터셉터 (AccessToken 자동 첨부)
-   ➤ PUBLIC_API 는 토큰을 아예 붙이지 않음!!
+   ✅ 요청 인터셉터
+   - GET + PUBLIC_GET_PREFIX → 토큰 제거
+   - 그 외 요청(POST/PUT/DELETE) → 토큰 자동 첨부
 ============================================================ */
 axiosInstance.interceptors.request.use((config) => {
   const cleanUrl = config.url.split("?")[0];
+  const method = config.method.toUpperCase();
 
-  if (PUBLIC_API.some(prefix => cleanUrl.startsWith(prefix))) {
+  // 🎯 GET이고 공개 API면 토큰 제거 (비로그인 허용)
+  if (
+    method === "GET" &&
+    PUBLIC_GET_PREFIX.some((prefix) => cleanUrl.startsWith(prefix))
+  ) {
     delete config.headers.Authorization;
     return config;
   }
 
+  // 🎯 나머지는 토큰 자동 첨부
   const token = Cookies.get("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -45,21 +50,27 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-
 /* ============================================================
-   ✅ 응답 인터셉터 (401이면 refresh)
-   ➤ PUBLIC_API는 refresh 시도하지 않음!!
+   ✅ 응답 인터셉터
+   - GET + PUBLIC_GET → refresh 시도 X
+   - POST/PUT/DELETE → refresh 시도 O
 ============================================================ */
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
     const cleanUrl = originalRequest.url.split("?")[0];
+    const method = originalRequest.method.toUpperCase();
 
-    if (PUBLIC_API.includes(cleanUrl)) {
+    // 🎯 GET + 공개 API → refresh 금지
+    if (
+      method === "GET" &&
+      PUBLIC_GET_PREFIX.some((prefix) => cleanUrl.startsWith(prefix))
+    ) {
       return Promise.reject(error);
     }
 
+    // 🎯 401 → refresh 시도
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -73,11 +84,13 @@ axiosInstance.interceptors.response.use(
             expires: 1,
           });
 
+          // 재요청에 새 토큰 넣기
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
         }
       } catch (err) {
-        console.error("Refresh error:", err);
+        // refresh 실패 → 로그인 페이지로 이동
+        console.log("err",err);
         Cookies.remove("accessToken");
         if (!window.location.pathname.startsWith("/login")) {
           window.location.href = "/login";
@@ -88,7 +101,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-
 
 export default axiosInstance;
