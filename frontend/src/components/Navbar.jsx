@@ -21,7 +21,7 @@ export default function Navbar({ isSidebarOpen }) {
 
 
     useEffect(() => {
-  const loadSiteName = async () => {
+    const loadSiteName = async () => {
     try {
       const name = await fetchSiteName();
       setSiteTitle(name);
@@ -29,7 +29,6 @@ export default function Navbar({ isSidebarOpen }) {
       console.error("사이트 이름 로드 실패:", err);
     }
   };
-
   loadSiteName();
 }, []);
 
@@ -37,11 +36,12 @@ export default function Navbar({ isSidebarOpen }) {
   useEffect(() => {
 
 
-    const token = Cookies.get("accessToken");
-    
+    //const token = Cookies.get("accessToken");
+    if (!user) return;
     if(loading) return;
 
-  if (!user || !user.userId || !token) return;
+  //if (!user || !user.userId || !token) return;
+
     
   const loadUnread = async () => {
     try {
@@ -248,7 +248,20 @@ const styles = {
     textDecoration: "none",
   },
   menu: { display: "flex", alignItems: "center", gap: "16px" },
-  searchForm: { display: "flex", alignItems: "center", gap: "5px" },
+  searchForm: {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  background: "#fff",
+  padding: "6px 10px",
+  borderRadius: "6px",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  display: "flex",
+  alignItems: "center",
+  gap: "5px",
+  zIndex: 2000,
+},
   select: { padding: "6px", borderRadius: "4px", border: "1px solid #ccc" },
   input: {
     padding: "6px 10px",

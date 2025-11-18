@@ -5,10 +5,7 @@ import com.example.backend.dto.UserDTO;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
-import com.example.backend.service.ActiveUserService;
-import com.example.backend.service.BoardService;
-import com.example.backend.service.PointService;
-import com.example.backend.service.VisitService;
+import com.example.backend.service.*;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +31,7 @@ public class AdminController {
     private final BoardService boardService;
     private final ActiveUserService activeUserService;
     private final PointService pointService;
+    private final EmailService emailService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -153,6 +151,59 @@ public class AdminController {
 
         return ResponseEntity.ok("포인트 지급 완료");
     }
+
+
+    // ================================
+    // 📌 관리자 → 특정 유저에게 이메일 보내기
+    // ================================
+    @PostMapping("/email/send/{userId}")
+    public ResponseEntity<?> sendEmailToUser(
+            @PathVariable String userId,
+            @RequestBody Map<String, String> req
+    ) {
+
+        String subject = req.get("subject");
+        String message = req.get("message");
+
+        var user = userRepository.findByUserId(userId)
+                .orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(404)
+                    .body(Map.of("success", false, "message", "해당 유저를 찾을 수 없습니다."));
+        }
+
+        emailService.sendCustomEmail(user.getEmail(), subject, message);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "이메일이 정상적으로 발송되었습니다."
+        ));
+    }
+
+    // ================================
+    // 📌 관리자 → 전체 유저에게 이메일 보내기
+    // ================================
+    @PostMapping("/email/send-all")
+    public ResponseEntity<?> sendEmailToAllUsers(@RequestBody Map<String, String> req) {
+
+        String subject = req.get("subject");
+        String message = req.get("message");
+
+        var users = userRepository.findAll();
+
+        for (User u : users) {
+            if (u.getEmail() != null) {
+                emailService.sendCustomEmail(u.getEmail(), subject, message);
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "전체 유저에게 이메일이 전송되었습니다."
+        ));
+    }
+
 
 
 }
