@@ -17,8 +17,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: support@konghome.com
-    password: your_prod_app_password
+    username: dodejqn6@gmail.com
+    password: vgpxxukqecpjabmn
     properties:
       mail:
         smtp:
@@ -27,11 +27,13 @@ spring:
             enable: true
 
 konghome:
+  frontend-url: "http포함 도메인주소 또는 공인아이피"
   cors:
     allowed-origins:
-      - "http://localhost:5173"
-      - "http://127.0.0.1:5173"
-      - "http://192.168.123.107:5173"
+      - "도메인주소 또는 공인아이피"
+
+file:
+  upload-dir: 예:/home/ubuntu/app/uploads
 
 server:
   port: 8080

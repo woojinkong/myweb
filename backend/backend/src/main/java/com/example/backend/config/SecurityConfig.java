@@ -62,8 +62,8 @@ public class SecurityConfig {
                                 "/api/auth/send-email-code",
                                 "/api/auth/verify-email-code",
 
-                                "/api/auth/find-password",
-                                "/api/auth/reset-password"
+                                "/api/user/find-password",
+                                "/api/user/reset-password"
                                 ).permitAll()
 
                         /* ============================

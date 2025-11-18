@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const axiosInstance = axios.create({
-  baseURL: "http://192.168.123.107:8080/api",
+  baseURL: import.meta.env.VITE_API_URL + "/api",
   withCredentials: true,
 });
 
@@ -19,7 +19,7 @@ const PUBLIC_GET_PREFIX = [
 
 // 🔄 Refresh 전용 axios
 const refreshAxios = axios.create({
-  baseURL: "http://192.168.123.107:8080/api",
+  baseURL: import.meta.env.VITE_API_URL + "/api",
   withCredentials: true,
 });
 

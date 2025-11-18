@@ -40,8 +40,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/signup") ||
                 path.startsWith("/api/auth/refresh") ||
-                path.startsWith("/api/auth/find-password") ||
-                path.startsWith("/api/auth/reset-password") ||
+                path.startsWith("/api/user/find-password") ||
+                path.startsWith("/api/user/reset-password") ||
                 path.startsWith("/api/auth/check-id") ||
                 path.startsWith("/api/auth/send-email-code") ||
                 path.startsWith("/api/auth/verify-email-code");  // ⭐ 이미지 요청은 JWT 검사 제외
