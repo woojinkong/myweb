@@ -14,7 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserIdAndUserNameAndEmail(String userId, String userName, String email);
     // UserRepository.java
     long countByUserCreateDateAfter(LocalDateTime date);
-
+    boolean existsByEmail(String email);   // ← 추가
     
 
 }

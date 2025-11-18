@@ -67,7 +67,15 @@ async function uploadAndInsertImage(file, editor) {
     const { url } = res.data;
     const fullUrl = import.meta.env.VITE_API_URL + url;
 
-    editor.chain().focus().setImage({ src: fullUrl }).run();
+        // ✅ paragraph 감싸지 말고, 그냥 이미지 노드 삽입
+        
+    editor
+      .chain()
+      .focus()
+      .setImage({ src: fullUrl })
+      .run();
+
+
   } catch (err) {
     console.error("이미지 업로드 실패:", err);
     alert("이미지 업로드 중 오류 발생");

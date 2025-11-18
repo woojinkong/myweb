@@ -35,9 +35,28 @@ public class AuthController {
 
     // ✅ 로그인 (access 반환 + refresh 쿠키)
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest r) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest r) {
         User u = service.authenticate(r);
+
+
         if (u == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        // 2) 🚫 여기서 정지 유저 체크 추가!
+        if (u.isBanned()) {
+
+            ResponseCookie clear = ResponseCookie.from("refreshToken", "")
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(true)
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .header(HttpHeaders.SET_COOKIE, clear.toString())   // ⭐⭐ 여기 빠짐!!!
+                    .body(Map.of(
+                            "message", "정지된 계정입니다.",
+                            "reason", u.getBanReason()
+                    ));
+        }
 
         String access = service.newAccessToken(u);
         String refresh = service.newRefreshToken(u.getUserId());
@@ -125,6 +144,18 @@ public class AuthController {
     @PostMapping("/send-email-code")
     public ResponseEntity<?> sendEmailCode(@RequestBody Map<String, String> request) {
         String email = request.get("email");
+
+        // 🛑 이메일이 이미 존재하면 인증번호 발송 금지!
+        boolean exists = repo.existsByEmail(email);
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "이미 가입된 이메일입니다."
+                    ));
+        }
+
+
         emailService.sendVerificationCode(email);
         return ResponseEntity.ok(Map.of("success", true, "message", "인증번호가 발송되었습니다."));
     }

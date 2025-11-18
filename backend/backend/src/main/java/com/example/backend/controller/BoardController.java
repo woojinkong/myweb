@@ -183,6 +183,8 @@ public class BoardController {
             File f = new File(uploadDir, img.getImagePath().replace("/uploads/", ""));
             if (f.exists()) f.delete();
         }
+        // ⭐ DB에서도 BoardImage 제거! (FK 문제 해결)
+        board.getImages().clear();
 
         boardService.delete(id);
         return ResponseEntity.noContent().build();

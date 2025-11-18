@@ -3,6 +3,8 @@ package com.example.backend.dto;
 import com.example.backend.entity.User;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -16,6 +18,10 @@ public class UserDTO {
     private String phone;
     private String role;
     private String profileImage;
+    private boolean banned;
+    private String banReason;
+    private LocalDateTime bannedAt;
+
 
     public static UserDTO fromEntity(User user) {
         // ✅ DB에 저장된 경로 그대로 사용 (ex: /uploads/profile/xxx.png)
@@ -26,6 +32,9 @@ public class UserDTO {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole())
+                .banned(user.isBanned())
+                .banReason(user.getBanReason())
+                .bannedAt(user.getBannedAt())
                 .profileImage(user.getProfileImage()) // 백엔드에서 /uploads/... 경로로 저장됨
                 .build();
     }

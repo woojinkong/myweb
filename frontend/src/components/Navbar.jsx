@@ -3,12 +3,12 @@ import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { fetchUnreadCount } from "../api/notificationApi";
 import { fetchUnreadMessages } from "../api/messageApi"; // ✅ 추가
+import Cookies from "js-cookie";
 import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail } from "react-icons/fi";
-
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function Navbar({ isSidebarOpen }) {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout,loading } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [showSearch, setShowSearch] = useState(false);
@@ -19,8 +19,14 @@ export default function Navbar({ isSidebarOpen }) {
 
   // ✅ 알림 + 쪽지 읽지 않은 개수 불러오기
   useEffect(() => {
-  if (!user || !user.userId) return;
 
+
+    const token = Cookies.get("accessToken");
+    
+    if(loading) return;
+    
+  if (!user || !user.userId || !token) return;
+    
   const loadUnread = async () => {
     try {
       const [notiCount, msgCount] = await Promise.all([
@@ -35,7 +41,9 @@ export default function Navbar({ isSidebarOpen }) {
     }
   };
 
-  loadUnread();
+    setTimeout(() => {
+    loadUnread();
+  }, 300); // 로그인 직후 토큰 생성 시간 확보
   const interval = setInterval(loadUnread, 30000);
   return () => clearInterval(interval);
 
