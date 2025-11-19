@@ -5,12 +5,13 @@ import { colors, buttons, cardBase } from "../styles/common";
 import { FiFolder } from "react-icons/fi";
 import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
+import useIsMobile from "../hooks/useIsMobile";
 
 export default function Home() {
   const [groups, setGroups] = useState([]);
   const [boardsByGroup, setBoardsByGroup] = useState({});
   const navigate = useNavigate();
-
+  const isMobile = useIsMobile();
   const BASE_URL = import.meta.env.VITE_API_URL;
     const [siteTitle, setSiteTitle] = useState("KongHome");
   useEffect(() => {
@@ -68,11 +69,12 @@ export default function Home() {
   // 🔥 공통 섹션 렌더링
   const renderSection = (group) => {
     const list = boardsByGroup[group.id] || [];
-
+    
     return (
 
       <section
         key={group.id}
+        className="home-section"
         style={{
           ...cardBase,
           minHeight: "260px",
@@ -81,20 +83,24 @@ export default function Home() {
           cursor: "pointer",
         }}
         onMouseEnter={(e) => {
+        if (!isMobile) {
           e.currentTarget.style.transform = "translateY(-4px)";
           e.currentTarget.style.boxShadow = "0 6px 14px rgba(0,0,0,0.08)";
-        }}
-        onMouseLeave={(e) => {
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isMobile) {
           e.currentTarget.style.transform = "none";
           e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)";
-        }}
+        }
+       }}
       >
         {/* 제목 */}
         <div style={styles.header}>
           <h2 style={styles.sectionTitle}>
-            <FiFolder style={{ marginRight: "6px" }} />
+            {/* <FiFolder style={{ marginRight: "6px" }} /> */}
             {group.name}
-            {group.adminOnlyWrite && " 🔒"}
+            {group.adminOnlyWrite}
           </h2>
 
           <Link to={`/board?groupId=${group.id}`} style={styles.moreBtn}>
@@ -116,14 +122,16 @@ export default function Home() {
 
               return (
                 <li
+                  className="home-item"
                   key={board.boardNo}
                   style={styles.listItem}
                   onClick={() => navigate(`/board/${board.boardNo}`)}
                 >
                   {/* 썸네일 */}
-                  <div style={styles.thumbBox}>
+                  <div className="board-thumb-box" style={styles.thumbBox}>
                     {thumbSrc ? (
                       <img
+                        className="board-thumb"
                         src={thumbSrc}
                         alt="썸네일"
                         style={styles.thumbnail}
@@ -136,10 +144,11 @@ export default function Home() {
 
                   {/* 제목/작성자 */}
                   <div style={styles.textBox}>
-                    <h3 style={styles.title}>{board.title}</h3>
+                    <h3 className="board-title" style={styles.title}>{board.title}</h3>
 
                     <div style={styles.meta}>
                       <img
+                        className="board-profile"
                         src={profileSrc}
                         alt="프로필"
                         style={{
@@ -179,19 +188,19 @@ export default function Home() {
         <title>{siteTitle}</title>
         <meta
           name="description"
-          content="KongHome 최신 게시글과 인기 게시판을 한눈에 확인하세요."
+          content="최신 게시글과 인기 게시판을 한눈에 확인하세요."
         />
-        <meta property="og:title" content="KongHome 메인 페이지" />
+        <meta property="og:title" content="메인 페이지" />
         <meta
           property="og:description"
-          content="KongHome 최신 게시글과 다양한 커뮤니티 정보를 제공합니다."
+          content="최신 게시글과 다양한 커뮤니티 정보를 제공합니다."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
       </Helmet>
 
-    <div style={styles.container}>
-      <div style={styles.grid}>
+    <div className="home-container" style={styles.container}>
+      <div className="home-grid" style={styles.grid}>
         {groups.length > 0 ? (
           groups
            .filter((group) => group.type !== "DIVIDER")   // ← ⭐ 추가된 부분

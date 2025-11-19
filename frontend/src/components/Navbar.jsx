@@ -4,11 +4,12 @@ import { AuthContext } from "../context/AuthContext";
 import { fetchUnreadCount } from "../api/notificationApi";
 import { fetchSiteName } from "../api/siteApi";
 import { fetchUnreadMessages } from "../api/messageApi"; // ✅ 추가
-import Cookies from "js-cookie";
 import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail } from "react-icons/fi";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import useIsMobile from "../hooks/useIsMobile";
 
-export default function Navbar({ isSidebarOpen }) {
+
+
+export default function Navbar({ isSidebarOpen,toggleSidebar }) {
   const { user, logout,loading } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -19,6 +20,10 @@ export default function Navbar({ isSidebarOpen }) {
   const [unreadMsgCount, setUnreadMsgCount] = useState(0); // ✅ 쪽지 개수
   const [siteTitle, setSiteTitle] = useState("KongHome");
   const API_BASE = import.meta.env.VITE_API_URL;
+  const isMobile = useIsMobile();
+
+      
+
 
     useEffect(() => {
     const loadSiteName = async () => {
@@ -38,9 +43,9 @@ export default function Navbar({ isSidebarOpen }) {
 
     //const token = Cookies.get("accessToken");
     if (!user) return;
-    if(loading) return;
+    //if(loading) return;
 
-  //if (!user || !user.userId || !token) return;
+   //if (!user || !user.userId || !token) return;
 
     
   const loadUnread = async () => {
@@ -65,6 +70,17 @@ export default function Navbar({ isSidebarOpen }) {
 
 }, [user]);
 
+ // 🔥 여기서 loading UI 출력
+  if (loading) {
+    return (
+      <nav style={{
+        height: "60px",
+        background: "#fff",
+        borderBottom: "1px solid #eee",
+      }} />
+    );
+  }
+
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -83,16 +99,24 @@ export default function Navbar({ isSidebarOpen }) {
   return `${API_BASE}${user.profileImage}`;
 };
 
-
+  
 
   return (
-    <nav
+      <nav
+      className="navbar-container"
       style={{
         ...styles.nav,
-        left: isSidebarOpen ? "150px" : "50px",
-        width: isSidebarOpen ? "calc(100vw - 150px)" : "calc(100vw - 50px)",
+        left: isMobile ? 0 : (isSidebarOpen ? 150 : 50),
+        width: isMobile ? "100%" : `calc(100vw - ${isSidebarOpen ? 150 : 50}px)`,
       }}
     >
+      {isMobile && (
+        <button onClick={toggleSidebar} style={{ fontSize: "22px", marginRight: "10px" }}>
+          ☰
+        </button>
+      )}
+
+
       {/* 로고 */}
       <div style={styles.logoBox}>
         <Link to="/" style={styles.logo}>
@@ -101,10 +125,10 @@ export default function Navbar({ isSidebarOpen }) {
       </div>
 
       {/* 메뉴 */}
-      <div style={styles.menu}>
+      <div className="navbar-menu" style={styles.menu}>
         {/* 🔍 검색 */}
         {showSearch ? (
-          <form onSubmit={handleSearchSubmit} style={styles.searchForm}>
+          <form className="navbar-search-form" onSubmit={handleSearchSubmit} style={styles.searchForm}>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}

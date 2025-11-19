@@ -64,6 +64,7 @@ public class SecurityConfig {
 
                                 "/api/user/find-password",
                                 "/api/user/reset-password"
+
                                 ).permitAll()
 
                         /* ============================
@@ -73,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/board-group/**").permitAll()
                         .requestMatchers("/api/site/name").permitAll()
+                        .requestMatchers("/api/contact/**").permitAll()
 
                         /* ===========================
                            🛎 알림 API (로그인 필요)=

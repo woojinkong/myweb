@@ -19,10 +19,6 @@ public class BoardGroupService {
     // ✅ 게시판 생성
     public BoardGroup create(BoardGroup group) {
 
-        // ❗ 게시판 이름 중복 체크
-        if (boardGroupRepository.existsByName(group.getName())) {
-            throw new RuntimeException("이미 존재하는 게시판 이름입니다.");
-        }
         int maxOrder = boardGroupRepository.findMaxOrderIndex();
         group.setOrderIndex(maxOrder + 1);
         return boardGroupRepository.save(group);

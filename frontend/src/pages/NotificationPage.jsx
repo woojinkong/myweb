@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchNotifications, markAsRead, markAllAsRead,deleteAllNotifications } from "../api/notificationApi";
 import { useNavigate } from "react-router-dom";
-
+import axiosInstance from "../api/axiosInstance";
 
 export default function NotificationPage() {
   const [notifications, setNotifications] = useState([]);
@@ -25,7 +25,40 @@ export default function NotificationPage() {
   const handleClick = async (noti) => {
     try {
       await markAsRead(noti.id);
-      navigate(noti.link);
+      const link = noti.link;
+
+       // 게시글 알림: /board/123
+    if (link.startsWith("/board/")) {
+      const boardId = link.split("/")[2];
+
+      try {
+        await axiosInstance.get(`/board/${boardId}`);
+        navigate(link);
+      } catch (err) {
+        alert("해당 게시글은 이미 삭제되었습니다.",err);
+      }
+      return;
+    }
+
+    // 댓글 알림: /board/123?comment=555
+    if (link.includes("comment")) {
+      const url = new URL("http://dummy" + link);
+      const commentId = url.searchParams.get("comment");
+
+      try {
+        await axiosInstance.get(`/comments/check/${commentId}`);
+        navigate(link);
+      } catch (err) {
+        alert("해당 댓글은 이미 삭제되었습니다.",err);
+      }
+      return;
+    }
+
+    // 그 외 기본 이동
+    navigate(link);
+
+
+
     } catch (err) {
       console.error("알림 처리 실패:", err);
     }

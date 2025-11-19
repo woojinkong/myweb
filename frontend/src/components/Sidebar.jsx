@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../api/axiosInstance";
+import useIsMobile from "../hooks/useIsMobile";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
@@ -8,6 +9,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   // 📌 그룹 목록 가져오기
   const loadGroups = useCallback(async () => {
@@ -34,7 +36,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   let numberCounter = 1;
 
   return (
-    <div style={{ ...styles.sidebar, width: isOpen ? "150px" : "50px" }}>
+    <div
+  className={`sidebar-container ${isOpen ? "open" : ""}`}
+  style={{
+    ...styles.sidebar,
+    ...(isMobile ? {} : { width: isOpen ? "150px" : "50px" }),
+  }}
+>
+
       <div style={styles.header}>
         <button onClick={toggleSidebar} style={styles.hamburger}>☰</button>
       </div>

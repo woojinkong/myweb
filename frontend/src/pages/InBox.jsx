@@ -32,13 +32,13 @@ export default function InBox() {
   const handleRead = async (msg) => {
     setSelectedMsg(msg);
 
-    if (msg.isRead) return;
+    if (msg.read) return;
 
     try {
       await axiosInstance.post(`/message/${msg.messageNo}/read`);
       setMessages((prev) =>
         prev.map((m) =>
-          m.messageNo === msg.messageNo ? { ...m, isRead: true } : m
+          m.messageNo === msg.messageNo ? { ...m, read: true } : m
         )
       );
     } catch (err) {
@@ -87,7 +87,7 @@ export default function InBox() {
               key={msg.messageNo}
               style={{
                 ...styles.row,
-                background: msg.isRead ? "#fafafa" : "#e8f5ff",
+                background: msg.read ? "#fafafa" : "#e8f5ff",
               }}
             >
               {/* 🔥 보낸 사람 클릭 → 프로필 팝업 */}
@@ -124,7 +124,7 @@ export default function InBox() {
               </span>
 
               <span style={{ flex: 1 }}>
-                {msg.isRead ? (
+                {msg.read ? (
                   <FiEye color="#888" />
                 ) : (
                   <FiMail color="#007bff" />

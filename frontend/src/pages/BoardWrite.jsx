@@ -7,7 +7,7 @@ import useAuth from "../hooks/useAuth";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-
+import TextAlign from "@tiptap/extension-text-align";
 // 서버 확장 이미지 업로드 기능
 import { ImageUpload } from "../api/ImageUpload";
 import Image from "@tiptap/extension-image";
@@ -34,17 +34,39 @@ export default function BoardWrite() {
   }, [user, groupId, navigate]);
 
 
-  const CustomImage = Image.extend({
+const CustomImage = Image.extend({
   addAttributes() {
     return {
       src: { default: null },
+
+      textAlign: {
+        default: "center",
+        parseHTML: element => element.getAttribute("data-text-align") || "center",
+        renderHTML: attributes => ({
+          "data-text-align": attributes.textAlign,
+        }),
+      },
+
       style: {
-        default:
-          "max-width:100%; height:auto; display:block; margin:12px auto; border-radius:8px;",
+        default: "max-width:100%; height:auto; border-radius:8px;",
       },
     };
   },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "figure",
+      {
+        "data-text-align": HTMLAttributes["data-text-align"] || "center",
+        style: `text-align:${HTMLAttributes["data-text-align"]}; margin:12px 0;`,
+      },
+      ["img", { src: HTMLAttributes.src, style: HTMLAttributes.style }],
+    ];
+  },
 });
+
+
+
 
 
   /* ------------------------------------
@@ -58,6 +80,9 @@ export default function BoardWrite() {
       Placeholder.configure({
         placeholder: "내용을 입력하세요…",
       }),
+      TextAlign.configure({
+      types: ["heading", "paragraph", "image"],  // ⭐ 이미지에도 정렬 적용
+    }),
     ],
 
     editorProps: {
@@ -145,6 +170,21 @@ export default function BoardWrite() {
 
     <button type="button" onClick={() => editor.commands.uploadImage()}>
       🖼️ Image
+    </button>
+    <button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()}>
+      left
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()}>
+      center
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
+      right
+    </button>
+
+    <button type="button" onClick={() => editor.chain().focus().unsetTextAlign().run()}>
+      basic
     </button>
 
     <button type="button" onClick={() => editor.chain().focus().undo().run()}>

@@ -71,6 +71,7 @@ export default function CommentSection({ boardId  }) {
     return (
       <div
         key={comment.commentNo}
+        className="comment-thread-item reply-depth"
         style={{
           ...styles.threadItem,
           ...depthStyles.threadItem,
@@ -80,9 +81,9 @@ export default function CommentSection({ boardId  }) {
         {isReply && <div style={{ ...styles.threadLine, ...depthStyles.threadLine }} />}
 
         {/* 댓글 카드 */}
-        <div style={{ ...styles.card, ...depthStyles.card }}>
+        <div className="comment-card" style={{ ...styles.card, ...depthStyles.card }}>
           <div style={styles.headerRow}>
-            <div style={styles.userRow}>
+            <div className="comment-user-id" style={styles.userRow}>
               {/* ✅ 프로필 이미지 (없으면 회색 원 표시) */}
               {comment.profileUrl ? (
                 <img
@@ -116,10 +117,10 @@ export default function CommentSection({ boardId  }) {
               <strong style={styles.userId}>{comment.userId}</strong>
               {isReply && <span style={styles.replyBadge}>대댓글</span>}
             </div>
-            <small style={styles.dateText}>{formatDate(comment.createdDate)}</small>
+            <small className="comment-date" style={styles.dateText}>{formatDate(comment.createdDate)}</small>
           </div>
 
-          <p style={styles.contentText}>{comment.content}</p>
+          <p className="comment-content" style={styles.contentText}>{comment.content}</p>
 
           <div style={styles.actionRow}>
             <button

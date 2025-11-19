@@ -19,7 +19,7 @@ public class BoardGroup {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name; // 게시판 이름
 
     @Column(nullable = false)

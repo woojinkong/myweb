@@ -21,6 +21,42 @@ export default function BoardDetail() {
   const BASE_URL = import.meta.env.VITE_API_URL;
 
 
+      const handleCopyLink = async () => {
+  const url = `${window.location.origin}/board/${id}`;
+
+  // 1) clipboard API 지원되는 경우 (HTTPS 또는 localhost)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("📢 링크가 복사되었습니다!");
+      return;
+    } catch (err) {
+      console.error("Clipboard 오류, fallback으로 진행:", err);
+    }
+  }
+
+  // 2) fallback (HTTPS 아니거나 clipboard 막혔을 때)
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = url;
+    textarea.style.position = "fixed"; // 화면 깜빡임 방지
+    textarea.style.top = "-1000px";
+    document.body.appendChild(textarea);
+
+    textarea.focus();
+    textarea.select();
+    document.execCommand("copy");
+
+    document.body.removeChild(textarea);
+    alert("📢 링크가 복사되었습니다!");
+  } catch (err) {
+    console.error("fallback 링크 복사 실패:", err);
+    alert("링크 복사 중 오류가 발생했습니다.");
+  }
+};
+
+
+
     useEffect(() => {
       const loadSiteName = async () => {
       try {
@@ -51,7 +87,7 @@ export default function BoardDetail() {
            content: fixedContent,
          });
 
-        console.log("📌 board content:", data.content);
+        // console.log("📌 board content:", data.content);
 
         // 좋아요 정보
         const likeRes = await axiosInstance.get(`/board/like/${id}`);
@@ -79,6 +115,11 @@ export default function BoardDetail() {
       alert("로그인이 필요합니다.",err);
     }
   };
+
+
+
+  
+
 
   // 삭제
   const handleDelete = async () => {
@@ -232,6 +273,8 @@ const handleReport = async () => {
 
       {/* 버튼 영역 */}
       <div style={styles.buttons}>
+        <button style={styles.copyBtn} onClick={handleCopyLink}>🔗 링크복사</button>
+
         <Link to={`/board?groupId=${board.groupId}`} style={{ ...buttons.outline, textDecoration: "none" }}>
           🔙 목록
         </Link>
@@ -337,6 +380,16 @@ reportBtn: {
   borderRadius: "5px",
   cursor: "pointer",
 },
+copyBtn: {
+  background: "transparent",
+  border: "1px solid #4a90e2",
+  color: "#4a90e2",
+  padding: "5px 10px",
+  fontSize: "12px",
+  borderRadius: "5px",
+  cursor: "pointer",
+},
+
 
 
 
