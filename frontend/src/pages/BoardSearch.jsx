@@ -24,8 +24,11 @@ export default function BoardSearch() {
 
   const fetchSearchResults = async (keyword, type) => {
     try {
+
+      // 🔥 content 검색일 때만 plain 으로 변환
+      const fixedType = type === "content" ? "plain" : type;
       const response = await axiosInstance.get(`/board/search`, {
-        params: { keyword, type },
+        params: { keyword, type: fixedType },
       });
       setResults(response.data);
     } catch (err) {

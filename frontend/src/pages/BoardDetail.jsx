@@ -5,6 +5,8 @@ import useAuth from "../hooks/useAuth";
 import CommentSection from "./CommentSection";
 import UserProfilePopup from "./UserProfilepopup";
 import { colors, buttons, cardBase } from "../styles/common";
+import { Helmet } from "react-helmet-async";
+import { fetchSiteName } from "../api/siteApi";
 
 export default function BoardDetail() {
   const { id } = useParams();
@@ -15,12 +17,23 @@ export default function BoardDetail() {
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
   const [popupUserId, setPopupUserId] = useState(null);
-
+  const [siteTitle, setSiteTitle] = useState("KongHome");
   const BASE_URL = import.meta.env.VITE_API_URL;
 
-  // ─────────────────────────────
-  // 게시글 정보 불러오기
-  // ─────────────────────────────
+
+    useEffect(() => {
+      const loadSiteName = async () => {
+      try {
+        const name = await fetchSiteName();
+        setSiteTitle(name);
+      } catch (err) {
+        console.error("사이트 이름 로드 실패:", err);
+      }
+    };
+    loadSiteName();
+  }, []);
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -102,6 +115,38 @@ const handleReport = async () => {
     return <p style={styles.loading}>⏳ 게시글을 불러오는 중...</p>;
 
   return (
+    <>
+      {/* ----------------------------- */}
+      {/*     🧠 SEO META 설정 부분      */}
+      {/* ----------------------------- */}
+      <Helmet>
+        <title>{`${board.title} | ${siteTitle}`}</title>
+
+        {/* 설명 텍스트 HTML 제거 + 공백 정리 */}
+          <meta
+            name="description"
+            content={
+              board.content
+                .replace(/<[^>]+>/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .slice(0, 150)
+            }
+          />
+
+        <meta property="og:title" content={board.title} />
+        <meta
+          property="og:description"
+          content={board.content.replace(/<[^>]+>/g, "").slice(0, 150)}
+        />
+        <meta property="og:url" content={`${window.location.origin}/board/${id}`} />
+        <meta property="og:type" content="article" />
+
+        {board.firstImage && (
+          <meta property="og:image" content={`${BASE_URL}${board.firstImage}`} />
+        )}
+      </Helmet>
+    
     <div
       style={{
         ...cardBase,
@@ -206,6 +251,7 @@ const handleReport = async () => {
         )}
       </div>
     </div>
+    </>
   );
 }
 

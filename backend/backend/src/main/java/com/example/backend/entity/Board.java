@@ -77,6 +77,8 @@ public class Board {
     @JoinColumn(name = "board_group_id", nullable = false)
     private BoardGroup boardGroup;
 
+    @Column(columnDefinition = "TEXT")
+    private String plainContent;
 
 
 

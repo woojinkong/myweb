@@ -25,4 +25,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT COUNT(b) FROM Board b WHERE b.boardGroup.id = :groupId")
     int countByGroupId(Long groupId);
 
+    List<Board> findByPlainContentContainingIgnoreCase(String keyword);
+
+
 }

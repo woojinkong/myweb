@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { colors, buttons, cardBase } from "../styles/common";
 import useAuth from "../hooks/useAuth";
+import { Helmet } from "react-helmet-async";
+import { fetchSiteName } from "../api/siteApi";
 
 export default function BoardList() {
   const [boards, setBoards] = useState([]);
@@ -15,6 +17,21 @@ export default function BoardList() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const BASE_URL = import.meta.env.VITE_API_URL;
+
+    const [siteTitle, setSiteTitle] = useState("KongHome");
+
+
+      useEffect(() => {
+      const load = async () => {
+        try {
+          const title = await fetchSiteName();
+          setSiteTitle(title);
+        } catch {
+          console.error("사이트 이름 로드 실패");
+        }
+      };
+      load();
+    }, []);
 
   // ======================================================
   //  📌 게시판 그룹 + 목록 함께 로딩
@@ -63,7 +80,33 @@ export default function BoardList() {
   const canWrite =
     group && (!group.adminOnlyWrite || (user && user.role === "ADMIN"));
 
+      /* --------------------------------------
+      📌 SEO 동적 description 생성
+    -------------------------------------- */
+    const metaDescription = group
+      ? `${group.name} 게시판의 최신 게시글 목록입니다.`
+      : "게시판 리스트 페이지입니다.";
+
   return (
+
+     <>
+      {/* =============================== */}
+      {/*            🔥 SEO META           */}
+      {/* =============================== */}
+      <Helmet>
+        <title>{`${group?.name || "게시판"} | ${siteTitle}`}</title>
+        <meta name="description" content={metaDescription} />
+
+        <meta property="og:title" content={`${group?.name} | ${siteTitle}`} />
+        <meta property="og:description" content={metaDescription} />
+        <meta
+          property="og:url"
+          content={`${window.location.origin}/board?groupId=${groupId}`}
+        />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
+
     <div
       style={{
         ...cardBase,
@@ -100,6 +143,7 @@ export default function BoardList() {
         <p style={styles.noData}>게시글이 없습니다.</p>
       )}
     </div>
+    </>
   );
 }
 

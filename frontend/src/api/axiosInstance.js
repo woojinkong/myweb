@@ -8,13 +8,14 @@ const axiosInstance = axios.create({
 
 // 🔥 GET 전용 공개 API 리스트 (로그인 없어도 됨)
 const PUBLIC_GET_PREFIX = [
+  "/board/search",
   "/board",
   "/board/",
   "/board-group",
   "/board-group/",
   "/comments",      // 댓글 조회(GET)만 공개
   "/site/name",
-  "/board/search",
+  
 ];
 
 // 🔄 Refresh 전용 axios
