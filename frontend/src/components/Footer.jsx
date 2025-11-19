@@ -4,13 +4,14 @@ import { colors } from "../styles/common";
 
 export default function Footer() {
   return (
-    <footer style={styles.footer}>
-      <div style={styles.inner}>
+    <footer className="footer-container" style={styles.footer}>
+      <div className="footer-inner" style={styles.inner}>
         <p style={styles.text}>© 2025 <strong>KongHome</strong>. All Rights Reserved.</p>
         <p style={styles.links}>
           <a href="/terms" style={styles.link}>이용약관</a> ·{" "}
           <a href="/privacy" style={styles.link}>개인정보처리방침</a> ·{" "}
-          <a href="mailto:support@konghome.com" style={styles.link}>문의하기</a>
+          <a href="/contact" style={styles.link}>문의하기</a>
+
         </p>
       </div>
     </footer>

@@ -28,8 +28,8 @@ public class Message {
     @Column(nullable = false, length = 1000)
     private String content;
 
-    @Column(nullable = false)
-    private boolean isRead;
+    @Column(name = "is_read", nullable = false)
+    private boolean read;
 
     @Column(nullable = false)
     private LocalDateTime sendDate;

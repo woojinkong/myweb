@@ -36,23 +36,34 @@ export default function BoardEdit() {
   const CustomImage = Image.extend({
   addAttributes() {
     return {
-      ...this.parent?.(),
-      src: {
-        default: null,
-      },
+      src: { default: null },
+
       textAlign: {
-        default: null,
-        parseHTML: element => element.style.textAlign || null,
-        renderHTML: attributes => {
-          if (!attributes.textAlign) return {};
-          return {
-            style: `text-align: ${attributes.textAlign}; margin: 0 auto;`
-          };
-        },
+        default: "center",
+        parseHTML: element => element.getAttribute("data-text-align") || "center",
+        renderHTML: attributes => ({
+          "data-text-align": attributes.textAlign,
+        }),
+      },
+
+      style: {
+        default: "max-width:100%; height:auto; border-radius:8px;",
       },
     };
   },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "figure",
+      {
+        "data-text-align": HTMLAttributes["data-text-align"] || "center",
+        style: `text-align:${HTMLAttributes["data-text-align"]}; margin:12px 0;`,
+      },
+      ["img", { src: HTMLAttributes.src, style: HTMLAttributes.style }],
+    ];
+  },
 });
+
 
   /* ------------------------------------
      📝 TipTap Editor

@@ -13,6 +13,6 @@ public class MessageDTO {
     private String senderId;    // ✅ 아이디 기반
     private String receiverId;  // ✅ 아이디 기반
     private String content;
-    private boolean isRead;
+    private boolean read;
     private LocalDateTime sendDate;
 }

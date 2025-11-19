@@ -12,7 +12,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findBySenderOrderBySendDateDesc(User sender);
 
      // ✅ 읽지 않은 쪽지 개수
-    long countByReceiverAndIsReadFalse(User receiver);
+    long countByReceiverAndReadFalse(User receiver);
 
     
 }

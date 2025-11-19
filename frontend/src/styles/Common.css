@@ -1,9 +1,126 @@
 /* 게시판 본문 공통 스타일 */
-.board-content img,
-.tiptap img {
+.board-content img {
+  max-width: 100%;
+}
+.tiptap figure {
+  margin: 12px 0;
+  text-align: center;
+}
+
+.tiptap figure[data-text-align="left"] {
+  text-align: left;
+}
+
+.tiptap figure[data-text-align="right"] {
+  text-align: right;
+}
+
+.tiptap figure img {
+  display: inline-block !important;
   max-width: 100%;
   height: auto;
-  display: block;
-  margin: 12px auto;
   border-radius: 8px;
+}
+
+
+/* ============================================
+   📱 Mobile (최대 768px)
+============================================ */
+@media (max-width: 768px) {
+
+  .home-container { padding: 8px; }
+
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .home-section {
+    padding: 10px !important;
+    min-height: auto !important;
+  }
+
+  .home-item {
+    padding: 8px 0 !important;
+  }
+
+  .board-thumb-box {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  /* 🌟 모바일 사이드바: display:none 대신 translate로 숨김 */
+  .sidebar-container {
+    width: 150px;
+    transition: transform 0.3s ease;
+    transform: translateX(-100%);
+    position: fixed;
+    z-index: 9999;
+    height: 100vh;
+    top: 0;
+    left: 0;
+  }
+
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+
+  /* 모바일 네비바 */
+  .navbar-container {
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
+  .navbar-search-form {
+    width: 90% !important;
+  }
+
+  .footer-container {
+    padding: 12px 0 !important;
+  }
+
+  .navbar-container .logo {
+    font-size: 18px !important;
+    max-width: 140px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 댓글 카드 */
+  .comment-card,
+  .comment-thread-item {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* 유저Row 줄바꿈 방지 */
+  .comment-user-row {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .comment-user-id {
+    max-width: 120px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .reply-depth {
+    margin-left: 6px !important;
+    padding-left: 6px !important;
+  }
+
+  .comment-date {
+    font-size: 11px !important;
+  }
+
+  .comment-content {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+  }
 }

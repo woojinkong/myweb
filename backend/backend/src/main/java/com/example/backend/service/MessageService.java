@@ -5,8 +5,10 @@ import com.example.backend.entity.Message;
 import com.example.backend.entity.User;
 import com.example.backend.repository.MessageRepository;
 import com.example.backend.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,7 +32,7 @@ public class MessageService {
                 .sender(sender)
                 .receiver(receiver)
                 .content(dto.getContent())
-                .isRead(false)
+                .read(false)
                 .sendDate(LocalDateTime.now())
                 .build();
 
@@ -49,7 +51,7 @@ public class MessageService {
                         .senderId(msg.getSender().getUserId()) // ✅ 아이디 기반
                         .receiverId(receiverId)
                         .content(msg.getContent())
-                        .isRead(msg.isRead())
+                        .read(msg.isRead())
                         .sendDate(msg.getSendDate())
                         .build())
                 .collect(Collectors.toList());
@@ -67,14 +69,16 @@ public class MessageService {
                         .senderId(senderId)
                         .receiverId(msg.getReceiver().getUserId()) // ✅ 아이디 기반
                         .content(msg.getContent())
-                        .isRead(msg.isRead())
+                        .read(msg.isRead())
                         .sendDate(msg.getSendDate())
                         .build())
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     // ✅ 읽음 처리
     public void markAsRead(Long messageNo) {
+        System.out.println("🔥 markAsRead 호출됨! messageNo = " + messageNo);
         Message msg = messageRepo.findById(messageNo)
                 .orElseThrow(() -> new RuntimeException("쪽지를 찾을 수 없습니다."));
         msg.setRead(true);
@@ -90,7 +94,7 @@ public class MessageService {
 public long countUnreadMessages(String receiverId) {
     User receiver = userRepo.findByUserId(receiverId)
             .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
-    return messageRepo.countByReceiverAndIsReadFalse(receiver);
+    return messageRepo.countByReceiverAndReadFalse(receiver);
 }
 
 }
