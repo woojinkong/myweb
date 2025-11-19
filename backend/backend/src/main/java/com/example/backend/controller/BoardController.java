@@ -25,6 +25,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jsoup.Jsoup;
+
+
+
 @RestController
 @RequestMapping("/api/board")
 @RequiredArgsConstructor
@@ -81,6 +85,7 @@ public class BoardController {
         Board board = Board.builder()
                 .title(title)
                 .content(content)
+                .plainContent(Jsoup.parse(content).text())  // ← 추가
                 .userId(userDetails.getUser().getUserId())
                 .boardGroup(group)
                 .build();
@@ -138,6 +143,7 @@ public class BoardController {
         // -----------------------------
         existing.setTitle(title);
         existing.setContent(content);
+        existing.setPlainContent(Jsoup.parse(content).text());
         if (isAdmin) existing.setBoardGroup(group);
 
         // -----------------------------

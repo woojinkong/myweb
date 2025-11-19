@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { colors, buttons, cardBase } from "../styles/common";
 import { FiFolder } from "react-icons/fi";
+import { Helmet } from "react-helmet-async";
+import { fetchSiteName } from "../api/siteApi";
 
 export default function Home() {
   const [groups, setGroups] = useState([]);
@@ -10,6 +12,18 @@ export default function Home() {
   const navigate = useNavigate();
 
   const BASE_URL = import.meta.env.VITE_API_URL;
+    const [siteTitle, setSiteTitle] = useState("KongHome");
+  useEffect(() => {
+      const loadSiteName = async () => {
+      try {
+        const name = await fetchSiteName();
+        setSiteTitle(name);
+      } catch (err) {
+        console.error("사이트 이름 로드 실패:", err);
+      }
+    };
+    loadSiteName();
+  }, []);
 
   // 🔥 게시판 그룹 불러오기
   useEffect(() => {
@@ -56,6 +70,7 @@ export default function Home() {
     const list = boardsByGroup[group.id] || [];
 
     return (
+
       <section
         key={group.id}
         style={{
@@ -159,6 +174,22 @@ export default function Home() {
 
   // 🔥 최종 렌더링
   return (
+    <>
+      <Helmet>
+        <title>{siteTitle}</title>
+        <meta
+          name="description"
+          content="KongHome 최신 게시글과 인기 게시판을 한눈에 확인하세요."
+        />
+        <meta property="og:title" content="KongHome 메인 페이지" />
+        <meta
+          property="og:description"
+          content="KongHome 최신 게시글과 다양한 커뮤니티 정보를 제공합니다."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+      </Helmet>
+
     <div style={styles.container}>
       <div style={styles.grid}>
         {groups.length > 0 ? (
@@ -172,6 +203,7 @@ export default function Home() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

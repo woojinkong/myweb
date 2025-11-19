@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -78,13 +79,14 @@ public class BoardService {
 
         List<Board> boards = switch (type) {
             case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword);
-            case "content" -> boardRepository.findByContentContainingIgnoreCase(keyword);
+            case "content", "plain" -> boardRepository.findByPlainContentContainingIgnoreCase(keyword);
             case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword);
             default -> List.of();
         };
 
         return boards.stream()
                 .map(this::toListDto)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -93,18 +95,25 @@ public class BoardService {
     // ===============================================================
     private BoardListResponse toListDto(Board board) {
 
-        return BoardListResponse.builder()
-                .boardNo(board.getBoardNo())
-                .title(board.getTitle())
-                .userId(board.getUserId())
-                .viewCount(board.getViewCount())
-                .createdDate(board.getCreatedDate())
-                .commentCount(commentRepository.countByBoard(board))
-                .imagePath(getFirstImage(board))
-                .groupId(board.getBoardGroup().getId())
-                .groupName(board.getBoardGroup().getName())
-                .profileUrl(getProfileUrl(board.getUserId()))
-                .build();
+        try{
+            Long groupId = board.getBoardGroup() != null ? board.getBoardGroup().getId() : null;
+            String groupName = board.getBoardGroup() != null ? board.getBoardGroup().getName() : "";
+            return BoardListResponse.builder()
+                    .boardNo(board.getBoardNo())
+                    .title(board.getTitle())
+                    .userId(board.getUserId())
+                    .viewCount(board.getViewCount())
+                    .createdDate(board.getCreatedDate())
+                    .commentCount(commentRepository.countByBoard(board))
+                    .imagePath(getFirstImage(board))
+                    .groupId(groupId)
+                    .groupName(groupName)
+                    .profileUrl(getProfileUrl(board.getUserId()))
+                    .build();
+        }catch( Exception e){
+            return null;
+        }
+
     }
 
     // ===============================================================
@@ -112,20 +121,28 @@ public class BoardService {
     // ===============================================================
     private BoardDetailResponse toDetailDto(Board board) {
 
-        return BoardDetailResponse.builder()
-                .boardNo(board.getBoardNo())
-                .title(board.getTitle())
-                .content(board.getContent())
-                .userId(board.getUserId())
-                .createdDate(board.getCreatedDate())
-                .viewCount(board.getViewCount())
-                .groupId(board.getBoardGroup().getId())
-                .groupName(board.getBoardGroup().getName())
-                .images(board.getImages())
-                .profileUrl(getProfileUrl(board.getUserId()))
-                .allowComment(board.getBoardGroup().isAllowComment())
+        try{
+            Long groupId = board.getBoardGroup() != null ? board.getBoardGroup().getId() : null;
+            String groupName = board.getBoardGroup() != null ? board.getBoardGroup().getName() : "";
+            boolean allowComment = board.getBoardGroup() != null && board.getBoardGroup().isAllowComment();
+            return BoardDetailResponse.builder()
+                    .boardNo(board.getBoardNo())
+                    .title(board.getTitle())
+                    .content(board.getContent())
+                    .userId(board.getUserId())
+                    .createdDate(board.getCreatedDate())
+                    .viewCount(board.getViewCount())
+                    .groupId(groupId)
+                    .groupName(groupName)
+                    .images(board.getImages())
+                    .profileUrl(getProfileUrl(board.getUserId()))
+                    .allowComment(allowComment)
+                    .build();
+        }catch(Exception e){
+            return null;
+        }
 
-                .build();
+
     }
 
     // ===============================================================
@@ -142,13 +159,18 @@ public class BoardService {
     //   📌 유저 프로필 이미지 URL 변환
     // ===============================================================
     private String getProfileUrl(String userId) {
-        Optional<User> opt = userRepository.findByUserId(userId);
-        if (opt.isEmpty()) return null;
+        try {
+            Optional<User> opt = userRepository.findByUserId(userId);
+            if (opt.isEmpty()) return null;
 
-        String img = opt.get().getProfileImage();
-        if (img == null || img.isBlank()) return null;
+            String img = opt.get().getProfileImage();
+            if (img == null || img.isBlank()) return null;
 
-        return img.startsWith("/uploads/") ? img : "/uploads/" + img;
+            return img.startsWith("/uploads/") ? img : "/uploads/" + img;
+
+        } catch (Exception e) {
+            return null; // 예외를 401로 넘기지 않음
+        }
     }
 
     // ===============================================================

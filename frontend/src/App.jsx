@@ -34,8 +34,8 @@ function App() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <Router>
-      <AuthProvider>
+  <Router>
+    <AuthProvider>
         <div style={styles.layout}>
           <Navbar isSidebarOpen={isSidebarOpen} />
           <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
@@ -169,6 +169,7 @@ function App() {
 
           <Footer />
         </div>
+    
       </AuthProvider>
     </Router>
   );

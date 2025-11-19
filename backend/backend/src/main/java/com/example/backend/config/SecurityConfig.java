@@ -72,12 +72,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/board-group/**").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/board/search").permitAll()
                         .requestMatchers("/api/site/name").permitAll()
 
-                        /* ============================
-                           🛎 알림 API (로그인 필요)
+                        /* ===========================
+                           🛎 알림 API (로그인 필요)=
                          ============================ */
                         .requestMatchers(HttpMethod.GET, "/api/notifications/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/notifications/**").authenticated()
