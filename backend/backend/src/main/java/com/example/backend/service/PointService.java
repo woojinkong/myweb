@@ -14,6 +14,7 @@ public class PointService {
 
     private final UserRepository userRepository;
     private final PointHistoryRepository historyRepository;
+    private final NotificationService notificationService; // ⭐ 추가
 
     @Transactional
     public void addPoint(Long userNo, int amount, String type) {
@@ -31,5 +32,8 @@ public class PointService {
                         .type(type)
                         .build()
         );
+
+        // 4) ⭐ 포인트 지급 알림 생성
+        notificationService.sendPoint(userNo, amount);
     }
 }

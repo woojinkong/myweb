@@ -56,5 +56,14 @@ public class NotificationService {
         repository.deleteAllByUserNo(userNo);
     }
 
+    // ⭐ 포인트 지급 알림 전용
+    public void sendPoint(Long receiverUserNo, int amount) {
+        String message = "포인트 " + amount + "점이 지급되었습니다.";
+        String link = "/mypage"; // 원하는 링크로 변경 가능
+
+        send(receiverUserNo, message, link);
+    }
+
+
 
 }
