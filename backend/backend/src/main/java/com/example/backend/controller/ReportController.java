@@ -38,8 +38,9 @@ public class ReportController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Report>> getAllReports() {
-        return ResponseEntity.ok(reportService.getAllReports());
+    public ResponseEntity<?> getAllReports(@RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(reportService.getReports(page,size));
     }
 
 }

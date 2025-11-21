@@ -3,6 +3,8 @@ package com.example.backend.service;
 import com.example.backend.entity.Notification;
 import com.example.backend.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +30,10 @@ public class NotificationService {
     }
 
     // ✅ 전체 알림 목록
-    public List<Notification> getNotifications(Long receiverUserNo) {
-        return repository.findByReceiverUserNoOrderByCreatedDateDesc(receiverUserNo);
+    public Page<Notification> getNotifications(Long receiverUserNo, Pageable pageable) {
+        return repository.findByReceiverUserNoOrderByCreatedDateDesc(receiverUserNo, pageable);
     }
+
 
     // ✅ 안 읽은 알림 개수
     public long getUnreadCount(Long receiverUserNo) {

@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import com.example.backend.entity.Site;
+import com.example.backend.repository.SiteRepository;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -21,38 +23,43 @@ public class EmailService {
     // 임시 인증코드 저장소 (실서비스는 Redis 권장)
     private final Map<String, String> verificationCodes = new HashMap<>();
 
+    private static final Long SITE_ID = 1L;
+    private final SiteRepository siteRepository;
     // ✅ HTML 이메일 전송
     public void sendVerificationCode(String email) {
         String code = generateCode();
         verificationCodes.put(email, code);
+
+        String siteTitle = getSiteTitle();   // ⭐ 사이트 이름 가져오기
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(email);
-            helper.setSubject("[KongHome] 이메일 인증 코드");
+            helper.setSubject("["+siteTitle+"] 이메일 인증 코드");
 
             String htmlContent = """
-                <div style="font-family: 'Pretendard', 'Arial', sans-serif; max-width: 480px; margin: 20px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fafafa;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h2 style="color: #007bff; margin-bottom: 8px;">KongHome</h2>
-                        <p style="color: #555; font-size: 15px;">이메일 인증을 완료해주세요</p>
-                    </div>
-
-                    <div style="background-color: #fff; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #ddd;">
-                        <p style="font-size: 16px; color: #333;">아래의 인증번호를 KongHome 페이지에 입력해주세요.</p>
-                        <div style="margin: 18px 0; font-size: 28px; font-weight: bold; color: #007bff; letter-spacing: 4px;">
-                            %s
-                        </div>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 25px; font-size: 13px; color: #999;">
-                        본 메일은 KongHome 회원가입을 위해 발송되었습니다.<br/>
-                        문의: <a href="mailto:dodejqn6@naver.com" style="color: #007bff; text-decoration: none;">dodejqn6@naver.com</a>
+            <div style="font-family: 'Pretendard', 'Arial', sans-serif; max-width: 480px; margin: 20px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fafafa;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #007bff; margin-bottom: 8px;">%s</h2>
+                    <p style="color: #555; font-size: 15px;">이메일 인증을 완료해주세요</p>
+                </div>
+        
+                <div style="background-color: #fff; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #ddd;">
+                    <p style="font-size: 16px; color: #333;">아래의 인증번호를 인증 번호 입력란에 입력해주세요.</p>
+                    <div style="margin: 18px 0; font-size: 28px; font-weight: bold; color: #007bff; letter-spacing: 4px;">
+                        %s
                     </div>
                 </div>
-            """.formatted(code);
+        
+                <div style="text-align: center; margin-top: 25px; font-size: 13px; color: #999;">
+                    본 메일은 %s 회원가입을 위해 발송되었습니다.<br/>
+                    문의: <a href="mailto:dodejqn6@naver.com" style="color: #007bff; text-decoration: none;">dodejqn6@naver.com</a>
+                </div>
+            </div>
+        """.formatted(siteTitle, code, siteTitle);
+
 
             helper.setText(htmlContent, true); // ✅ HTML 본문 설정
             mailSender.send(message);
@@ -97,5 +104,12 @@ public class EmailService {
             throw new RuntimeException("메일 전송 실패: " + e.getMessage());
         }
     }
+
+    private String getSiteTitle() {
+        return siteRepository.findById(SITE_ID)
+                .map(Site::getSiteName)
+                .orElse("KongHome");  // 사이트 이름 없을 때 기본값
+    }
+
 
 }

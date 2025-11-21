@@ -48,12 +48,14 @@ export default function Home() {
 
       for (const g of groups) {
         try {
-          const res = await axiosInstance.get(`/board?groupId=${g.id}`);
+          const res = await axiosInstance.get(`/board?groupId=${g.id}&page=0&size=4`);
 
-          // 최신순 5개
-          result[g.id] = res.data
-            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-            .slice(0, 5);
+          const list = res.data.content || [];
+
+            result[g.id] = list
+              .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+              .slice(0, 5);
+
         } catch (err) {
           console.error(`그룹(${g.name}) 게시글 불러오기 실패:`, err);
           result[g.id] = [];

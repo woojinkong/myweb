@@ -8,7 +8,7 @@ export default function Privacy() {
 
       <div style={styles.box}>
         <p>
-          KongHome은 이용자의 개인정보를 소중히 여기며,
+          본 사이트는 이용자의 개인정보를 소중히 여기며,
           개인정보 보호법 등 관련 법령을 준수합니다.
         </p>
 
@@ -25,7 +25,7 @@ export default function Privacy() {
         </p>
 
         <h3>4. 개인정보 보호 책임자</h3>
-        <p>- 이메일: support@konghome.com</p>
+        <p>- 이메일: dodejqn6@gmail.com</p>
       </div>
     </div>
   );

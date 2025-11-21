@@ -13,6 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,12 +46,29 @@ public class BoardController {
     private String uploadDir;
 
     /** ===========================================================
-     *  📌 (1) 게시판 목록 조회
+     *  📌 (1) 게시판 목록 조회(페이징으로수정)
      * =========================================================== */
     @GetMapping
-    public ResponseEntity<List<BoardListResponse>> getBoards(
-            @RequestParam("groupId") Long groupId) {
-        return ResponseEntity.ok(boardService.findAllByBoardGroup(groupId));
+    public ResponseEntity<Page<BoardListResponse>> getBoards(
+            @RequestParam("groupId") Long groupId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "new") String sort   // ⭐ 추가
+    ) {
+
+        // 🔥 Sort 옵션 매핑
+        Sort sortOption = switch (sort) {
+            case "likes" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "old"   -> Sort.by(Sort.Direction.ASC, "createdDate");
+            default      -> Sort.by(Sort.Direction.DESC, "createdDate");
+        };
+
+        // 🔥 여기서 sortOption 적용해야 함!
+        Pageable pageable = PageRequest.of(page, size, sortOption);
+
+        Page<BoardListResponse> result = boardService.findAllByBoardGroup(groupId, pageable);
+
+        return ResponseEntity.ok(result);
     }
 
     /** ===========================================================
@@ -96,7 +118,7 @@ public class BoardController {
         saveImagesFromContent(saved, content);
 
         // ⭐ BoardImage 저장을 위해 다시 save() 필요
-        boardService.save(saved);
+        boardService.saveWithoutCooldown(saved);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
@@ -159,7 +181,7 @@ public class BoardController {
         // -----------------------------
         saveImagesFromContent(existing, content);
 
-        return ResponseEntity.ok(boardService.save(existing));
+        return ResponseEntity.ok(boardService.saveWithoutCooldown(existing));
     }
 
     /** ===========================================================
@@ -274,15 +296,38 @@ public class BoardController {
         if (file.isEmpty())
             return ResponseEntity.badRequest().body("EMPTY_FILE");
 
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        File dest = new File(uploadDir, filename);
-        dest.getParentFile().mkdirs();
-        file.transferTo(dest);
+        // 1) 확장자 검사
+        String originalName = file.getOriginalFilename();
+        if (originalName == null) {
+            return ResponseEntity.badRequest().body("Invalid file.");
+        }
 
-        Map<String, String> res = new HashMap<>();
-        res.put("url", "/uploads/" + filename);
+        String ext = originalName.substring(originalName.lastIndexOf(".") + 1).toLowerCase();
 
-        return ResponseEntity.ok(res);
+        List<String> allowedExt = List.of("jpg", "jpeg", "png", "gif", "webp");
+        if (!allowedExt.contains(ext)) {
+            return ResponseEntity.status(400).body("허용되지 않은 확장자입니다.");
+        }
+
+        // 2) 용량 제한
+        if (file.getSize() > 20 * 1024 * 1024) {
+            return ResponseEntity.status(400).body("파일 크기가 너무 큽니다. (20MB 제한)");
+        }
+
+
+        try{
+            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            File dest = new File(uploadDir, filename);
+            dest.getParentFile().mkdirs();
+            file.transferTo(dest);
+
+            Map<String, String> res = new HashMap<>();
+            res.put("url", "/uploads/" + filename);
+            return ResponseEntity.ok(res);
+        }catch(Exception e){
+            return ResponseEntity.status(500).body("업로드 실패");
+        }
+
     }
 
 
@@ -290,11 +335,22 @@ public class BoardController {
      *  📌 (6) 게시글 검색 (제목 / 내용 / 작성자)
      * =========================================================== */
     @GetMapping("/search")
-    public ResponseEntity<List<BoardListResponse>> searchBoards(
+    public ResponseEntity<Page<BoardListResponse>> searchBoards(
             @RequestParam String keyword,
-            @RequestParam String type
+            @RequestParam String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(boardService.searchBoards(keyword, type));
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<BoardListResponse> result =
+                boardService.searchBoards(keyword, type, pageable);
+
+        return ResponseEntity.ok(result);
     }
+
+
+
+
 
 }

@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useContext(AuthContext); // ✅ 추가
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     userId: "",
@@ -23,6 +24,8 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // 중복 클릭 방지
+    setLoading(true);
     setError("");
 
     try {
@@ -56,6 +59,8 @@ export default function Login() {
         return;
       }
       setError("아이디 또는 비밀번호가 올바르지 않습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,8 +86,8 @@ export default function Login() {
           required
           style={styles.input}
         />
-        <button type="submit" style={styles.button}>
-          로그인
+        <button type="submit" style={styles.button} disabled={loading}>
+          {loading ? "로그인 중..." : "로그인"}
         </button>
       </form>
 

@@ -5,21 +5,26 @@ import axiosInstance from "../api/axiosInstance";
 
 export default function NotificationPage() {
   const [notifications, setNotifications] = useState([]);
+  const [page, setPage] = useState(0);
+const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
 
   // ✅ 알림 목록 불러오기
   const loadNotifications = async () => {
-    try {
-      const res = await fetchNotifications();
-      setNotifications(res);
-    } catch (err) {
-      console.error("알림 목록 불러오기 실패:", err);
-    }
-  };
+  try {
+    const res = await fetchNotifications(page, 10);
+    setNotifications(res.content);
+    setTotalPages(res.totalPages);
+  } catch (err) {
+    console.error("알림 목록 불러오기 실패:", err);
+  }
+};
+
 
   useEffect(() => {
-    loadNotifications();
-  }, []);
+  loadNotifications();
+}, [page]);
+
 
   // ✅ 개별 클릭 시 읽음 처리 + 이동
   const handleClick = async (noti) => {
@@ -129,6 +134,14 @@ export default function NotificationPage() {
           ))}
         </ul>
       )}
+
+      {/* ⭐⭐⭐ 페이징 UI는 여기! ⭐⭐⭐ */}
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button disabled={page === 0} onClick={() => setPage(page - 1)}>이전</button>
+        <span style={{ margin: "0 12px" }}>{page + 1} / {totalPages}</span>
+        <button disabled={page + 1 >= totalPages} onClick={() => setPage(page + 1)}>다음</button>
+      </div>
+
     </div>
   );
 }

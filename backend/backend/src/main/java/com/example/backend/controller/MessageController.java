@@ -3,6 +3,8 @@ package com.example.backend.controller;
 import com.example.backend.dto.MessageDTO;
 import com.example.backend.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,15 +28,19 @@ public class MessageController {
 
     // ✅ 받은 쪽지 목록
     @GetMapping("/received")
-    public ResponseEntity<List<MessageDTO>> getReceivedMessages(Principal principal) {
-        List<MessageDTO> messages = messageService.getReceivedMessages(principal.getName());
+    public ResponseEntity<Page<MessageDTO>> getReceivedMessages(Principal principal ,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size) {
+        Page<MessageDTO> messages = messageService.getReceivedMessages(principal.getName(), PageRequest.of(page, size));
         return ResponseEntity.ok(messages);
     }
 
     // ✅ 보낸 쪽지 목록
     @GetMapping("/sent")
-    public ResponseEntity<List<MessageDTO>> getSentMessages(Principal principal) {
-        List<MessageDTO> messages = messageService.getSentMessages(principal.getName());
+    public ResponseEntity<Page<MessageDTO>> getSentMessages(Principal principal,
+                                                            @RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size) {
+        Page<MessageDTO> messages = messageService.getSentMessages(principal.getName(), PageRequest.of(page, size));
         return ResponseEntity.ok(messages);
     }
 

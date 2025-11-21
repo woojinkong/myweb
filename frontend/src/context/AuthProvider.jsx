@@ -10,19 +10,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
-  // 🔥 공개 페이지 (여기서는 토큰 없어도 접근 OK)
-  // const publicPrefixes = [
-  //   "/login",
-  //   "/signup",
-  //   "/find-password",
-  //   "/reset-password",
-  //   "/uploads",
-  //   "/board-group",
-  //   "/board/search",
-
-  //   "/board",
-  //   "/board/",
-  // ];
 
   useEffect(() => {
     // 1) accessToken이 없으면 유저 정보 불러올 필요 없음
@@ -32,12 +19,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       return;
     }
-
-    // // 2) 공개 페이지는 유저 자동 복원 시도 안 함
-    // if (publicPrefixes.some(prefix => location.pathname.startsWith(prefix))) {
-    //   setLoading(false);
-    //   return;
-    // }
 
     // 3) axiosInstance 준비될 시간을 위해 살짝 지연
     const timer = setTimeout(() => {

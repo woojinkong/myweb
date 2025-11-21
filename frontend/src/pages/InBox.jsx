@@ -8,27 +8,34 @@ import UserProfilePopup from "./UserProfilepopup";
 export default function InBox() {
   const [messages, setMessages] = useState([]);
   const [selectedMsg, setSelectedMsg] = useState(null);
-  const [openProfileId, setOpenProfileId] = useState(null); // 🔥 추가
+  const [openProfileId, setOpenProfileId] = useState(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  // ✅ 받은 쪽지 목록 불러오기
+  // 🔥 받은 쪽지 페이지 불러오기
   useEffect(() => {
     if (!user || !user.userId) return;
 
     const fetchMessages = async () => {
       try {
-        const res = await axiosInstance.get("/message/received");
-        setMessages(res.data);
+        const res = await axiosInstance.get(
+          `/message/received?page=${page}&size=10`
+        );
+
+        setMessages(res.data.content);       // 반드시 content!
+        setTotalPages(res.data.totalPages);  // 전체 페이지 저장
       } catch (err) {
         console.error("쪽지 목록 불러오기 실패:", err);
       }
     };
 
     fetchMessages();
-  }, [user]);
+  }, [user, page]);
 
-  // ✅ 쪽지 읽음 처리
+  // 🔥 읽음 처리
   const handleRead = async (msg) => {
     setSelectedMsg(msg);
 
@@ -46,16 +53,15 @@ export default function InBox() {
     }
   };
 
-  // ✅ 쪽지 삭제
+  // 🔥 삭제
   const handleDelete = async (msgNo) => {
-    if (!window.confirm("정말 이 쪽지를 삭제하시겠습니까?")) return;
+    if (!window.confirm("쪽지를 삭제하시겠습니까?")) return;
 
     try {
       await axiosInstance.delete(`/message/${msgNo}`);
       setMessages((prev) => prev.filter((m) => m.messageNo !== msgNo));
     } catch (err) {
       console.error("삭제 실패:", err);
-      alert("쪽지 삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -69,7 +75,6 @@ export default function InBox() {
         </button>
       </div>
 
-      {/* 쪽지 리스트 */}
       <div style={styles.table}>
         <div style={styles.header}>
           <span style={{ flex: 2 }}>보낸 사람</span>
@@ -90,7 +95,6 @@ export default function InBox() {
                 background: msg.read ? "#fafafa" : "#e8f5ff",
               }}
             >
-              {/* 🔥 보낸 사람 클릭 → 프로필 팝업 */}
               <span
                 style={{
                   flex: 2,
@@ -98,11 +102,13 @@ export default function InBox() {
                   cursor: "pointer",
                   color: "#007bff",
                 }}
-                onClick={(e) => setOpenProfileId({
-                  id: msg.senderId,
-                  x: e.clientX,
-                  y: e.clientY
-                })}
+                onClick={(e) =>
+                  setOpenProfileId({
+                    id: msg.senderId,
+                    x: e.clientX,
+                    y: e.clientY,
+                  })
+                }
               >
                 {msg.senderId}
               </span>
@@ -117,18 +123,11 @@ export default function InBox() {
               </span>
 
               <span style={{ flex: 2, fontSize: "13px", color: "#666" }}>
-                {new Date(msg.sendDate).toLocaleString("ko-KR", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
+                {new Date(msg.sendDate).toLocaleString("ko-KR")}
               </span>
 
               <span style={{ flex: 1 }}>
-                {msg.read ? (
-                  <FiEye color="#888" />
-                ) : (
-                  <FiMail color="#007bff" />
-                )}
+                {msg.read ? <FiEye color="#888" /> : <FiMail color="#007bff" />}
               </span>
 
               <span style={{ flex: 1 }}>
@@ -143,7 +142,23 @@ export default function InBox() {
         )}
       </div>
 
-      {/* 📌 쪽지 내용 모달 */}
+      {/* ▽▽ 페이징 버튼 ▽▽ */}
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button disabled={page === 0} onClick={() => setPage(page - 1)}>
+          이전
+        </button>
+        <span style={{ margin: "0 10px" }}>
+          {page + 1} / {totalPages}
+        </span>
+        <button
+          disabled={page + 1 >= totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          다음
+        </button>
+      </div>
+
+      {/* 내용 모달 */}
       {selectedMsg && (
         <div style={styles.overlay} onClick={() => setSelectedMsg(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -159,17 +174,13 @@ export default function InBox() {
 
             <div style={styles.modalContent}>{selectedMsg.content}</div>
 
-            <button
-              style={styles.closeBtn}
-              onClick={() => setSelectedMsg(null)}
-            >
+            <button style={styles.closeBtn} onClick={() => setSelectedMsg(null)}>
               닫기
             </button>
           </div>
         </div>
       )}
 
-      {/* 📌 프로필 팝업 (UserProfilePopup) */}
       {openProfileId && (
         <UserProfilePopup
           userId={openProfileId.id}
@@ -180,6 +191,7 @@ export default function InBox() {
     </div>
   );
 }
+
 
 const styles = {
   container: {

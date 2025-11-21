@@ -23,6 +23,8 @@ public class BoardListResponse {
     private Long groupId;       // 🔥 추가: 게시판 그룹 ID
     private String groupName;   // 🔥 추가: 게시판 그룹 이름
     private String profileUrl;
+    private int likeCount;
+
 
 
 

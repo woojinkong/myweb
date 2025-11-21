@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.PointRequest;
 import com.example.backend.dto.UserDTO;
+import com.example.backend.entity.Board;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
@@ -9,6 +10,8 @@ import com.example.backend.service.*;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -32,30 +36,33 @@ public class AdminController {
     private final ActiveUserService activeUserService;
     private final PointService pointService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
 
     // ✅ 전체 회원 조회
     @GetMapping("/users")
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        List<UserDTO> dtos = users.stream()
+    public ResponseEntity<Map<String, Object>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<User> result = userRepository.findAll(pageable);
+
+        List<UserDTO> users = result.getContent()
+                .stream()
                 .map(UserDTO::fromEntity)
                 .toList();
-        return ResponseEntity.ok(dtos);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", users);
+        response.put("currentPage", result.getNumber());
+        response.put("totalPages", result.getTotalPages());
+        response.put("totalItems", result.getTotalElements());
+        return ResponseEntity.ok(response);
     }
 
-
-    // ✅ 회원 강제 삭제
-//    @DeleteMapping("/users/{userId}")
-//    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
-//        User user = userRepository.findByUserId(userId).orElse(null);
-//        if (user == null) return ResponseEntity.notFound().build();
-//
-//        userRepository.delete(user);
-//        return ResponseEntity.ok("회원이 삭제되었습니다: " + userId);
-//    }
 
     // ✅ 권한 변경 (USER ↔ ADMIN)
     @PutMapping("/users/{userId}/role")
@@ -203,6 +210,47 @@ public class AdminController {
                 "message", "전체 유저에게 이메일이 전송되었습니다."
         ));
     }
+
+
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/board/delete/{boardNo}")
+    public ResponseEntity<?> adminDeleteBoard(
+            @PathVariable Long boardNo,
+            @RequestBody Map<String, String> req
+    ) {
+        String reason = req.get("reason");
+        if (reason == null || reason.isBlank()) {
+            return ResponseEntity.badRequest().body("삭제 사유가 필요합니다.");
+        }
+
+        // 게시글 조회
+        Board board = boardService.findByIdRaw(boardNo);
+        if (board == null) {
+            return ResponseEntity.status(404).body("게시글을 찾을 수 없습니다.");
+        }
+
+        // 작성자 정보 가져오기
+        Optional<User> writerOpt = userRepository.findByUserId(board.getUserId());
+        if (writerOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("작성자를 찾을 수 없습니다.");
+        }
+
+        Long writerUserNo = writerOpt.get().getUserNo();
+
+        // 게시글 삭제
+        boardService.delete(boardNo);
+
+        // 알림 발송
+        notificationService.send(
+                writerUserNo,
+                "관리자가 '" + reason + "' 사유로 게시글을 삭제했습니다.",
+                "/board/" + boardNo
+        );
+
+        return ResponseEntity.ok("게시글이 삭제되었습니다.");
+    }
+
 
 
 

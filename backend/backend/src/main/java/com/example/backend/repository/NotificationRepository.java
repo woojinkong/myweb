@@ -1,6 +1,8 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Notification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +12,8 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByReceiverUserNoOrderByCreatedDateDesc(Long receiverUserNo);
+    Page<Notification> findByReceiverUserNoOrderByCreatedDateDesc(Long receiverUserNo, Pageable pageable);
+
 
     long countByReceiverUserNoAndIsReadFalse(Long receiverUserNo);
 
@@ -20,4 +23,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("delete from Notification n where n.receiverUserNo = :userNo")
     void deleteAllByUserNo(@Param("userNo") Long userNo);
+
+
 }

@@ -75,6 +75,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/board-group/**").permitAll()
                         .requestMatchers("/api/site/name").permitAll()
                         .requestMatchers("/api/contact/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/board/report/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/board/like/**").authenticated()
+
+
 
                         /* ===========================
                            🛎 알림 API (로그인 필요)=
