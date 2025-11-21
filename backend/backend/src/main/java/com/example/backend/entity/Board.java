@@ -48,10 +48,16 @@ public class Board {
      @Column(nullable = false)
     private int viewCount = 0; // ✅ 조회수 필드 추가
 
+    // ⭐⭐⭐ 좋아요 개수 필드 추가 (정렬용)
+    @Column(nullable = false)
+    private int likeCount = 0;
+
     @PrePersist
     public void prePersist() {
         this.createdDate = LocalDateTime.now();
         this.viewCount = 0;
+        this.likeCount = 0;  // ⭐ 기본값 보장
+
     }
 
 

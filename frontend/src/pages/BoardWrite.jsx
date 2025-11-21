@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-
 // TipTap
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -11,6 +10,13 @@ import TextAlign from "@tiptap/extension-text-align";
 // 서버 확장 이미지 업로드 기능
 import { ImageUpload } from "../api/ImageUpload";
 import Image from "@tiptap/extension-image";
+
+import { Color } from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Underline from "@tiptap/extension-underline";
+import Link from "@tiptap/extension-link";
+import { YouTube } from "../api/youtube";
+
 export default function BoardWrite() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,6 +24,8 @@ export default function BoardWrite() {
 
   const groupId = new URLSearchParams(location.search).get("groupId");
   const [title, setTitle] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
 
   /* ------------------------------------
      🔐 로그인 + groupId 체크
@@ -74,14 +82,26 @@ const CustomImage = Image.extend({
   ------------------------------------ */
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+        underline: false,  
+      }),
+      Underline,     // ⭐ 반드시 추가
+      Link.configure({
+      openOnClick: true,
+      autolink: true,
+      linkOnPaste: true,
+    }),
+      YouTube,
       CustomImage,
+      TextStyle,
+       Color.configure({ types: ["textStyle"] }),
       ImageUpload, // ⭐ 서버 업로드 기능 확장
       Placeholder.configure({
         placeholder: "내용을 입력하세요…",
       }),
       TextAlign.configure({
-      types: ["heading", "paragraph", "image"],  // ⭐ 이미지에도 정렬 적용
+      types: ["heading", "paragraph", "image","youtube"],  // ⭐ 이미지에도 정렬 적용
     }),
     ],
 
@@ -94,25 +114,15 @@ const CustomImage = Image.extend({
     content: "",
   });
 
-  /* ------------------------------------
-     ▶ 링크 삽입 핸들러
-  ------------------------------------ */
-  const setLink = useCallback(() => {
-    const url = window.prompt("링크 URL을 입력하세요:");
-    if (url === null) return;
-
-    if (url === "") {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-    editor.chain().focus().setLink({ href: url }).run();
-  }, [editor]);
 
   /* ------------------------------------
      📤 게시글 등록
   ------------------------------------ */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (submitting) return; // 중복 제출 방지
+   setSubmitting(true);
 
     if (!title.trim()) return alert("제목을 입력하세요!");
     if (!editor?.getHTML()?.trim()) return alert("내용을 입력하세요!");
@@ -131,7 +141,8 @@ const CustomImage = Image.extend({
       navigate(`/board?groupId=${groupId}`);
     } catch (err) {
       console.error(err);
-      alert("등록 중 오류 발생!");
+      const msg = err.response?.data?.message || "등록 중 오류 발생!";
+      alert(msg);
     }
   };
 
@@ -142,60 +153,59 @@ const CustomImage = Image.extend({
   ------------------------------------ */
   const Toolbar = () => (
   <div style={styles.toolbar}>
-    <button type="button" onClick={() => editor.chain().focus().toggleBold().run()}>
-      <b>B</b>
+    
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().toggleBold().run()}>
+      <i className="fa-solid fa-bold"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()}>
-      <i>I</i>
+
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().toggleUnderline().run()}>
+      <i className="fa-solid fa-underline"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()}>
-      <u>U</u>
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().toggleStrike().run()}>
+      <i className="fa-solid fa-strikethrough"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()}>
-      <s>S</s>
-    </button>
-
-    <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
       H2
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+    <button type="button" tyle={styles.btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
       H3
     </button>
 
-    <button type="button" onClick={setLink}>🔗 Link</button>
-
-    <button type="button" onClick={() => editor.commands.uploadImage()}>
-      🖼️ Image
-    </button>
-    <button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()}>
-      left
+    <button type="button" style={styles.btn} onClick={() => editor.commands.uploadImage()}>
+      <i className="fa-solid fa-image"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()}>
-      center
+    {/* 정렬 */}
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().setTextAlign('left').run()}>
+      <i className="fa-solid fa-align-left"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
-      right
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().setTextAlign('center').run()}>
+      <i className="fa-solid fa-align-center"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().unsetTextAlign().run()}>
-      basic
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().setTextAlign('right').run()}>
+      <i className="fa-solid fa-align-right"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().undo().run()}>
-      ↶ Undo
+    {/* 색상 변경 */}
+    <input
+      type="color"
+      onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+      style={styles.colorPicker}
+    />
+
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().unsetColor().run()}>
+      <i className="fa-solid fa-eraser"></i>
     </button>
 
-    <button type="button" onClick={() => editor.chain().focus().redo().run()}>
-      ↷ Redo
-    </button>
   </div>
 );
+
 
 
   return (
@@ -218,7 +228,14 @@ const CustomImage = Image.extend({
           <EditorContent editor={editor} />
         </div>
 
-        <button type="submit" style={styles.button}>등록하기</button>
+        <button type="submit" 
+        style={{
+        ...styles.button,
+        opacity: submitting ? 0.6 : 1,
+        pointerEvents: submitting ? "none" : "auto",
+      }}>
+          {submitting ? "등록 중..." : "등록하기"}
+          </button>
       </form>
     </div>
   );
@@ -229,53 +246,103 @@ const CustomImage = Image.extend({
 ------------------------------------ */
 const styles = {
   container: {
-    maxWidth: "750px",
-    margin: "50px auto",
-    padding: "25px",
+    maxWidth: "680px",
+    margin: "40px auto",
+    padding: "20px",
     background: "#fff",
-    border: "1px solid #ddd",
-    borderRadius: "12px",
+    border: "1px solid #eee",
+    borderRadius: "10px",
   },
+
   title: {
     textAlign: "center",
-    marginBottom: "20px",
-    fontSize: "22px",
-    fontWeight: "700",
+    marginBottom: "18px",
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#333",
   },
+
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: "15px",
+    gap: "12px",
   },
+
   input: {
-    padding: "12px",
-    border: "1px solid #ccc",
+    padding: "10px 12px",
+    border: "1px solid #e0e0e0",
     borderRadius: "6px",
-    fontSize: "15px",
+    fontSize: "14px",
+    outline: "none",
   },
+
   toolbar: {
-    display: "flex",
-    gap: "6px",
-    flexWrap: "wrap",
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "6px",
-    background: "#f9f9f9",
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "8px",
+  border: "1px solid #ddd",
+  borderRadius: "8px",
+  background: "#fafafa",
+},
+
+btn: {
+  border: "none",
+  padding: "6px 8px",
+  background: "transparent",
+  fontSize: "15px",
+  cursor: "pointer",
+  borderRadius: "6px",
+  transition: "0.15s",
+},
+
+btnActive: {
+  background: "#ececec",
+},
+
+colorPicker: {
+  width: "26px",
+  height: "26px",
+  padding: 0,
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+},
+
+
+
+
+  toolbarBtn: {
+    border: "none",
+    background: "transparent",
+    padding: "6px 8px",
+    borderRadius: "4px",
+    fontSize: "13px",
+    cursor: "pointer",
+    color: "#555",
   },
+
+  toolbarBtnActive: {
+    background: "#e6e6e6",
+  },
+
   editorBox: {
-    minHeight: "300px",
-    border: "1px solid #ccc",
+    minHeight: "250px",
+    border: "1px solid #e0e0e0",
     borderRadius: "6px",
-    padding: "10px",
+    padding: "12px",
     background: "#fff",
   },
+
   button: {
-    padding: "12px",
-    background: "#4CAF50",
+    padding: "10px",
+    background: "#4a6cf7",
     color: "#fff",
     border: "none",
     borderRadius: "6px",
-    fontSize: "16px",
+    fontSize: "15px",
     cursor: "pointer",
+    fontWeight: "600",
+    transition: "0.15s",
   },
 };

@@ -4,6 +4,10 @@ import com.example.backend.config.CustomUserDetails;
 import com.example.backend.entity.Notification;
 import com.example.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +23,16 @@ public class NotificationController {
 
     // ✅ 내 알림 목록 조회
     @GetMapping
-    public ResponseEntity<List<Notification>> getMyNotifications(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+    public ResponseEntity<Page<Notification>> getMyNotifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         Long userNo = userDetails.getUser().getUserNo();
-        return ResponseEntity.ok(service.getNotifications(userNo));
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        return ResponseEntity.ok(service.getNotifications(userNo, pageable));
     }
+
 
     // ✅ 안 읽은 알림 개수
     @GetMapping("/unread-count")

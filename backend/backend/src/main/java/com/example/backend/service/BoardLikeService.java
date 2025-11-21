@@ -24,9 +24,13 @@ public class BoardLikeService {
 
         if (exists) {
             likeRepository.deleteByBoardAndUserId(board, userId);
+            board.setLikeCount(board.getLikeCount() - 1); // ⭐ 감소
+            boardRepository.save(board);
             return false; // 좋아요 취소
         } else {
             likeRepository.save(BoardLike.builder().board(board).userId(userId).build());
+            board.setLikeCount(board.getLikeCount() + 1); // ⭐ 증가
+            boardRepository.save(board);
             return true; // 좋아요 추가
         }
     }

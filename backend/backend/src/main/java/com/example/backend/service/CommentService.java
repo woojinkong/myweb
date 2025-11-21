@@ -1,8 +1,11 @@
 package com.example.backend.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.example.backend.exception.CustomException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,27 @@ public class CommentService {
     @Transactional
     public CommentResponse add(Long boardNo, String userId, CommentRequest req) {
         Board board = boardRepository.findById(boardNo).orElseThrow();
+
+        // ============================================================
+        // 🔥 댓글 쿨타임 체크 (10초)
+        // ============================================================
+        List<LocalDateTime> times =
+                commentRepository.findRecentCommentTimes(userId, PageRequest.of(0, 1));
+
+        LocalDateTime last = times.isEmpty() ? null : times.get(0);
+
+        if (last != null) {
+            long seconds = Duration.between(last, LocalDateTime.now()).getSeconds();
+
+            if (seconds < 10) {
+                throw new CustomException(
+                        "댓글은 10초에 1번만 작성할 수 있습니다. (" + (10 - seconds) + "초 후 재작성 가능)",
+                        429
+                );
+            }
+
+        }
+        // ============================================================
 
         Comment parent = null;
         if (req.getParentId() != null) {

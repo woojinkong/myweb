@@ -30,7 +30,11 @@ export default function SendMessageModal({ receiverId, onClose }) {
       setContent("");
       onClose();
     } catch (err) {
-      console.error("쪽지 전송 실패:", err);
+      if (err.response?.status === 429) {
+        alert(err.response.data.message); // 쿨타임 메시지 출력
+        return;
+      }
+
       alert("쪽지 전송 중 오류가 발생했습니다.");
     } finally {
       setSending(false);

@@ -4,6 +4,7 @@ import com.example.backend.dto.BoardListResponse;
 import com.example.backend.dto.BoardDetailResponse;
 import com.example.backend.entity.Board;
 import com.example.backend.entity.User;
+import com.example.backend.exception.CustomException;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.CommentRepository;
 import com.example.backend.repository.ReportRepository;
@@ -11,12 +12,17 @@ import com.example.backend.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -41,16 +47,13 @@ public class BoardService {
     }
 
     // ===============================================================
-    //   📌 특정 게시판(BoardGroup) 기준 목록 조회
+    //   📌 특정 게시판(BoardGroup) 기준 목록 조회(페이징수정)
     // ===============================================================
-    public List<BoardListResponse> findAllByBoardGroup(Long groupId) {
+    public Page<BoardListResponse> findAllByBoardGroup(Long groupId, Pageable pageable) {
 
-        List<Board> boards = boardRepository
-                .findByBoardGroupIdOrderByCreatedDateDesc(groupId);
+        Page<Board> boards = boardRepository.findByBoardGroupId(groupId, pageable);
 
-        return boards.stream()
-                .map(this::toListDto)
-                .toList();
+        return boards.map(this::toListDto);
     }
 
     // ===============================================================
@@ -75,19 +78,16 @@ public class BoardService {
     // ===============================================================
     //   📌 검색 기능
     // ===============================================================
-    public List<BoardListResponse> searchBoards(String keyword, String type) {
+    public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
 
-        List<Board> boards = switch (type) {
-            case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword);
-            case "content", "plain" -> boardRepository.findByPlainContentContainingIgnoreCase(keyword);
-            case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword);
-            default -> List.of();
+        Page<Board> boards = switch (type) {
+            case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+            case "content", "plain" -> boardRepository.findByPlainContentContainingIgnoreCase(keyword,pageable);
+            case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword,pageable);
+            default -> Page.empty();
         };
 
-        return boards.stream()
-                .map(this::toListDto)
-                .filter(Objects::nonNull)
-                .toList();
+        return boards.map(this::toListDto);
     }
 
     // ===============================================================
@@ -109,6 +109,7 @@ public class BoardService {
                     .groupId(groupId)
                     .groupName(groupName)
                     .profileUrl(getProfileUrl(board.getUserId()))
+                    .likeCount(board.getLikeCount())     // ⭐ 추가된 부분
                     .build();
         }catch( Exception e){
             return null;
@@ -183,9 +184,33 @@ public class BoardService {
     // ===============================================================
     //   📌 저장 / 삭제
     // ===============================================================
+    @Transactional
     public Board save(Board board) {
+
+        String userId = board.getUserId();
+
+        // 🔍 최근 작성 1개 가져오기 (LIMIT 1 효과)
+        List<LocalDateTime> times =
+                boardRepository.findRecentPostTimes(userId, PageRequest.of(0, 1));
+
+        LocalDateTime last = times.isEmpty() ? null : times.get(0);
+
+        // ⏱️ 쿨타임 체크 (10초)
+        if (last != null) {
+            long seconds = Duration.between(last, LocalDateTime.now()).getSeconds();
+
+            if (seconds < 10) {
+                throw new CustomException(
+                        "게시글은 10초에 1번만 작성할 수 있습니다. (" + (10 - seconds) + "초 후 재작성 가능)",
+                        429    // Too Many Requests
+                );
+            }
+        }
+
+        // 🔥 정상 저장
         return boardRepository.save(board);
     }
+
 
     @Transactional
     public void delete(Long id) {
@@ -200,6 +225,13 @@ public class BoardService {
     public void deleteAllBoards() {
         boardRepository.deleteAll();
     }
+
+
+    @Transactional
+    public Board saveWithoutCooldown(Board board) {
+        return boardRepository.save(board);
+    }
+
 
 
 }

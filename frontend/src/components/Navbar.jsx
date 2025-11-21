@@ -106,26 +106,38 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
       className="navbar-container"
       style={{
         ...styles.nav,
+         padding: isMobile ? "0 10px" : "0 40px",
+        justifyContent: isMobile ? "flex-start" : "space-between",
         left: isMobile ? 0 : (isSidebarOpen ? 150 : 50),
         width: isMobile ? "100%" : `calc(100vw - ${isSidebarOpen ? 150 : 50}px)`,
       }}
     >
       {isMobile && (
-        <button onClick={toggleSidebar} style={{ fontSize: "22px", marginRight: "10px" }}>
+        <button onClick={toggleSidebar} 
+        style={{
+          fontSize: "22px",
+          marginLeft: "10px",      // 왼쪽에 딱 붙기
+          marginRight: "10px",     // 로고와 간격만 약간
+          padding: "0",
+        }}>
           ☰
         </button>
       )}
 
 
       {/* 로고 */}
-      <div style={styles.logoBox}>
+      <div className="logo" style={styles.logoBox}>
         <Link to="/" style={styles.logo}>
           {siteTitle}
         </Link>
       </div>
 
       {/* 메뉴 */}
-      <div className="navbar-menu" style={styles.menu}>
+      <div className="navbar-menu" style={{
+        ...styles.menu,
+        gap: isMobile ? "8px" : "16px",
+        marginLeft: "auto",
+      }}>
         {/* 🔍 검색 */}
         {showSearch ? (
           <form className="navbar-search-form" onSubmit={handleSearchSubmit} style={styles.searchForm}>
@@ -271,7 +283,13 @@ const styles = {
     color: "#333",
     textDecoration: "none",
   },
-  menu: { display: "flex", alignItems: "center", gap: "16px" },
+  menu: { 
+  display: "flex",
+  alignItems: "center",   // ← 세로 정렬 통일
+  gap: "16px",
+  height: "60px",         // ← Navbar 높이에 맞춤 (중요)
+},
+
   searchForm: {
   position: "absolute",
   top: "50%",
@@ -294,21 +312,28 @@ const styles = {
     width: "180px",
   },
   iconButton: {
-    background: "transparent",
-    border: "none",
-    fontSize: "20px",
-    color: "#444",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  background: "transparent",
+  border: "none",
+  fontSize: "20px",
+  color: "#444",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "60px",   // ★ Navbar와 동일
+  padding: "0 4px", // 여백 최소화
+},
+
   notificationBox: {
-    position: "relative",
-    fontSize: "20px",
-    cursor: "pointer",
-  },
+  position: "relative",
+  fontSize: "20px",
+  cursor: "pointer",
+  height: "60px",           // ★ 네비바와 동일
+  display: "flex",
+  alignItems: "center",     // ★ 세로 중앙 정렬
+  justifyContent: "center",
+},
+
   badge: {
     position: "absolute",
     top: "-6px",
@@ -320,11 +345,16 @@ const styles = {
     padding: "2px 5px",
   },
   profileButton: {
-    background: "transparent",
-    border: "none",
-    padding: 0,
-    cursor: "pointer",
-  },
+  background: "transparent",
+  border: "none",
+  padding: 0,
+  cursor: "pointer",
+  height: "60px",              // ★ 동일 높이
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
   profileImage: {
     width: "32px",
     height: "32px",
@@ -333,11 +363,19 @@ const styles = {
     border: "1px solid #ddd",
   },
   adminButton: {
-    background: "transparent",
-    border: "none",
-    fontSize: "22px",
-    cursor: "pointer",
-    transition: "transform 0.2s ease, color 0.2s ease",
-    color: "#ffbb00",
-  },
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  height: "60px",          // ★ 모든 아이콘과 동일
+  display: "flex",
+  alignItems: "center",
+  justifyContent:
+   "center",
+  padding: "0 4px",        // ★ 동일 여백 규칙
+  fontSize: "20px",        // ★ 다른 아이콘과 완전히 동일
+  color: "#ffbb00",        // ★ 관리자만 구분되는 색
+},
+
+  
+
 };

@@ -7,7 +7,10 @@ import useAuth from "../hooks/useAuth";
 export default function AdminReports() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [reports, setReports] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -16,16 +19,20 @@ export default function AdminReports() {
     }
   }, [user, navigate]);
 
+  const loadReports = async (pageNo = 0) => {
+    try {
+      const res = await axiosInstance.get(`/board/report?page=${pageNo}&size=10`);
+
+      setReports(res.data.reports);
+      setPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
+    } catch (err) {
+      console.error("신고 목록 불러오기 실패:", err);
+    }
+  };
+
   useEffect(() => {
-    const loadReports = async () => {
-      try {
-        const res = await axiosInstance.get("/board/report");
-        setReports(res.data);
-      } catch (err) {
-        console.error("신고 목록 불러오기 실패:", err);
-      }
-    };
-    loadReports();
+    loadReports(0);
   }, []);
 
   return (
@@ -37,37 +44,73 @@ export default function AdminReports() {
       {reports.length === 0 ? (
         <p style={{ color: "#666", marginTop: "20px" }}>신고된 글이 없습니다.</p>
       ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>게시글 제목</th>
-              <th>신고자</th>
-              <th>사유</th>
-              <th>신고 시간</th>
-              <th>보기</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((r) => (
-              <tr key={r.id}>
-                <td>{r.id}</td>
-                <td>{r.board?.title}</td>
-                <td>{r.reporterId}</td>
-                <td>{r.reason}</td>
-                <td>{new Date(r.reportedAt).toLocaleString()}</td>
-                <td>
-                  <button
-                    onClick={() => navigate(`/board/${r.board.boardNo}`)}
-                    style={styles.viewBtn}
-                  >
-                    이동 →
-                  </button>
-                </td>
+        <>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>게시글 제목</th>
+                <th>신고자</th>
+                <th>사유</th>
+                <th>신고 시간</th>
+                <th>보기</th>
               </tr>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.id}</td>
+                  <td>{r.board?.title}</td>
+                  <td>{r.reporterId}</td>
+                  <td>{r.reason}</td>
+                  <td>{new Date(r.reportedAt).toLocaleString()}</td>
+                  <td>
+                    <button
+                      onClick={() => navigate(`/board/${r.board.boardNo}`)}
+                      style={styles.viewBtn}
+                    >
+                      이동 →
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* ⭐ 페이징 UI 추가 ⭐ */}
+          <div style={pagination.container}>
+            <button
+              disabled={page === 0}
+              onClick={() => loadReports(page - 1)}
+              style={pagination.btn}
+            >
+              이전
+            </button>
+
+            {[...Array(totalPages)].map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => loadReports(idx)}
+                style={{
+                  ...pagination.btn,
+                  fontWeight: page === idx ? "bold" : "normal",
+                  background: page === idx ? "#007bff" : "#fff",
+                  color: page === idx ? "#fff" : "#333",
+                }}
+              >
+                {idx + 1}
+              </button>
             ))}
-          </tbody>
-        </table>
+
+            <button
+              disabled={page + 1 === totalPages}
+              onClick={() => loadReports(page + 1)}
+              style={pagination.btn}
+            >
+              다음
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -89,7 +132,20 @@ const styles = {
     borderRadius: "5px",
     fontSize: "12px",
   },
-  th: {
-    background: "#f2f2f2"
-  }
+};
+
+const pagination = {
+  container: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "6px",
+    marginTop: "20px",
+  },
+  btn: {
+    padding: "6px 12px",
+    border: "1px solid #ddd",
+    borderRadius: "4px",
+    background: "#fff",
+    cursor: "pointer",
+  },
 };

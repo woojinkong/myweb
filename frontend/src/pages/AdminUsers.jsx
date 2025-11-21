@@ -6,10 +6,15 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import {  cardBase } from "../styles/common";
 import useAuth from "../hooks/useAuth";
+import UserProfilePopup from "./UserProfilepopup";
 
 export default function AdminUsers() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [popupUser, setPopupUser] = useState(null);
+
 
   // 이메일 모달 상태
   const [emailModal, setEmailModal] = useState({
@@ -28,17 +33,22 @@ export default function AdminUsers() {
   }, [user]);
 
   // 유저 로드
-  const fetchUsers = async () => {
-    try {
-      const res = await axiosInstance.get("/admin/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error("유저 목록 로드 실패:", err);
-    }
-  };
+  const fetchUsers = async (pageNo = 0) => {
+  try {
+    const res = await axiosInstance.get(`/admin/users?page=${pageNo}&size=10`);
+
+    setUsers(res.data.users);
+    setPage(res.data.currentPage);
+    setTotalPages(res.data.totalPages);
+
+  } catch (err) {
+    console.error("유저 목록 로드 실패:", err);
+  }
+};
+
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(0);
   }, []);
 
   // 권한 변경
@@ -165,7 +175,14 @@ export default function AdminUsers() {
           {users.map((u) => (
             <tr key={u.userNo} style={ui.row}>
               <td style={ui.td}>{u.userNo}</td>
-              <td style={ui.td}>{u.userId}</td>
+              <td style={{ ...ui.td, cursor: "pointer", color: "#007bff" }}
+                onClick={(e) =>
+                  setPopupUser({
+                    id: u.userId,
+                    x: e.clientX,
+                    y: e.clientY
+                  })
+                }>{u.userId}</td>
               <td style={ui.td}>{u.userName}</td>
               <td style={ui.td}>{u.email}</td>
               <td style={ui.td}>{u.role}</td>
@@ -223,6 +240,50 @@ export default function AdminUsers() {
         </tbody>
       </table>
 
+              {/* ⭐ 페이징 영역 추가 위치 ⭐ */}
+      <div style={pagination.container}>
+        <button
+          disabled={page === 0}
+          onClick={() => fetchUsers(page - 1)}
+          style={pagination.btn}
+        >
+          이전
+        </button>
+
+        {[...Array(totalPages)].map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => fetchUsers(idx)}
+            style={{
+              ...pagination.btn,
+              fontWeight: page === idx ? "bold" : "normal",
+              background: page === idx ? "#007bff" : "#fff",
+              color: page === idx ? "#fff" : "#333",
+            }}
+          >
+            {idx + 1}
+          </button>
+        ))}
+
+        <button
+          disabled={page + 1 === totalPages}
+          onClick={() => fetchUsers(page + 1)}
+          style={pagination.btn}
+        >
+          다음
+        </button>
+      </div>
+
+     {popupUser && (
+        <UserProfilePopup
+          userId={popupUser.id}
+          position={{ x: popupUser.x, y: popupUser.y }}
+          onClose={() => setPopupUser(null)}
+        />
+      )}
+
+
+
       {/* 이메일 모달 */}
       {emailModal.open && (
         <div style={modal.overlay}>
@@ -265,8 +326,14 @@ export default function AdminUsers() {
             </div>
           </div>
         </div>
+        
       )}
+
+
+
+
     </div>
+
   );
 }
 
@@ -351,6 +418,7 @@ const ui = {
     marginBottom: "20px",
     cursor: "pointer",
   },
+  
 };
 
 /* ============================
@@ -392,5 +460,21 @@ const modal = {
     display: "flex",
     justifyContent: "flex-end",
     gap: "10px",
+  },
+};
+
+const pagination = {
+  container: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "6px",
+    marginTop: "20px",
+  },
+  btn: {
+    padding: "6px 12px",
+    border: "1px solid #ddd",
+    borderRadius: "4px",
+    cursor: "pointer",
+    background: "#fff",
   },
 };

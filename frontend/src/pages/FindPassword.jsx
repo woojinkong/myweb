@@ -9,19 +9,23 @@ export default function FindPassword() {
     email: "",
   });
   const [message, setMessage] = useState("");
-
+  const [submitting, setSubmitting] = useState(false); // ✅ 중복 클릭 방지
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;      // 🔥 중복 제출 방지
+    setSubmitting(true);
     setMessage("");
     try {
       const res = await axiosInstance.post("/user/find-password", form);
       setMessage("📩 " + res.data);
     } catch (err) {
       setMessage("❌ " + (err.response?.data || "요청에 실패했습니다."));
+    }finally {
+      setSubmitting(false);      // 🔥 요청 끝나면 다시 활성화
     }
   };
 
@@ -55,8 +59,13 @@ export default function FindPassword() {
           onChange={handleChange}
           required
         />
-        <button type="submit" style={buttons.primary}>재설정 메일 보내기</button>
+        <button type="submit" style={{
+            ...buttons.primary,
+            opacity: submitting ? 0.6 : 1,
+            cursor: submitting ? "not-allowed" : "pointer",
+          }} disabled={submitting} >{submitting ? "전송 중..." : "재설정 메일 보내기"}</button>
       </form>
+
       {message && (
         <p style={{ marginTop: "15px", color: message.startsWith("❌") ? "red" : "green" }}>
           {message}

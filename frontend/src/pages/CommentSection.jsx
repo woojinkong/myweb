@@ -39,7 +39,8 @@ export default function CommentSection({ boardId  }) {
       fetchComments();
     } catch (err) {
       console.error("댓글 등록 실패:", err);
-      alert("로그인이 필요합니다.");
+      const msg = err.response?.data?.message || "댓글 등록 실패!";
+      alert(msg);
     }
   };
 
@@ -235,6 +236,8 @@ function getDepthStyles(depth) {
 
 const styles = {
   container: {
+    width: "100%",          // ★ 추가
+    boxSizing: "border-box",// ★ 추가
     marginTop: 30,
     padding: 16,
     background: "#f8f9fa",
@@ -251,7 +254,7 @@ const styles = {
     marginBottom: 10,
   },
   textarea: {
-    width: "100%",
+    width: "calc(100% - 20px)",
     height: 84,
     padding: 10,
     borderRadius: 8,
@@ -280,6 +283,8 @@ const styles = {
   },
   threadItem: {
     marginBottom: 10,
+    maxWidth: "100%",     // ★ 추가
+   boxSizing: "border-box",
   },
   card: {
     background: "#fff",

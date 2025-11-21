@@ -1,10 +1,11 @@
 import axiosInstance from "./axiosInstance";
 
 // 🔔 내 알림 전체 조회
-export const fetchNotifications = async () => {
-  const res = await axiosInstance.get("/notifications");
-  return res.data;
+export const fetchNotifications = async (page = 0, size = 10) => {
+  const res = await axiosInstance.get(`/notifications?page=${page}&size=${size}`);
+  return res.data; // Page 객체 전체 반환
 };
+
 
 // 📩 안 읽은 알림 개수 조회
 export const fetchUnreadCount = async () => {

@@ -77,6 +77,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <Link
                 to={`/board?groupId=${group.id}`}
                 style={{ ...styles.link, ...getActiveStyle(group.id) }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f3f3")}
+                 onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+
               >
                 {/* 번호만 표시 */}
                 <span style={styles.number}>{number}.</span>
@@ -97,66 +100,89 @@ const styles = {
     top: 0,
     left: 0,
     height: "100vh",
-    background: "#fff",
-    borderRight: "1px solid #eee",
-    paddingTop: "10px",
-    transition: "width 0.3s ease",
+    background: "#fdfdfd",
+    borderRight: "1px solid #e5e5e5",
+    paddingTop: "8px",
+    transition: "width 0.25s ease",
     overflow: "hidden",
-    zIndex: 999,
+    zIndex: 2000,
+    fontFamily: "'Pretendard', 'Inter', sans-serif",
   },
+
   header: {
     display: "flex",
-    justifyContent: "flex-start",
-    marginBottom: "15px",
+    alignItems: "center",
+    padding: "6px 10px",
+    marginBottom: "8px",
   },
+
   hamburger: {
     background: "transparent",
     border: "none",
-    fontSize: "20px",
+    fontSize: "18px",
     cursor: "pointer",
+    color: "#555",
+    padding: "4px",
+    transition: "0.2s",
   },
+  
   list: {
     listStyle: "none",
-    padding: 0,
+    padding: "0 8px",
+    margin: 0,
   },
+
   item: {
-    marginBottom: "8px",
+    marginBottom: "4px",
   },
+
   link: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    padding: "10px",
+    gap: "6px",
+    padding: "6px 8px",
+    fontSize: "13px",
     textDecoration: "none",
     color: "#333",
     borderRadius: "6px",
-    transition: "0.2s ease",
-  },
-  active: {
-    background: "#4CAF50",
-    color: "#fff",
-    fontWeight: "700",
+    transition: "all 0.2s ease",
   },
 
-  /* 번호 텍스트만 */
+  // 더 세련된 active 스타일
+  active: {
+    background: "#e0f2ef",
+    color: "#0b8a6d",
+    fontWeight: 600,
+  },
+
+  // 최신 hover 효과
+  linkHover: {
+    background: "#f3f3f3",
+    color: "#111",
+  },
+
   number: {
-    fontSize: "14px",
-    fontWeight: "600",
-    width: "20px",
+    fontSize: "12px",
+    fontWeight: 600,
+    width: "16px",
     textAlign: "right",
+    opacity: 0.6,
   },
 
   dividerOpen: {
-    textAlign: "center",
-    fontWeight: 500,
-    color: "#777",
-    padding: "0px 0",
+    padding: "4px 4px",
+    margin: "6px 0",
+    color: "#999",
+    fontSize: "12px",
     borderBottom: "1px solid #ddd",
-    margin: "6px 6px",
+    letterSpacing: "0.3px",
   },
+
   dividerClosed: {
+    padding: "4px 0",
     textAlign: "center",
-    color: "#777",
-    padding: "6px 0",
+    color: "#bbb",
+    fontSize: "10px",
   },
 };
+

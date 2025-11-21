@@ -33,4 +33,5 @@ public class Message {
 
     @Column(nullable = false)
     private LocalDateTime sendDate;
+
 }

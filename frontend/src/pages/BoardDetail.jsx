@@ -19,7 +19,7 @@ export default function BoardDetail() {
   const [popupUserId, setPopupUserId] = useState(null);
   const [siteTitle, setSiteTitle] = useState("KongHome");
   const BASE_URL = import.meta.env.VITE_API_URL;
-
+  const [reporting, setReporting] = useState(false);
 
       const handleCopyLink = async () => {
   const url = `${window.location.origin}/board/${id}`;
@@ -57,6 +57,8 @@ export default function BoardDetail() {
 
 
 
+
+
     useEffect(() => {
       const loadSiteName = async () => {
       try {
@@ -71,16 +73,48 @@ export default function BoardDetail() {
 
 
   useEffect(() => {
+
+    
     const fetchData = async () => {
       try {
         const res = await axiosInstance.get(`/board/${id}`);
         const data = res.data;
+        let fixedContent = data.content;
 
-        // ⭐ 본문(content) 내 모든 이미지 경로를 BASE_URL + 상대경로 로 변환
-         const fixedContent = data.content.replace(
-           /src="\/uploads\//g,
-           `src="${BASE_URL}/uploads/`
-         );
+        // 0) 불필요한 태그 제거 (중요)
+        fixedContent = fixedContent.replace(/&nbsp;/g, " ");
+        fixedContent = fixedContent.replace(/<br\s*\/?>/g, "\n");
+
+
+        // 1) 이미지 경로 절대경로로 교체
+        fixedContent = fixedContent.replace(
+          /src="\/uploads\//g,
+          `src="${BASE_URL}/uploads/`
+        );
+
+        // 2) <a href="유튜브URL"> ... </a> → iframe
+        fixedContent = fixedContent.replace(
+        /<a[^>]*href="(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+))"[^>]*>.*?<\/a>/g,
+        `<div class="responsive-youtube">
+            <iframe 
+              src="https://www.youtube.com/embed/$2"
+              allowfullscreen
+            ></iframe>
+          </div>`
+      );
+
+        // 3) 순수 텍스트 URL → iframe
+        fixedContent = fixedContent.replace(
+          /(^|\s)(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+))(\s|$)/g,
+          `$1<div class="responsive-youtube">
+              <iframe 
+                src="https://www.youtube.com/embed/$3"
+                allowfullscreen
+              ></iframe>
+            </div>$4`
+        );
+
+
 
          setBoard({
            ...data,
@@ -123,22 +157,49 @@ export default function BoardDetail() {
 
   // 삭제
   const handleDelete = async () => {
+
+
+
+    // 관리자 아니면 기존 로직 유지
+  if (user?.role !== "ADMIN") {
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
     try {
       await axiosInstance.delete(`/board/${id}`);
       alert("삭제되었습니다.");
       navigate(`/board?groupId=${board.groupId}`);
-
     } catch (err) {
       console.error(err);
       alert("삭제 중 오류.");
     }
+    return;
+  }
+
+  // -----------------------------
+  // 🔥 관리자 삭제: 사유 입력창 포함
+  // -----------------------------
+  const reason = prompt("삭제 사유를 입력하세요:");
+  if (!reason) return;
+
+  try {
+    await axiosInstance.post(`/admin/board/delete/${id}`, { reason });
+    alert("게시글이 삭제되었습니다.");
+    navigate(`/board?groupId=${board.groupId}`);
+  } catch (err) {
+    console.error(err);
+    alert("삭제 중 오류 발생");
+  }
   };
 
 
   // 신고 기능
 const handleReport = async () => {
+  if (!user) {
+    alert("로그인 후 신고할 수 있습니다.");
+    return;
+}
+  if (reporting) return; // 중복 클릭 방지
+  setReporting(true);
   const reason = prompt("신고 사유를 입력하세요:");
   if (!reason) return;
 
@@ -147,7 +208,13 @@ const handleReport = async () => {
     alert("신고가 접수되었습니다.");
   } catch (err) {
     console.error("신고 실패:", err);
-    alert("신고 중 오류가 발생했습니다.");
+    if (err.response?.status === 429) {
+      alert(err.response.data.message); // 서버에서 쿨타임 메시지 보내는 경우
+    } else {
+      alert("신고 중 오류가 발생했습니다.");
+    }
+  } finally {
+    setReporting(false);
   }
 };
 
@@ -189,57 +256,46 @@ const handleReport = async () => {
       </Helmet>
     
     <div
+      className="board-detail-page"
       style={{
         ...cardBase,
-        maxWidth: "900px",
-        margin: "50px auto",
-        padding: "30px",
+        width: "100%",
+        padding: "18px",
         position: "relative",
+        boxSizing: "border-box",
       }}
     >
       <div style={styles.titleRow}>
         <h2 style={styles.title}>{board.title}</h2>
-        <button style={styles.reportBtn} onClick={handleReport}>
-          🚨 신고
-        </button>
+        
       </div>
 
 
       {/* 작성자 정보 */}
       <div style={styles.metaBox}>
-        <img
-          src={
-            board.profileUrl
-              ? `${BASE_URL}${board.profileUrl}`
-              : "/default-profile.png"
-          }
-          alt="프로필"
-          onClick={(e) => setPopupUserId({
-          id: board.userId,
-          x: e.clientX,
-          y: e.clientY
-        })}
-          style={styles.profileImg}
-          onError={(e) => (e.target.src = "/default-profile.png")}
-        />
+      <img
+        src={board.profileUrl ? `${BASE_URL}${board.profileUrl}` : "/default-profile.png"}
+        alt="프로필"
+        style={styles.profileImg}
+        onClick={(e) =>
+          setPopupUserId({ id: board.userId, x: e.clientX, y: e.clientY })
+        }
+      />
 
-        <div style={styles.metaText}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <p style={styles.writer}>{board.userId}</p>
-            {/* <button
-              onClick={() => setShowProfile((prev) => !prev)}
-              style={styles.profileBtn}
-            >
-              👤
-            </button> */}
-          </div>
+      {/* 전체를 한 줄에 */}
+      <div style={styles.metaInfo}>
+    <span style={styles.writer}>{board.userId}</span>
 
-          <p style={styles.date}>
-            🕓 {new Date(board.createdDate).toLocaleString()} | 👁{" "}
-            {board.viewCount}
-          </p>
-        </div>
+    <div style={styles.metaSub}>
+      <span style={styles.date}>
+        {new Date(board.createdDate).toLocaleString()}
+      </span>
+      <span style={styles.dot}>•</span>
+      <span style={styles.view}>👁 {board.viewCount}</span>
+    </div>
       </div>
+    </div>
+
 
       {/* 프로필 팝업 */}
       {popupUserId && (
@@ -251,9 +307,20 @@ const handleReport = async () => {
       )}
 
       {/* 좋아요 */}
-      <button onClick={handleLike} style={styles.likeButton}>
-        {liked ? "❤️" : "🤍"} {likeCount}
-      </button>
+      {/* 좋아요 + 신고 버튼 한 줄 */}
+      <div style={styles.actionRow}>
+        <button onClick={handleLike} style={styles.likeSmall}>
+          {liked ? "❤️" : "🤍"} {likeCount}
+        </button>
+
+        <button style={{
+          ...styles.reportSmall,
+          opacity: reporting ? 0.5 : 1,
+          pointerEvents: reporting ? "none" : "auto",
+        }} onClick={handleReport}>
+          {reporting ? "처리 중..." : "🚨 신고"}
+        </button>
+      </div>
 
       {/* 본문 */}
       <div
@@ -272,7 +339,7 @@ const handleReport = async () => {
       )}
 
       {/* 버튼 영역 */}
-      <div style={styles.buttons}>
+      <div style={styles.buttons} className="board-detail-buttons">
         <button style={styles.copyBtn} onClick={handleCopyLink}>🔗 링크복사</button>
 
         <Link to={`/board?groupId=${board.groupId}`} style={{ ...buttons.outline, textDecoration: "none" }}>
@@ -299,6 +366,7 @@ const handleReport = async () => {
 }
 
 const styles = {
+
   title: {
     fontSize: "26px",
     fontWeight: "700",
@@ -309,7 +377,31 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    marginBottom: "20px",
+    //marginBottom: "20px",
+  },
+  metaInfo: {
+  display: "flex",
+  flexDirection: "column",
+},
+
+metaSub: {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  marginTop: "2px", // 날짜 내려오기 효과
+},
+  metaRow: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontSize: "14px",
+  color: colors.text.light,
+  flexWrap: "wrap",      // 모바일에서 줄바꿈 허용
+  },
+  writer: {
+    fontWeight: "600",
+    fontSize: "15px",
+    color: colors.text.main,
   },
   profileImg: {
     width: 48,
@@ -323,10 +415,19 @@ const styles = {
     display: "flex",
     flexDirection: "column",
   },
-  writer: {
-    fontSize: "16px",
-    fontWeight: "600",
-    color: colors.text.main,
+  dot: {
+  color: "#ccc",
+  fontSize: "14px",
+  },
+
+  date: {
+    color: "#7a7a7a",
+    fontSize: "13px",
+  },
+
+  view: {
+    color: "#7a7a7a",
+    fontSize: "13px",
   },
   profileBtn: {
     background: "transparent",
@@ -334,15 +435,33 @@ const styles = {
     cursor: "pointer",
     fontSize: "18px",
   },
-  date: {
-    fontSize: "13px",
-    color: colors.text.light,
-  },
-  likeButton: {
-    ...buttons.outline,
-    padding: "6px 12px",
-    marginBottom: "15px",
-  },
+  actionRow: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  margin: "10px 0 15px 0",   // 본문과 적당히 간격
+},
+
+likeSmall: {
+  padding: "3px 8px",
+  fontSize: "12px",
+  border: "1px solid #ccc",
+  borderRadius: "6px",
+  background: "#fff",
+  cursor: "pointer",
+},
+
+reportSmall: {
+  padding: "3px 8px",
+  fontSize: "12px",
+  borderRadius: "6px",
+  border: "1px solid #ff4d4d",
+  background: "#fff",
+  color: "#ff4d4d",
+  cursor: "pointer",
+},
+
+  
   contentBox: {
     backgroundColor: colors.background.page,
     borderRadius: "8px",
@@ -351,10 +470,10 @@ const styles = {
     lineHeight: "1.7",
     wordBreak: "break-word",
      /* ⭐ 추가 */
-     overflowX: "auto",         // 너무 큰 이미지면 가로 스크롤
+     //overflowX: "auto",         // 너무 큰 이미지면 가로 스크롤
   },
   buttons: {
-    marginTop: "30px",
+    marginTop: "15px",
     display: "flex",
     justifyContent: "flex-end",
     gap: "12px",
@@ -370,6 +489,12 @@ const styles = {
   alignItems: "center",
   marginBottom: "15px",
 },
+  likeButton: {
+    ...buttons.outline,
+    padding: "5px 10px",
+    marginBottom: "15px",
+    fontSize: "12px",
+  },
 
 reportBtn: {
   background: "transparent",
