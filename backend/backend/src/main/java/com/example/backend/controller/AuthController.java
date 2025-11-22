@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.dto.*;
 import com.example.backend.entity.User;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.service.AttendanceService;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.EmailService;
 import com.example.backend.service.LoginAttemptService;
@@ -28,6 +29,7 @@ public class AuthController {
     private final EmailService emailService;
     private final LoginAttemptService loginAttemptService;
     private final BCryptPasswordEncoder encoder;
+    private final AttendanceService attendanceService;
 
     // ✅ 회원가입
     @PostMapping("/signup")
@@ -152,6 +154,8 @@ public class AuthController {
         String userId = jwt.getSubject(auth.substring(7));
         var u = repo.findByUserId(userId).orElse(null);
         if (u == null) return ResponseEntity.status(401).build();
+        // ⭐ 로그인 시 자동 출석 체크
+        attendanceService.checkAttendance(u.getUserNo());
         u.setUserPwd(null);
         return ResponseEntity.ok(u);
     }

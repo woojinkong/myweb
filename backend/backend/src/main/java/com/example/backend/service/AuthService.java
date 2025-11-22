@@ -30,6 +30,7 @@ public class AuthService {
                 .email(r.getEmail())
                 .phone(r.getPhone())
                 .role("USER")
+                .point(100)
                 .build();
         return repo.save(u);
     }

@@ -102,6 +102,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/message/**").authenticated()
 
                         /* ============================
+                           🗓 출석 체크 API 추가 (로그인 필요)
+                         ============================ */
+                        .requestMatchers(HttpMethod.POST, "/api/attendance/**").authenticated()
+                        /* ============================
                            👤 현재 로그인 유저 정보
                          ============================ */
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()

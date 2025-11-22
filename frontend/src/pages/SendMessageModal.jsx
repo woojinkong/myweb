@@ -34,6 +34,13 @@ export default function SendMessageModal({ receiverId, onClose }) {
       setContent("");
       onClose();
     } catch (err) {
+
+      // ⭐ 포인트 부족일 때
+      if (err.response?.status === 400) {
+        alert(err.response.data.message); 
+        return;
+      }
+
       if (err.response?.status === 429) {
         alert(err.response.data.message); // 쿨타임 메시지 출력
         return;
@@ -57,7 +64,7 @@ export default function SendMessageModal({ receiverId, onClose }) {
           <FiX />
         </button>
 
-        <h3 style={styles.title}>✉️ 쪽지 보내기</h3>
+        <h3 style={styles.title}>✉️ 쪽지 보내기(10p)</h3>
 
         <textarea
           value={content}

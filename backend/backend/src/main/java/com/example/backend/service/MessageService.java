@@ -25,8 +25,10 @@ public class MessageService {
 
     private final MessageRepository messageRepo;
     private final UserRepository userRepo;
+    private final PointService pointService;
 
     // ✅ 쪽지 보내기
+    @Transactional
     public void sendMessage(MessageDTO dto) {
 
         List<LocalDateTime> times = messageRepo.findRecentMessageTimes(dto.getSenderId(), PageRequest.of(0, 1));
@@ -55,6 +57,9 @@ public class MessageService {
                 .read(false)
                 .sendDate(LocalDateTime.now())
                 .build();
+
+
+        pointService.usePoint(sender.getUserNo(), 10, "SEND_MESSAGE");
 
         messageRepo.save(msg);
     }
