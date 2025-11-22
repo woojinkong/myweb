@@ -47,6 +47,12 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b.createdDate FROM Board b WHERE b.userId = :userId ORDER BY b.createdDate DESC")
     List<LocalDateTime> findRecentPostTimes(@Param("userId") String userId, Pageable pageable);
 
+    @Query("""
+    SELECT b FROM Board b
+    JOIN User u ON b.userId = u.userId
+    WHERE LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    Page<Board> findByUserNickNameContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
 
 
 }

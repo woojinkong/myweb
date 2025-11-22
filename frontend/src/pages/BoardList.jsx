@@ -229,7 +229,7 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
         <div style={styles.rowInfo}>
           <img src={profileSrc} style={{ width: 18, height: 18, borderRadius: "50%" }} />
-          <span>{board.userId}</span>
+          <span>{board.nickName}</span>
           <span>·</span>
           <span>{new Date(board.createdDate).toLocaleDateString()}</span>
         </div>
@@ -249,16 +249,16 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "25px",
+    marginBottom: "0px",
   },
   title: {
-    fontSize: "22px",
-    fontWeight: "700",
+    fontSize: "20px",
+    fontWeight: "600",
     color: colors.text.main,
   },
   writeBtn: {
     ...buttons.primary,
-    fontSize: "14px",
+    fontSize: "12px",
     padding: "6px 12px",
     borderRadius: "8px",
     textDecoration: "none",

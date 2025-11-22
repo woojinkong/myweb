@@ -82,7 +82,7 @@ useEffect(() => {
             style={styles.profileImage}
           />
           <div>
-            <h3 style={styles.name}>{profile.userId}</h3> {/* ✅ 아이디 표시 */}
+            <h3 style={styles.name}>{profile.nickName}</h3> {/* ✅ 아이디 표시 */}
             <p style={styles.role}>
               {profile.role === "ADMIN" ? "관리자" : "일반 회원"}
             </p>

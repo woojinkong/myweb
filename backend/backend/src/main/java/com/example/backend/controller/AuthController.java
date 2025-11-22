@@ -5,10 +5,12 @@ import com.example.backend.entity.User;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.EmailService;
+import com.example.backend.service.LoginAttemptService;
 import com.example.backend.util.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.InetAddress;
@@ -24,7 +26,9 @@ public class AuthController {
     private final JwtUtil jwt;
     private final UserRepository repo;
     private final EmailService emailService;
-    
+    private final LoginAttemptService loginAttemptService;
+    private final BCryptPasswordEncoder encoder;
+
     // ✅ 회원가입
     @PostMapping("/signup")
     public ResponseEntity<User> signup(@RequestBody SignupRequest r) {
@@ -36,10 +40,35 @@ public class AuthController {
     // ✅ 로그인 (access 반환 + refresh 쿠키)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest r) {
-        User u = service.authenticate(r);
+
+        String userId = r.getUserId();
+
+        // 1) 🚫 로그인 차단 여부 먼저 체크
+        if (loginAttemptService.isBlocked(userId)) {
+            long left = loginAttemptService.remainingMinutes(userId);
+            return ResponseEntity.status(429).body(
+                    Map.of("message", "로그인 시도 횟수가 초과되었습니다. " + left + "분 후 다시 시도하세요.")
+            );
+        }
 
 
-        if (u == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        User u = repo.findByUserId(userId).orElse(null);
+        if (u == null) {
+            loginAttemptService.loginFailed(userId);   // ★ 실패 증가
+            return ResponseEntity.status(401)
+                    .body(Map.of("message", "아이디 또는 비밀번호가 잘못되었습니다."));
+        }
+
+        if (!encoder.matches(r.getUserPwd(), u.getUserPwd())) {
+            loginAttemptService.loginFailed(userId);   // ★ 실패 증가
+            return ResponseEntity.status(401)
+                    .body(Map.of("message", "아이디 또는 비밀번호가 잘못되었습니다."));
+        }
+
+// 로그인 성공
+        loginAttemptService.loginSucceeded(userId);
+
 
         // 2) 🚫 여기서 정지 유저 체크 추가!
         if (u.isBanned()) {
@@ -146,14 +175,14 @@ public class AuthController {
         String email = request.get("email");
 
         // 🛑 이메일이 이미 존재하면 인증번호 발송 금지!
-        boolean exists = repo.existsByEmail(email);
-        if (exists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "이미 가입된 이메일입니다."
-                    ));
-        }
+//        boolean exists = repo.existsByEmail(email);
+//        if (exists) {
+//            return ResponseEntity.status(HttpStatus.CONFLICT)
+//                    .body(Map.of(
+//                            "success", false,
+//                            "message", "이미 가입된 이메일입니다."
+//                    ));
+//        }
 
 
         emailService.sendVerificationCode(email);

@@ -7,7 +7,7 @@ import UserProfilePopup from "./UserProfilepopup";
 import { colors, buttons, cardBase } from "../styles/common";
 import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
-
+import AdBanner from "./AdBanner";
 export default function BoardDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -267,7 +267,6 @@ const handleReport = async () => {
     >
       <div style={styles.titleRow}>
         <h2 style={styles.title}>{board.title}</h2>
-        
       </div>
 
 
@@ -284,7 +283,7 @@ const handleReport = async () => {
 
       {/* 전체를 한 줄에 */}
       <div style={styles.metaInfo}>
-    <span style={styles.writer}>{board.userId}</span>
+    <span style={styles.writer}>{board.nickName}</span>
 
     <div style={styles.metaSub}>
       <span style={styles.date}>
@@ -322,12 +321,17 @@ const handleReport = async () => {
         </button>
       </div>
 
+      {/* 상단광고 */}
+      <AdBanner position="AD_TOP" />
+
       {/* 본문 */}
       <div
         className="board-content"
         style={styles.contentBox}
         dangerouslySetInnerHTML={{ __html: board.content }}
       />
+
+      <AdBanner position="AD_BOTTOM" />
 
       {/* 댓글 */}
       {board.allowComment ? (

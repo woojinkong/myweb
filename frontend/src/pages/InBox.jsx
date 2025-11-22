@@ -110,7 +110,7 @@ export default function InBox() {
                   })
                 }
               >
-                {msg.senderId}
+                {msg.senderNickName}
               </span>
 
               <span
@@ -165,7 +165,7 @@ export default function InBox() {
             <h3 style={styles.modalTitle}>✉️ 쪽지 내용</h3>
 
             <p>
-              <strong>보낸 사람:</strong> {selectedMsg.senderId}
+              <strong>보낸 사람:</strong> {selectedMsg.senderNickName}
             </p>
             <p>
               <strong>받은 날짜:</strong>{" "}

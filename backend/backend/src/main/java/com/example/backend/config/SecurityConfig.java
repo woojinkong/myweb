@@ -63,8 +63,9 @@ public class SecurityConfig {
                                 "/api/auth/verify-email-code",
 
                                 "/api/user/find-password",
-                                "/api/user/reset-password"
-
+                                "/api/user/reset-password",
+                                "/api/user/check-nickName",
+                                "/api/user/nickName/**"
                                 ).permitAll()
 
                         /* ============================
@@ -73,6 +74,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/board-group/**").permitAll()
+                        // 광고 조회(GET)만 허용
+                        .requestMatchers(HttpMethod.GET, "/api/ads/**").permitAll()
+
                         .requestMatchers("/api/site/name").permitAll()
                         .requestMatchers("/api/contact/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/board/report/**").authenticated()
@@ -105,6 +109,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/ads/update").hasAuthority("ADMIN")
+
 
 
 

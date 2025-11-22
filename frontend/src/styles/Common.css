@@ -56,6 +56,18 @@
   }
 
 
+/* 기본(PC) */
+.ad-banner {
+  margin: 20px auto;
+  background: #f3f3f3;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e5e5; /* 더 은은한 느낌 */
+}
+
 
 
 /* ============================================
@@ -196,5 +208,9 @@
   overflow-x: auto;          /* 본문 영역에서도 가로 스크롤 허용 */
 }
 
+.ad-banner {
+  max-width: 320px;
+  height: 50px;
+}
 
 }

@@ -115,7 +115,7 @@ export default function CommentSection({ boardId  }) {
                 />
               )}
 
-              <strong style={styles.userId}>{comment.userId}</strong>
+              <strong style={styles.userId}>{comment.nickName}</strong>
               {isReply && <span style={styles.replyBadge}>대댓글</span>}
             </div>
             <small className="comment-date" style={styles.dateText}>{formatDate(comment.createdDate)}</small>

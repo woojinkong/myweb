@@ -16,4 +16,6 @@ public class Site {
     private Long id;
 
     private String siteName;
+
+
 }

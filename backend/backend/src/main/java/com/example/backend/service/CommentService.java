@@ -162,11 +162,12 @@ public class CommentService {
     // ====== DTO 매퍼 ======
     private CommentResponse toDto(Comment c, boolean shallow) {
     String profileUrl = null;
-
+    String nickName = null;
     // ✅ 유저의 프로필 이미지 조회
     Optional<User> userOpt = userRepository.findByUserId(c.getUserId());
     if (userOpt.isPresent()) {
         User user = userOpt.get();
+        nickName = user.getNickName(); // ⭐ 닉네임 추가
         String img = user.getProfileImage();
         if (img != null && !img.isEmpty()) {
             // ✅ 이미지 경로가 이미 "/uploads/"로 시작하면 그대로 사용
@@ -182,6 +183,7 @@ public class CommentService {
             .commentNo(c.getCommentNo())
             .parentId(c.getParent() != null ? c.getParent().getCommentNo() : null)
             .userId(c.getUserId())
+            .nickName(nickName) // ⭐⭐ 반드시 추가!!
             .content(c.getContent())
             .createdDate(c.getCreatedDate())
             .modifiedDate(c.getModifiedDate())

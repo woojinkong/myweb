@@ -83,7 +83,11 @@ public class BoardService {
         Page<Board> boards = switch (type) {
             case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword, pageable);
             case "content", "plain" -> boardRepository.findByPlainContentContainingIgnoreCase(keyword,pageable);
-            case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword,pageable);
+            //case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword,pageable);
+            //기존 아이디기준검색에서 닉네임기준검색으로 변경
+            case "userId" -> boardRepository.findByUserNickNameContainingIgnoreCase(keyword, pageable);
+
+
             default -> Page.empty();
         };
 
@@ -96,12 +100,14 @@ public class BoardService {
     private BoardListResponse toListDto(Board board) {
 
         try{
+            User user = userRepository.findByUserId(board.getUserId()).orElse(null);
             Long groupId = board.getBoardGroup() != null ? board.getBoardGroup().getId() : null;
             String groupName = board.getBoardGroup() != null ? board.getBoardGroup().getName() : "";
             return BoardListResponse.builder()
                     .boardNo(board.getBoardNo())
                     .title(board.getTitle())
                     .userId(board.getUserId())
+                    .nickName(user != null ? user.getNickName() : board.getUserId())   // <<< 추가
                     .viewCount(board.getViewCount())
                     .createdDate(board.getCreatedDate())
                     .commentCount(commentRepository.countByBoard(board))
@@ -123,6 +129,7 @@ public class BoardService {
     private BoardDetailResponse toDetailDto(Board board) {
 
         try{
+            User user = userRepository.findByUserId(board.getUserId()).orElse(null);
             Long groupId = board.getBoardGroup() != null ? board.getBoardGroup().getId() : null;
             String groupName = board.getBoardGroup() != null ? board.getBoardGroup().getName() : "";
             boolean allowComment = board.getBoardGroup() != null && board.getBoardGroup().isAllowComment();
@@ -131,6 +138,7 @@ public class BoardService {
                     .title(board.getTitle())
                     .content(board.getContent())
                     .userId(board.getUserId())
+                    .nickName(user != null ? user.getNickName() : board.getUserId())  // <<< 추가
                     .createdDate(board.getCreatedDate())
                     .viewCount(board.getViewCount())
                     .groupId(groupId)

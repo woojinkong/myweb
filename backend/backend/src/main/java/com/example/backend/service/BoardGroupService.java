@@ -4,6 +4,7 @@ import com.example.backend.entity.BoardGroup;
 import com.example.backend.repository.BoardGroupRepository;
 
 import com.example.backend.repository.BoardRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -97,6 +98,32 @@ public class BoardGroupService {
             boardGroupRepository.save(g);
         }
     }
+
+    // ===============================
+    // 🔥 서버 최초 실행 시 기본 게시판 생성
+    // ===============================
+    @PostConstruct
+    public void initDefaultGroups() {
+        createIfNotExists("공지사항", true, false); // 관리자만 글쓰기, 댓글 불가
+        createIfNotExists("자유게시판", false, true); // 누구나 글쓰기, 댓글 허용
+    }
+
+    private void createIfNotExists(String name, boolean adminOnlyWrite, boolean allowComment) {
+        if (!boardGroupRepository.existsByName(name)) {
+            int maxOrder = boardGroupRepository.findMaxOrderIndex();
+
+            BoardGroup group = BoardGroup.builder()
+                    .name(name)
+                    .adminOnlyWrite(adminOnlyWrite)
+                    .allowComment(allowComment)
+                    .orderIndex(maxOrder + 1)
+                    .type("BOARD")
+                    .build();
+
+            boardGroupRepository.save(group);
+        }
+    }
+
 
 
 

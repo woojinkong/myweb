@@ -17,7 +17,7 @@ public class BoardDetailResponse {
     private String title;
     private String content;
     private String userId;
-
+    private String nickName;
     private LocalDateTime createdDate;
     private int viewCount;
 

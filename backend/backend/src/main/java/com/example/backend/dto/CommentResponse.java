@@ -11,6 +11,7 @@ public class CommentResponse {
     private Long commentNo;
     private Long parentId;        // null이면 최상위
     private String userId;
+    private String nickName;
     private String content;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;

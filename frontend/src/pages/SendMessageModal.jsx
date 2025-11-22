@@ -6,6 +6,7 @@ export default function SendMessageModal({ receiverId, onClose }) {
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
 
+
   // ✅ ESC 키로 닫기
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -15,6 +16,9 @@ export default function SendMessageModal({ receiverId, onClose }) {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [content]);
+
+
+
 
   const handleSend = async () => {
     if (!content.trim()) return alert("쪽지 내용을 입력하세요!");
@@ -54,9 +58,6 @@ export default function SendMessageModal({ receiverId, onClose }) {
         </button>
 
         <h3 style={styles.title}>✉️ 쪽지 보내기</h3>
-        <p style={styles.receiver}>
-          받는 사람: <strong>{receiverId}</strong>
-        </p>
 
         <textarea
           value={content}
