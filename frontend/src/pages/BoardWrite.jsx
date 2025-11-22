@@ -142,7 +142,9 @@ const CustomImage = Image.extend({
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || "등록 중 오류 발생!";
+
       alert(msg);
+      setSubmitting(false);   // ← 반드시 필요!!
     }
   };
 

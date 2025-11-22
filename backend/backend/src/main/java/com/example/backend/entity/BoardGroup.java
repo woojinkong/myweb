@@ -44,6 +44,11 @@ public class BoardGroup {
     @Column(nullable = false)
     private String type = "BOARD";  // ⭐ 기본값은 무조건 BOARD !!
 
+    // ⭐ 게시글 작성 시 필요한 포인트 (0 = 무료)
+    @Column(nullable = false)
+    private int writePoint = 0;
+
+
 
 
 

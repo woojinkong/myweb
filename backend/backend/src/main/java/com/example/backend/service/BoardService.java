@@ -5,10 +5,7 @@ import com.example.backend.dto.BoardDetailResponse;
 import com.example.backend.entity.Board;
 import com.example.backend.entity.User;
 import com.example.backend.exception.CustomException;
-import com.example.backend.repository.BoardRepository;
-import com.example.backend.repository.CommentRepository;
-import com.example.backend.repository.ReportRepository;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.*;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +29,8 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
+    private final BoardGroupRepository boardGroupRepository;
+    private final PointService pointService;
 
     // ===============================================================
     //   📌 전체 게시글 조회 (관리자용 / 테스트용)
@@ -269,6 +268,26 @@ public class BoardService {
                 );
             }
         }
+
+        // ======================================================
+        // ⭐⭐⭐ 게시글 작성 포인트 차감 적용
+        // ======================================================
+        Long groupId = board.getBoardGroup().getId();
+
+        int cost = boardGroupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("게시판 없음"))
+                .getWritePoint();   // ← 게시판별 설정된 작성 비용
+
+        if (cost > 0) {
+            // 유저 정보 가져오기
+            User user = userRepository.findByUserId(userId)
+                    .orElseThrow(() -> new RuntimeException("유저 없음"));
+
+            // 포인트 차감
+            pointService.usePoint(user.getUserNo(), cost, "BOARD_WRITE");
+        }
+        // ======================================================
+
 
         // 🔥 정상 저장
         return boardRepository.save(board);

@@ -15,12 +15,14 @@ export default function AdminBoardGroups() {
     name: "",
     adminOnlyWrite: false,
     allowComment: true,
+    writePoint: 0,  // ⭐ 추가
   });
 
   const [editForm, setEditForm] = useState({
     name: "",
     adminOnlyWrite: false,
     allowComment: true,
+    writePoint: 0, // ⭐ 추가
   });
 
   /* ===============================
@@ -58,7 +60,7 @@ export default function AdminBoardGroups() {
     try {
       await axiosInstance.post("/board-group", { ...form, type: "BOARD" });
       alert("게시판이 생성되었습니다!");
-      setForm({ name: "", adminOnlyWrite: false, allowComment: true });
+      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0});
       loadGroups();
     } catch (err) {
       alert("게시판 생성 실패",err);
@@ -111,6 +113,7 @@ export default function AdminBoardGroups() {
       name: g.name,
       adminOnlyWrite: g.adminOnlyWrite,
       allowComment: g.allowComment,
+      writePoint: g.writePoint,   // ⭐ 필수
     });
   };
 
@@ -172,6 +175,17 @@ export default function AdminBoardGroups() {
           />
           댓글 허용
         </label>
+        <label style={styles.label}>
+          필요 포인트
+          <input
+            type="number"
+            value={form.writePoint}
+            onChange={(e) => setForm({ ...form, writePoint: Number(e.target.value) })}
+            style={{ ...styles.inputSmall, marginLeft: "10px" }}
+          />
+        </label>
+
+
 
         <button type="submit" style={{ ...buttons.primary, marginTop: "8px" }}>
           게시판 생성
@@ -208,6 +222,20 @@ export default function AdminBoardGroups() {
 
                 {g.type !== "DIVIDER" && (
                   <>
+
+                    <label style={styles.label}>
+                      필요 포인트
+                      <input
+                        type="number"
+                        value={editForm.writePoint}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, writePoint: Number(e.target.value) })
+                        }
+                        style={{ ...styles.inputSmall, marginLeft: "10px" }}
+                      />
+                    </label>
+
+                    
                     <label style={styles.label}>
                       <input
                         type="checkbox"
@@ -229,6 +257,7 @@ export default function AdminBoardGroups() {
                       />
                       댓글 허용
                     </label>
+
                   </>
                 )}
 
