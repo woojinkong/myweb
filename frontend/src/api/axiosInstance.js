@@ -15,7 +15,7 @@ const PUBLIC_GET_PREFIX = [
   "/board-group/",
   "/comments",      // 댓글 조회(GET)만 공개
   "/site/name",
-  
+  "/user/check-nickName",
 ];
 
 // 🔄 Refresh 전용 axios

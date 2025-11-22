@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.entity.User;
+import com.example.backend.repository.UserRepository;
 import com.example.backend.service.UserService;
 import com.example.backend.config.CustomUserDetails;
 import com.example.backend.dto.UserDTO;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
     // ✅ 내 정보 조회
 @GetMapping("/myinfo")
@@ -94,13 +96,20 @@ public ResponseEntity<UserDTO> updateMyInfo(
 
 
     // ✅ 특정 유저 정보 조회 (userId 기준)
-@GetMapping("/info/{userId}")
-public ResponseEntity<UserDTO> getUserInfo(@PathVariable String userId) {
-    User user = userService.findByUserId(userId);
-    if (user == null) {
-        return ResponseEntity.notFound().build(); // 404 반환
-    }
+    @GetMapping("/info/{userId}")
+    public ResponseEntity<UserDTO> getUserInfo(@PathVariable String userId) {
+        User user = userService.findByUserId(userId);
+        if (user == null) {
+            return ResponseEntity.notFound().build(); // 404 반환
+        }
     return ResponseEntity.ok(UserDTO.fromEntity(user));
-}
+    }
+
+    @GetMapping("/check-nickName")
+    public ResponseEntity<?> checkNickName(@RequestParam String nickName) {
+        boolean exists = userRepository.existsByNickName(nickName);
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
 
 }

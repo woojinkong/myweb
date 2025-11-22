@@ -93,6 +93,18 @@ export default function MyPage() {
         <p>
           <strong>아이디:</strong> {userInfo.userId}
         </p>
+          <p>
+          <strong>닉네임:</strong>{" "}
+          {editMode ? (
+            <input
+              name="nickName"
+              value={form.nickName || ""}
+              onChange={handleChange}
+            />
+          ) : (
+            userInfo.nickName
+          )}
+        </p>
 
         <p>
           <strong>이름:</strong>{" "}

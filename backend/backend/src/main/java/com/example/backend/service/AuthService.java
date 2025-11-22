@@ -25,6 +25,7 @@ public class AuthService {
                 .userId(r.getUserId())
                 .userPwd(encoder.encode(r.getUserPwd()))
                 .userName(r.getUserName())
+                .nickName(r.getNickName())
                 .userAge(r.getUserAge())
                 .email(r.getEmail())
                 .phone(r.getPhone())
@@ -34,6 +35,8 @@ public class AuthService {
     }
 
     public User authenticate(LoginRequest r) {
+
+
         var u = repo.findByUserId(r.getUserId()).orElse(null);
         if (u == null) return null;
         return encoder.matches(r.getUserPwd(), u.getUserPwd()) ? u : null;

@@ -22,6 +22,8 @@ public class UserDTO {
     private String banReason;
     private LocalDateTime bannedAt;
     private int point;
+    private String nickName;
+
 
 
     public static UserDTO fromEntity(User user) {
@@ -38,6 +40,7 @@ public class UserDTO {
                 .bannedAt(user.getBannedAt())
                 .profileImage(user.getProfileImage())
                 .point(user.getPoint())
+                .nickName(user.getNickName())
                 .build();
     }
 }

@@ -89,7 +89,7 @@ export default function BoardSearch() {
                   <h3 style={styles.itemTitle}>{board.title}</h3>
 
                    <p style={styles.metaRow}>
-                    <span style={styles.writer}>{board.userId}</span>
+                    <span style={styles.writer}>{board.nickName}</span>
                     <span style={styles.dot}>•</span>
                     <span>👁 {board.viewCount}</span>
                     <span style={styles.dot}>•</span>

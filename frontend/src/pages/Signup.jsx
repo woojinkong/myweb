@@ -7,6 +7,7 @@ export default function Signup() {
 
   const [form, setForm] = useState({
     userId: "",
+    nickName: "",
     userPwd: "",
     confirmPwd: "",
     userName: "",
@@ -31,7 +32,7 @@ const [modalOpen, setModalOpen] = useState(false);
 const [modalContent, setModalContent] = useState("");
 const [modalTitle, setModalTitle] = useState("");
 const [sendingEmail, setSendingEmail] = useState(false);
-
+const [nickNameChecked, setNickNameChecked] = useState(false);
 const termsText = `
 제1조 (목적)
 본 약관은 회사가 제공하는 인터넷 서비스(이하 “서비스”) 이용과 관련하여 회사와 이용자의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.
@@ -206,6 +207,30 @@ const handleAgreePrivacy = () => {
     }
   };
 
+
+  
+  const handleCheckNickName = async () => {
+  if (!form.nickName.trim()) return alert("닉네임을 입력해주세요!");
+
+  try {
+    const res = await axiosInstance.get("/user/check-nickName", {
+      params: { nickName: form.nickName },
+    });
+
+    if (res.data.exists) {
+      alert("이미 사용 중인 닉네임입니다.");
+      setNickNameChecked(false);
+    } else {
+      alert("사용 가능한 닉네임입니다!");
+      setNickNameChecked(true);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("닉네임 중복 확인 중 오류가 발생했습니다.");
+  }
+};
+
+
   // ✅ 이메일 인증번호 전송
   const handleSendEmail = async () => {
     if (sendingEmail) return;       // 🔥 중복 클릭 방지
@@ -290,10 +315,12 @@ const handleAgreePrivacy = () => {
   // ✅ 모든 조건 충족 시 버튼 활성화
   const isFormValid =
     idChecked &&
+    nickNameChecked &&       // ⭐ 추가
     form.userId &&
     form.userPwd &&
     form.confirmPwd &&
     form.userName &&
+    form.nickName &&         // ⭐ 추가
     emailVerified &&
     emailRegex.test(form.email) &&
     form.userPwd === form.confirmPwd &&
@@ -327,6 +354,17 @@ const handleAgreePrivacy = () => {
             {idChecked ? "사용가능" : "중복확인"}
           </button>
         </div>
+        <input
+          type="text"
+          name="nickName"
+          placeholder="닉네임"
+          value={form.nickName}
+          onChange={handleChange}
+          required
+          style={styles.input}
+        />
+        <button type="button" onClick={handleCheckNickName}>중복확인</button>
+
 
         <input
           type="password"

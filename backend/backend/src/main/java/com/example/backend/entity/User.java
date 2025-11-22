@@ -27,6 +27,8 @@ public class User {
     private String userPwd;
     @Column(nullable = false)
     private String userName;
+    @Column(nullable = false, unique = true)
+    private String nickName;   // ⭐ 닉네임 추가
 
     private Integer userAge;
     private String email;

@@ -89,7 +89,7 @@ export default function Outbox() {
                   })
                 }
               >
-                {msg.receiverId}
+                {msg.receiverNickName}
               </span>
 
               <span
@@ -140,7 +140,7 @@ export default function Outbox() {
             <h3 style={styles.modalTitle}>✉️ 쪽지 내용</h3>
 
             <p>
-              <strong>받는 사람:</strong> {selectedMsg.receiverId}
+              <strong>받는 사람:</strong> {selectedMsg.receiverNickName}
             </p>
             <p>
               <strong>보낸 날짜:</strong>{" "}

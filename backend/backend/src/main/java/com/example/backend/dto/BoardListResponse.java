@@ -16,6 +16,7 @@ public class BoardListResponse {
     private Long boardNo;
     private String title;
     private String userId;
+    private String nickName;
     private int viewCount;
     private long commentCount;
     private String imagePath;

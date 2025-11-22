@@ -37,9 +37,7 @@ public class MessageService {
 
             if (seconds < 10) {
                 throw new CustomException(
-                        "쪽지는 10초에 1번만 전송할 수 있습니다. (" + (10 - seconds) + "초 후 재전송 가능)",
-                        429
-                );
+                        "쪽지는 10초에 1번만 전송할 수 있습니다. (" + (10 - seconds) + "초 후 재전송 가능)", 429);
             }
         }
 
@@ -67,14 +65,7 @@ public class MessageService {
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
         return messageRepo.findByReceiverOrderBySendDateDesc(receiver, pageable)
-                .map(msg -> MessageDTO.builder()
-                        .messageNo(msg.getMessageNo())
-                        .senderId(msg.getSender().getUserId())
-                        .receiverId(receiverId)
-                        .content(msg.getContent())
-                        .read(msg.isRead())
-                        .sendDate(msg.getSendDate())
-                        .build());
+                .map(MessageDTO::fromEntity);
     }
 
     // ⭐ 보낸 쪽지 페이징 처리
@@ -83,24 +74,15 @@ public class MessageService {
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
         return messageRepo.findBySenderOrderBySendDateDesc(sender, pageable)
-                .map(msg -> MessageDTO.builder()
-                        .messageNo(msg.getMessageNo())
-                        .senderId(senderId)
-                        .receiverId(msg.getReceiver().getUserId())
-                        .content(msg.getContent())
-                        .read(msg.isRead())
-                        .sendDate(msg.getSendDate())
-                        .build());
+                .map(MessageDTO::fromEntity);
     }
 
     @Transactional
     // ✅ 읽음 처리
     public void markAsRead(Long messageNo) {
-        System.out.println("🔥 markAsRead 호출됨! messageNo = " + messageNo);
         Message msg = messageRepo.findById(messageNo)
                 .orElseThrow(() -> new RuntimeException("쪽지를 찾을 수 없습니다."));
         msg.setRead(true);
-        messageRepo.save(msg);
     }
 
     // ✅ 삭제

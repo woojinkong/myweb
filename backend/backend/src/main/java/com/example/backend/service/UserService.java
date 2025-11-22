@@ -5,6 +5,7 @@ import com.example.backend.entity.User;
 import com.example.backend.repository.PasswordResetTokenRepository;
 import com.example.backend.repository.UserRepository;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -24,10 +25,26 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender; // ✅ 메일 전송용
-
     @Value("${konghome.frontend-url}")
     private String frontendUrl;
+
+
+    @PostConstruct
+    public void initAdmin() {
+        if (userRepository.findByUserId("admin").isEmpty()) {
+            User admin = new User();
+            admin.setUserId("admin");
+            admin.setUserPwd(passwordEncoder.encode("dnwls2247!"));
+            admin.setRole("ADMIN");
+            admin.setUserName("관리자");
+            admin.setNickName("관리자");
+            userRepository.save(admin);
+        }
+    }
+
+
     public User findById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
@@ -97,7 +114,7 @@ public class UserService {
         }
 
         User user = resetToken.getUser();
-        user.setUserPwd(new BCryptPasswordEncoder().encode(newPassword));
+        user.setUserPwd(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
         tokenRepository.delete(resetToken);
@@ -105,11 +122,14 @@ public class UserService {
 
 
     // ✅ 특정 userId로 유저 조회
-public User findByUserId(String userId) {
+    public User findByUserId(String userId) {
     return userRepository.findByUserId(userId).orElse(null);
 }
 
 
+    public boolean checkNicknameExists(String nickname) {
+        return userRepository.existsByNickName(nickname);
+    }
 
 
 }

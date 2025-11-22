@@ -8,6 +8,7 @@ import lombok.*;
 public class SignupRequest {
 
   private String userId;
+  private String nickName;
   private String userPwd;
   private String userName;
   private Integer userAge;

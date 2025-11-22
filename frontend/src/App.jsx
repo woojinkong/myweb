@@ -25,6 +25,7 @@ import "./styles/Common.css";
 import InBox from "./pages/Inbox";
 import Outbox from "./pages/outbox";
 import AppLayout from "./AppLayout";
+import AdminAdSetting from "./pages/AdminAdSetting";
 
 //라우터만담당
 function App() {
@@ -162,6 +163,14 @@ function App() {
                 element={
                   <ProtectedRoute adminOnly>
                     <AdminReports />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/adsetting"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminAdSetting />
                   </ProtectedRoute>
                 }
               />

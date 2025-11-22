@@ -7,6 +7,7 @@ import { cardBase, colors } from "../styles/common";
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [adStatus, setAdStatus] = useState([]);
 
   const [stats, setStats] = useState({
     todayUsers: 0,
@@ -84,6 +85,23 @@ export default function AdminDashboard() {
     load();
   }, []);
 
+      useEffect(() => {
+      const loadAdStatus = async () => {
+        try {
+          const top = await axiosInstance.get("/ads/AD_TOP");
+          const bottom = await axiosInstance.get("/ads/AD_BOTTOM");
+          setAdStatus([
+            { ...top.data, label: "본문 상단 광고" },
+            { ...bottom.data, label: "본문 하단 광고" }
+          ]);
+        } catch (err) {
+          console.error("광고 상태 불러오기 실패:", err);
+        }
+      };
+      loadAdStatus();
+    }, []);
+
+
   // 🌟 관리자 기능 목록 정의
   const menuItems = [
     {
@@ -119,6 +137,12 @@ export default function AdminDashboard() {
       },
       color: "#dc3545",
     },
+    {
+      title: "광고 관리",
+      icon: "📢",
+      action: () => navigate("/admin/adsetting"),
+      color: "#6f42c1",
+  },
   ];
 
   return (
@@ -188,6 +212,21 @@ export default function AdminDashboard() {
           <h3 style={styles.cardValue}>{stats.activeUsers}</h3>
         </div>
       </div>
+      <div style={{ marginTop: "40px" }}>
+        <h3 style={{ marginBottom: "15px" }}>📢 광고 상태</h3>
+        {adStatus.map((ad) => (
+          <div key={ad.position} style={styles.card}>
+            <p style={styles.cardTitle}>{ad.label}</p>
+            <p style={{ color: ad.enabled ? "green" : "red" }}>
+              {ad.enabled ? "활성화됨" : "비활성화됨"}
+            </p>
+            {ad.imageUrl && (
+              <img src={ad.imageUrl} alt="" style={{ width: "200px", borderRadius: "6px" }} />
+            )}
+          </div>
+        ))}
+      </div>
+
 
       <h3 style={{ marginTop: "40px", marginBottom: "15px", color: "#444" }}>
         📌 관리자 기능

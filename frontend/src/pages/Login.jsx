@@ -48,7 +48,6 @@ export default function Login() {
       alert("로그인 성공!");
       navigate("/");
     } catch (err) {
-      console.error(err);
 
       // 🚫 정지된 계정 처리 (403 에러)
       if (err.response && err.response.status === 403) {
@@ -58,6 +57,14 @@ export default function Login() {
       Cookies.remove("accessToken");
         return;
       }
+
+      // 🔥 429 : 5회 이상 실패 → 10분 차단 상황
+    if (err.response?.status === 429) {
+        alert(err.response.data.message);
+        return;
+    }
+
+
       setError("아이디 또는 비밀번호가 올바르지 않습니다.");
     } finally {
       setLoading(false);
