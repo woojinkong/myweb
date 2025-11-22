@@ -33,6 +33,13 @@ axiosInstance.interceptors.request.use((config) => {
   const cleanUrl = config.url.split("?")[0];
   const method = config.method.toUpperCase();
 
+    // ⭐ 관리자 API는 항상 토큰 유지 (맨 위에 있어야 함!)
+  if (cleanUrl.startsWith("/admin")) {
+    const token = Cookies.get("accessToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  }
+
   // 🎯 GET이고 공개 API면 토큰 제거 (비로그인 허용)
   if (
     method === "GET" &&
@@ -62,6 +69,12 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
     const cleanUrl = originalRequest.url.split("?")[0];
     const method = originalRequest.method.toUpperCase();
+    // 🎯 403 (IP 차단 등)
+    if (error.response?.status === 403) {
+      alert("현재 사이트를 이용 할 수 없습니다.");
+      return Promise.reject(error);
+    }
+    
 
     // 🎯 GET + 공개 API → refresh 금지
     if (

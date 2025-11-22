@@ -56,15 +56,18 @@ export default function MyPage() {
   };
 
   const handleSaveInfo = async () => {
-    try {
-      await axiosInstance.put("/user/update", form);
-      alert("내 정보가 수정되었습니다!");
-      setEditMode(false);
-    } catch (err) {
-      console.error("내 정보 수정 실패:", err);
-      alert("수정 중 오류가 발생했습니다.");
-    }
-  };
+  try {
+    const res = await axiosInstance.put("/user/update", form);
+    setUserInfo(res.data);   // ★ 최신 데이터 화면에 적용
+    setForm(res.data);       // ★ input 값도 갱신
+    alert("내 정보가 수정되었습니다!");
+    setEditMode(false);
+  } catch (err) {
+    console.error("내 정보 수정 실패:", err);
+    alert("수정 중 오류가 발생했습니다.");
+  }
+};
+
 
   if (!userInfo) return <p style={{ textAlign: "center" }}>⏳ 불러오는 중...</p>;
 

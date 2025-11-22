@@ -29,4 +29,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT c.createdDate FROM Comment c WHERE c.userId = :userId ORDER BY c.createdDate DESC")
     List<LocalDateTime> findRecentCommentTimes(@Param("userId") String userId, Pageable pageable);
 
+    long countByBoardBoardNoAndParentIsNull(Long boardNo);
+
 }

@@ -8,23 +8,56 @@ export default function CommentSection({ boardId  }) {
   const [content, setContent] = useState("");
   const [replyTarget, setReplyTarget] = useState(null); // 대댓글 대상
   const [popupUserId, setPopupUserId] = useState(null);
+
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);  // 원하는 대로 변경 가능
+  const [hasMore, setHasMore] = useState(true);
+
+
   const BASE_URL = import.meta.env.VITE_API_URL;
   // ✅ 댓글 목록 불러오기
   const fetchComments = async () => {
     try {
       const res = await axiosInstance.get(`/comments`, {
-        params: { boardNo: boardId },
+        params: { boardNo: boardId, page, size },
       });
-      setComments(res.data);
+
+      const data = res.data;
+
+    // 데이터 누적
+    if (page === 0) {
+      setComments(data);
+    } else {
+      setComments((prev) => [...prev, ...data]);
+    }
+
+    // 더 불러올 게 있는지 판단 (size보다 적으면 마지막 페이지)
+     setHasMore(data.length === size);
+
     } catch (err) {
       console.error("댓글 불러오기 실패:", err);
     }
   };
+    useEffect(() => {
+    const loadCount = async () => {
+      await axiosInstance.get("/comments/comments/count", {
+        params: { boardNo: boardId }
+      });
+
+    };
+    loadCount();
+  }, [boardId]);
+
 
   useEffect(() => {
     fetchComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boardId]);
+  }, [page]);
+
+  useEffect(() => {
+    setPage(0);
+    setHasMore(true);
+   }, [boardId]);
+
 
   // ✅ 댓글 작성 or 대댓글 작성
   const handleSubmit = async () => {
@@ -36,7 +69,11 @@ export default function CommentSection({ boardId  }) {
       });
       setContent("");
       setReplyTarget(null);
-      fetchComments();
+      // ⭐ 새로 작성하면 페이지 초기화
+    setPage(0);
+    setHasMore(true);
+    fetchComments();
+    // ⭐ 직접 다시 불러오기
     } catch (err) {
       console.error("댓글 등록 실패:", err);
       const msg = err.response?.data?.message || "댓글 등록 실패!";
@@ -49,7 +86,7 @@ export default function CommentSection({ boardId  }) {
     if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
     try {
       await axiosInstance.delete(`/comments/${commentNo}`);
-      fetchComments();
+      setPage(0);
     } catch (err) {
       console.error("댓글 삭제 실패:", err);
     }
@@ -71,7 +108,8 @@ export default function CommentSection({ boardId  }) {
 
     return (
       <div
-        key={comment.commentNo}
+        key={`${comment.commentNo}-${depth}`}
+
         className="comment-thread-item reply-depth"
         style={{
           ...styles.threadItem,
@@ -117,34 +155,42 @@ export default function CommentSection({ boardId  }) {
 
               <strong style={styles.userId}>{comment.nickName}</strong>
               {isReply && <span style={styles.replyBadge}>대댓글</span>}
+
+              <div style={styles.actionRow}>
+                  {/* depth === 0 일때만 답글 버튼 보임 */}
+                    {depth === 0 && (
+                      <button
+                        onClick={() => setReplyTarget(comment.commentNo)}
+                        style={styles.ghostBtn}
+                        aria-label="답글 달기"
+                      >
+                        답글
+                      </button>
+                    )}
+                  <button
+                    onClick={() => handleDelete(comment.commentNo)}
+                    style={{ ...styles.ghostBtn, marginLeft: 6 }}
+                    aria-label="삭제"
+                  >
+                    삭제
+                  </button>
+                </div>
             </div>
             <small className="comment-date" style={styles.dateText}>{formatDate(comment.createdDate)}</small>
           </div>
 
           <p className="comment-content" style={styles.contentText}>{comment.content}</p>
 
-          <div style={styles.actionRow}>
-            <button
-              onClick={() => setReplyTarget(comment.commentNo)}
-              style={styles.ghostBtn}
-              aria-label="답글 달기"
-            >
-              답글
-            </button>
-            <button
-              onClick={() => handleDelete(comment.commentNo)}
-              style={{ ...styles.ghostBtn, marginLeft: 6 }}
-              aria-label="삭제"
-            >
-              삭제
-            </button>
-          </div>
+          
         </div>
 
         {/* 재귀적으로 대댓글 렌더링 */}
         {comment.children &&
           comment.children.map((child) => renderComment(child, depth + 1))}
       </div>
+
+        
+
     );
   };
 
@@ -190,6 +236,25 @@ export default function CommentSection({ boardId  }) {
           <p style={{ color: "#6c757d", margin: 0 }}>댓글이 없습니다.</p>
         )}
       </div>
+
+        {/* 🔥 댓글 더 불러오기 버튼 — 여기 추가 */}
+        {hasMore && (
+          <div style={{ textAlign: "center", marginTop: 12 }}>
+            <button
+              style={{
+                background: "#f1f3f5",
+                border: "1px solid #ced4da",
+                padding: "8px 12px",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+              onClick={() => setPage((prev) => prev + 1)}
+            >
+              댓글 더 불러오기 ▼
+            </button>
+          </div>
+)}
+      
 
       {/* 프로필 팝업 */}
       {popupUserId && (
@@ -289,7 +354,7 @@ const styles = {
   card: {
     background: "#fff",
     borderRadius: 10,
-    padding: "10px 12px",
+    padding: "6px 12px",
     border: "1px solid #eef1f3",
     boxShadow: "0 1px 3px rgba(16,24,40,.06)",
   },

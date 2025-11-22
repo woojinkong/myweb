@@ -26,6 +26,7 @@ import InBox from "./pages/Inbox";
 import Outbox from "./pages/outbox";
 import AppLayout from "./AppLayout";
 import AdminAdSetting from "./pages/AdminAdSetting";
+import AdminIpBlock from "./pages/AdminIpBlock";
 
 //라우터만담당
 function App() {
@@ -171,6 +172,14 @@ function App() {
                 element={
                   <ProtectedRoute adminOnly>
                     <AdminAdSetting />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/ip-block"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminIpBlock />
                   </ProtectedRoute>
                 }
               />

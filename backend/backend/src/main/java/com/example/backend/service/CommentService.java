@@ -189,7 +189,15 @@ public class CommentService {
             .modifiedDate(c.getModifiedDate())
             .profileUrl(profileUrl) // ✅ 프로필 이미지 경로 포함
             .build();
-}
+        }
+
+
+    public long countByBoardNo(Long boardNo) {
+        return commentRepository.countByBoardBoardNoAndParentIsNull(boardNo);
+    }
+
+
+
 
 
 

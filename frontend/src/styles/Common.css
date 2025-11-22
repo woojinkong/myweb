@@ -1,6 +1,7 @@
 /* 게시판 본문 공통 스타일 */
 .board-content img {
-  max-width: 100%;
+  max-width: 70% !important;
+  margin: 0 auto;
 }
 
 /* ⭐ figure 자체를 100%로 강제 */
@@ -25,12 +26,7 @@
   text-align: right;
 }
 
-.tiptap figure img {
-  display: inline-block !important;
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
+
 /* 반응형 유튜브 박스 — ⭐ 반드시 공통으로 둬야 함 */
 .responsive-youtube {
   position: relative;
@@ -67,6 +63,12 @@
   justify-content: center;
   border: 1px solid #e5e5e5; /* 더 은은한 느낌 */
 }
+
+.board-detail-page .tiptap figure {
+  max-width: 85% !important;
+  margin: 14px auto !important;
+}
+
 
 
 
@@ -155,11 +157,23 @@
   }
 
   .comment-user-id {
-    max-width: 120px !important;
+    max-width: none !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+    min-width: 0 !important;        /* ★ 중요 */
   }
+
+  .comment-user-id strong {
+  max-width: 90px !important;    /* ★ 닉네임 길이 제한 */
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  }
+  .actionRow {
+  flex-shrink: 0 !important;   /* 절대 줄어들지 않음 */
+}
+
 
   .reply-depth {
     margin-left: 6px !important;

@@ -109,6 +109,7 @@ public class BoardController {
                 .content(content)
                 .plainContent(Jsoup.parse(content).text())  // ← 추가
                 .userId(userDetails.getUser().getUserId())
+                .pinned(false)
                 .boardGroup(group)
                 .build();
 
@@ -349,6 +350,29 @@ public class BoardController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping("/{id}/pin")
+    public ResponseEntity<?> pinBoard(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id
+    ) {
+        if (userDetails == null || !"ADMIN".equalsIgnoreCase(userDetails.getUser().getRole()))
+            return ResponseEntity.status(403).body("관리자만 가능합니다.");
+
+        boardService.pinBoard(id);
+        return ResponseEntity.ok("PINNED");
+    }
+
+    @PostMapping("/{id}/unpin")
+    public ResponseEntity<?> unpinBoard(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id
+    ) {
+        if (userDetails == null || !"ADMIN".equalsIgnoreCase(userDetails.getUser().getRole()))
+            return ResponseEntity.status(403).body("관리자만 가능합니다.");
+
+        boardService.unpinBoard(id);
+        return ResponseEntity.ok("UNPINNED");
+    }
 
 
 

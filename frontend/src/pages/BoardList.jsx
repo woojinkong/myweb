@@ -192,6 +192,9 @@ export default function BoardList() {
 
 
 function BoardRow({ board, navigate, BASE_URL }) {
+
+  const isPinned = board.pinned;
+
   let thumbnailSrc = board.imagePath
     ? `${BASE_URL}${board.imagePath}`
     : null;
@@ -207,7 +210,11 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
   return (
     <div
-      style={styles.row}
+      style={{
+        ...styles.row,
+        ...(isPinned ? styles.pinnedRow : {}),   // ⭐ 여기서 스타일 변경
+      }}
+      
       onClick={() => navigate(`/board/${board.boardNo}`)}
     >
       {/* 썸네일 */}
@@ -223,17 +230,25 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
       {/* 제목 + 정보 */}
       <div style={styles.rowContent}>
-        <div style={styles.rowTitle}>
-          {board.title} <span style={styles.comment}>[{board.commentCount}]</span>
+
+        {/* 제목 + 작성자 정보 한 줄로 붙이기 */}
+        <div style={styles.rowLine}>
+          <div style={styles.rowTitle}>
+            {board.title}
+            <span style={styles.comment}>[{board.commentCount}]</span>
+          </div>
+
+          <div style={styles.rowInfoInline}>
+            <img src={profileSrc} style={styles.rowInfoProfile} />
+            <span>{board.nickName}</span>
+            <span>·</span>
+            <span>{new Date(board.createdDate).toLocaleDateString()}</span>
+          </div>
         </div>
 
-        <div style={styles.rowInfo}>
-          <img src={profileSrc} style={{ width: 18, height: 18, borderRadius: "50%" }} />
-          <span>{board.nickName}</span>
-          <span>·</span>
-          <span>{new Date(board.createdDate).toLocaleDateString()}</span>
-        </div>
       </div>
+
+
       
     </div>
     
@@ -330,69 +345,71 @@ const styles = {
    list: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "5px",
   },
 
   row: {
-    display: "flex",
-    gap: "12px",
-    alignItems: "center",
-    padding: "10px",
-    borderRadius: "8px",
-    background: "#fff",
-    cursor: "pointer",
-    transition: "background 0.2s",
-    border: "1px solid #eee",
-  },
+  display: "flex",
+  gap: "10px",
+  alignItems: "center",
+  padding: "0px 10px",
+  borderRadius: "6px",
+  background: "#fff",
+  cursor: "pointer",
+  transition: "background 0.2s",
+  border: "1px solid #eee",
+  minHeight: "58px",
+},
 
   rowThumbnail: {
-    width: "80px",
-    height: "60px",
-    objectFit: "cover",
-    borderRadius: "6px",
-  },
+  width: "45px",
+  height: "45px",
+  objectFit: "cover",
+  borderRadius: "5px",
+},
 
   noRowThumb: {
-    width: "80px",
-    height: "60px",
-    borderRadius: "6px",
-    background: "#eee",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#aaa",
-    fontSize: "12px",
-  },
+  width: "45px",
+  height: "45px",
+  borderRadius: "5px",
+  background: "#eee",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#aaa",
+  fontSize: "11px",
+},
 
   rowContent: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-  },
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "2px",
+},
 
   rowTitle: {
-    fontSize: "15px",
-    fontWeight: "600",
-    color: colors.text.main,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-
+  fontSize: "14px",
+  fontWeight: "600",
+  color: colors.text.main,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  marginRight: "20px",   // ⭐ 여기! 제목과 오른쪽 정보 사이 간격 조절
+},
   comment: {
     color: colors.text.light,
     fontSize: "13px",
   },
 
   rowInfo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    fontSize: "13px",
-    color: colors.text.light,
-    marginTop: "4px",
-  },
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  fontSize: "11px",
+  color: "#777",
+  whiteSpace: "nowrap",
+},
 
   sortBtn: {
   padding: "6px 12px",
@@ -412,5 +429,54 @@ sortActive: {
   fontSize: "13px",
   fontWeight: "600",
 },
+pinnedRow: {
+  background: "#fff8e6",          // ⭐ 옅은 노란색 배경
+  border: "1px solid #f1c40f",    // ⭐ 강조 보더
+  boxShadow: "0 2px 8px rgba(241, 196, 15, 0.3)",
+  position: "relative",
+},
+
+pinnedBadge: {
+  position: "absolute",
+  top: "-8px",
+  left: "-8px",
+  background: "#f39c12",
+  color: "white",
+  padding: "2px 8px",
+  fontSize: "11px",
+  borderRadius: "6px",
+  fontWeight: "700",
+},
+
+pinnedText: {
+  color: "#e67e22",
+  fontWeight: "700",
+  marginLeft: "4px",
+},
+rowLine: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  width: "100%",
+  minWidth: 0,
+},
+rowInfoInline: {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  fontSize: "11px",
+  color: "#777",
+  whiteSpace: "nowrap",
+  flexShrink: 0,        // ← 절대 줄바꿈되지 않음
+},
+
+rowInfoProfile: {
+  width: 16,
+  height: 16,
+  borderRadius: "50%",
+  objectFit: "cover",
+},
+
+
 
 };

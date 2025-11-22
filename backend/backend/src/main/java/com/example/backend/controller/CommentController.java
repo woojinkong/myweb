@@ -71,4 +71,10 @@ public class CommentController {
     public ResponseEntity<Long> count(@RequestParam Long boardNo) {
         return ResponseEntity.ok(commentService.count(boardNo));
     }
+
+    @GetMapping("/comments/count")
+    public long getCommentCount(@RequestParam Long boardNo) {
+        return commentService.countByBoardNo(boardNo);
+    }
+
 }

@@ -49,12 +49,65 @@ public class BoardService {
     // ===============================================================
     //   📌 특정 게시판(BoardGroup) 기준 목록 조회(페이징수정)
     // ===============================================================
+    // ===============================================================
+//   📌 특정 게시판(BoardGroup) 기준 목록 조회(페이징 + 상단고정)
+// ===============================================================
     public Page<BoardListResponse> findAllByBoardGroup(Long groupId, Pageable pageable) {
 
-        Page<Board> boards = boardRepository.findByBoardGroupId(groupId, pageable);
+        // 1) pinned = true (상단 고정글) — 페이징 없음
+        List<Board> pinnedList = boardRepository
+                .findByBoardGroupIdAndPinnedTrueOrderByCreatedDateDesc(groupId);
 
-        return boards.map(this::toListDto);
+        // 2) pinned = false (일반글) — 페이징
+        Page<Board> normalPage = boardRepository
+                .findByBoardGroupIdAndPinnedFalse(groupId, pageable);
+
+        // 3) Page 객체가 pinned 글은 포함할 수 없으므로
+        //    프론트는 pinnedList + normalPage.content 를 합쳐서 표시하면 됨
+        //    대신 응답 구성은 normalPage 정보로 유지
+        List<BoardListResponse> pinnedDtoList = pinnedList.stream()
+                .map(this::toListDto)
+                .toList();
+
+        List<BoardListResponse> normalDtoList = normalPage
+                .map(this::toListDto)
+                .toList();
+
+        // 4) DTO 합치기
+        List<BoardListResponse> merged = new java.util.ArrayList<>();
+        merged.addAll(pinnedDtoList);
+        merged.addAll(normalDtoList);
+
+        // 5) Page 형태로 다시 묶어서 반환
+        return new org.springframework.data.domain.PageImpl<>(
+                merged,
+                pageable,
+                normalPage.getTotalElements() + pinnedList.size() // 총 개수 = pinned + normal
+        );
     }
+
+    // ===============================================================
+// 📌 게시글 상단 고정
+// ===============================================================
+    @Transactional
+    public void pinBoard(Long id) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+        board.setPinned(true);
+        boardRepository.save(board);
+    }
+
+    // ===============================================================
+// 📌 게시글 고정 해제
+// ===============================================================
+    @Transactional
+    public void unpinBoard(Long id) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+        board.setPinned(false);
+        boardRepository.save(board);
+    }
+
 
     // ===============================================================
     //   📌 게시글 상세 조회 — 조회수 증가 포함
@@ -115,7 +168,8 @@ public class BoardService {
                     .groupId(groupId)
                     .groupName(groupName)
                     .profileUrl(getProfileUrl(board.getUserId()))
-                    .likeCount(board.getLikeCount())     // ⭐ 추가된 부분
+                    .likeCount(board.getLikeCount())
+                    .pinned(board.isPinned())// ⭐ 추가된 부분
                     .build();
         }catch( Exception e){
             return null;
@@ -146,6 +200,7 @@ public class BoardService {
                     .images(board.getImages())
                     .profileUrl(getProfileUrl(board.getUserId()))
                     .allowComment(allowComment)
+                    .pinned(board.isPinned())
                     .build();
         }catch(Exception e){
             return null;
