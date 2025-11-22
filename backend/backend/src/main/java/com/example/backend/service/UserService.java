@@ -60,6 +60,8 @@ public class UserService {
 
     public User updateUserInfo(Long userNo, User updatedInfo) {
     return userRepository.findById(userNo).map(user -> {
+        if (updatedInfo.getNickName() != null)
+            user.setNickName(updatedInfo.getNickName());   // ★★ 닉네임 업데이트 추가!!
         if (updatedInfo.getUserName() != null) user.setUserName(updatedInfo.getUserName());
         if (updatedInfo.getEmail() != null) user.setEmail(updatedInfo.getEmail());
         if (updatedInfo.getPhone() != null) user.setPhone(updatedInfo.getPhone());

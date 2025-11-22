@@ -119,6 +119,7 @@ export default function BoardDetail() {
          setBoard({
            ...data,
            content: fixedContent,
+           pinned: data.pinned,   // ⭐ 추가
          });
 
         // console.log("📌 board content:", data.content);
@@ -192,6 +193,32 @@ export default function BoardDetail() {
   };
 
 
+  const handleTogglePin = async () => {
+  if (!user || user.role !== "ADMIN") return;
+
+  try {
+    const url = board.pinned
+      ? `/board/${id}/unpin`
+      : `/board/${id}/pin`;
+
+    await axiosInstance.post(url);
+
+    alert(board.pinned ? "게시글 고정 해제됨" : "게시글이 상단에 고정되었습니다.");
+
+    // 최신 상태 반영
+
+    setBoard((prev) => ({
+      ...prev,
+      pinned: !prev.pinned
+    }));
+  } catch (err) {
+    console.error("고정/해제 오류:", err);
+    alert("처리 중 문제가 발생했습니다.");
+  }
+};
+
+
+
   // 신고 기능
 const handleReport = async () => {
   if (!user) {
@@ -260,7 +287,7 @@ const handleReport = async () => {
       style={{
         ...cardBase,
         width: "100%",
-        padding: "18px",
+        padding: "16px",
         position: "relative",
         boxSizing: "border-box",
       }}
@@ -319,7 +346,26 @@ const handleReport = async () => {
         }} onClick={handleReport}>
           {reporting ? "처리 중..." : "🚨 신고"}
         </button>
+
+        {user?.role === "ADMIN" && (
+          <button
+            onClick={handleTogglePin}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: board?.pinned ? "#c0392b" : "#2980b9",
+              color: "white",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13px"
+            }}
+          >
+            {board?.pinned ? "고정 해제" : "게시글 고정"}
+          </button>
+        )}
+
       </div>
+
 
       {/* 상단광고 */}
       <AdBanner position="AD_TOP" />

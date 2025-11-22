@@ -17,7 +17,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     List<Board> findByTitleContainingIgnoreCase(String title);
     List<Board> findByContentContainingIgnoreCase(String content);
     List<Board> findByUserIdContainingIgnoreCase(String userId);
-        @Query("""
+    @Query("""
     SELECT DISTINCT b 
     FROM Board b 
     LEFT JOIN FETCH b.images 
@@ -25,6 +25,31 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     ORDER BY b.createdDate DESC
     """)
     List<Board> findByBoardGroupIdOrderByCreatedDateDesc(Long groupId);
+
+
+    @Query("""
+    SELECT DISTINCT b
+    FROM Board b
+    LEFT JOIN FETCH b.images
+    WHERE b.boardGroup.id = :groupId
+    ORDER BY b.pinned DESC, b.createdDate DESC
+    """)
+    List<Board> findByBoardGroupIdOrderByPinned(Long groupId);
+
+    @Query("""
+    SELECT b
+    FROM Board b
+    WHERE b.boardGroup.id = :groupId
+    ORDER BY b.pinned DESC, b.createdDate DESC
+    """)
+    Page<Board> findPagedBoards(@Param("groupId") Long groupId, Pageable pageable);
+
+    // 🔥 pinned = true 전부 조회
+    List<Board> findByBoardGroupIdAndPinnedTrueOrderByCreatedDateDesc(Long groupId);
+
+    // 🔥 pinned = false 페이징
+    Page<Board> findByBoardGroupIdAndPinnedFalse(Long groupId, Pageable pageable);
+
 
     @Query("SELECT COUNT(b) FROM Board b WHERE b.boardGroup.id = :groupId")
     int countByGroupId(Long groupId);

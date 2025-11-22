@@ -123,6 +123,13 @@ export default function AdminDashboard() {
       color: "#ffc107",
     },
     {
+    title: "IP 차단 관리",
+    icon: "🚫",
+    action: () => navigate("/admin/ip-block"),
+    color: "#d9534f",
+    },
+
+    {
       title: "전체 게시글 삭제",
       icon: "🗑",
       action: async () => {

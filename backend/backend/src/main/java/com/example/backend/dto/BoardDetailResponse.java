@@ -20,7 +20,7 @@ public class BoardDetailResponse {
     private String nickName;
     private LocalDateTime createdDate;
     private int viewCount;
-
+    private boolean pinned;
     private Long groupId;     // 🔥 추가
     private String groupName; // 🔥 추가
     private boolean allowComment;

@@ -86,6 +86,8 @@ public class Board {
     @Column(columnDefinition = "TEXT")
     private String plainContent;
 
+    @Column(nullable = false)
+    private boolean pinned = false;  // 기본값 false
 
 
 }

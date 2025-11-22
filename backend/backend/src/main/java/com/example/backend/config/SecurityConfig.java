@@ -1,8 +1,10 @@
 package com.example.backend.config;
 
+import com.example.backend.auth.IpBlockFilter;
 import com.example.backend.auth.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,6 +24,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    @Autowired
+    private IpBlockFilter ipBlockFilter;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -32,6 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+                .addFilterBefore(ipBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsSource()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -108,7 +113,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/board-group/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/ads/update").hasAuthority("ADMIN")
 
 

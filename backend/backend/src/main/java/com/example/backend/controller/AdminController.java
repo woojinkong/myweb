@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.PointRequest;
 import com.example.backend.dto.UserDTO;
+import com.example.backend.entity.BlockedIp;
 import com.example.backend.entity.Board;
 import com.example.backend.entity.User;
 import com.example.backend.repository.BoardRepository;
@@ -37,9 +38,12 @@ public class AdminController {
     private final PointService pointService;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final BlockedIpService blockedIpService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+
+
 
     // ✅ 전체 회원 조회
     @GetMapping("/users")
@@ -249,6 +253,38 @@ public class AdminController {
         );
 
         return ResponseEntity.ok("게시글이 삭제되었습니다.");
+    }
+
+
+    /* ============================================================
+       🔥 IP 차단 관리
+    ============================================================ */
+
+    // 1. 전체 차단 IP 조회
+    @GetMapping("/ip-block/list")
+    public ResponseEntity<?> getBlockedIpList() {
+        return ResponseEntity.ok(blockedIpService.getAll());
+    }
+
+    // 2. IP 차단
+    @PostMapping("/ip-block/block")
+    public ResponseEntity<?> blockIp(@RequestBody Map<String, String> req) {
+        String ip = req.get("ip");
+        String reason = req.get("reason");
+
+        if (ip == null || ip.isBlank()) {
+            return ResponseEntity.badRequest().body("IP를 입력해주세요.");
+        }
+
+        BlockedIp result = blockedIpService.blockIp(ip, reason);
+        return ResponseEntity.ok(result);
+    }
+
+    // 3. 차단 해제
+    @DeleteMapping("/ip-block/unblock/{id}")
+    public ResponseEntity<?> unblockIp(@PathVariable Long id) {
+        blockedIpService.unblockIp(id);
+        return ResponseEntity.ok("차단이 해제되었습니다.");
     }
 
 
