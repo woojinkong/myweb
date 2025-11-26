@@ -110,21 +110,21 @@ public class BoardGroupService {
 //        createIfNotExists("자유게시판", false, true); // 누구나 글쓰기, 댓글 허용
 //    }
 
-    private void createIfNotExists(String name, boolean adminOnlyWrite, boolean allowComment) {
-        if (!boardGroupRepository.existsByName(name)) {
-            int maxOrder = boardGroupRepository.findMaxOrderIndex();
-
-            BoardGroup group = BoardGroup.builder()
-                    .name(name)
-                    .adminOnlyWrite(adminOnlyWrite)
-                    .allowComment(allowComment)
-                    .orderIndex(maxOrder + 1)
-                    .type("BOARD")
-                    .build();
-
-            boardGroupRepository.save(group);
-        }
-    }
+//    private void createIfNotExists(String name, boolean adminOnlyWrite, boolean allowComment) {
+//        if (!boardGroupRepository.existsByName(name)) {
+//            int maxOrder = boardGroupRepository.findMaxOrderIndex();
+//            System.out.println("### createIfNotExists 실행됨: " + name);
+//            BoardGroup group = BoardGroup.builder()
+//                    .name(name)
+//                    .adminOnlyWrite(adminOnlyWrite)
+//                    .allowComment(allowComment)
+//                    .orderIndex(maxOrder + 1)
+//                    .type("BOARD")
+//                    .build();
+//
+//            boardGroupRepository.save(group);
+//        }
+//    }
 
 
 
