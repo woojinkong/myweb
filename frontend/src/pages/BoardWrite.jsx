@@ -224,7 +224,9 @@ const CustomImage = Image.extend({
           required
         />
 
-        <Toolbar />
+        <div className="toolbar-wrapper">
+          <Toolbar />
+        </div>
 
         <div style={styles.editorBox} className="tiptap">
           <EditorContent editor={editor} />
@@ -278,20 +280,28 @@ const styles = {
     outline: "none",
   },
 
+  toolbarWrapper: {
+  position: "sticky",
+  top: "60px",                      // Navbar 높이
+  zIndex: 3000,
+  background: "transparent",
+  display: "flex",
+  justifyContent: "center",
+  },
+
+
+
+
   toolbar: {
-  position: "fixed",
-  top: "60px",                         // 네비바 높이
-  left: "50%",
-  transform: "translateX(-50%)",
-  width: "calc(100% - 24px)",          // 화면 좌우 여백 확보
+  width: "100%",
   maxWidth: "680px",
   background: "#fafafa",
-  zIndex: 3000,
   padding: "8px",
-  border: "1px solid #ddd",
   borderRadius: "8px",
+  border: "1px solid #ddd",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
 },
+
 
 
 btn: {
@@ -339,7 +349,6 @@ colorPicker: {
   border: "1px solid #ccc",
   borderRadius: "6px",
   padding: "12px",
-  marginTop: "80px",     // ⭐ 툴바 높이 + 여백
 },
 
 

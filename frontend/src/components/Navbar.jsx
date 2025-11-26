@@ -21,7 +21,8 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
   const [siteTitle, setSiteTitle] = useState("KongHome");
   const API_BASE = import.meta.env.VITE_API_URL;
   const isMobile = useIsMobile();
-
+  const SIDEBAR_WIDTH_OPEN = 150;
+  const SIDEBAR_WIDTH_CLOSED = 50;
       
 
 
@@ -108,8 +109,8 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         ...styles.nav,
          padding: isMobile ? "0 10px" : "0 40px",
         justifyContent: isMobile ? "flex-start" : "space-between",
-        left: isMobile ? 0 : (isSidebarOpen ? 150 : 50),
-        width: isMobile ? "100%" : "calc(100% - 50px)",
+        left: isMobile ? 0 : (isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED),
+        width: isMobile ? "100%" :`calc(100% - ${isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED}px)`,
       }}
     >
       {isMobile && (
@@ -275,7 +276,7 @@ const styles = {
     alignItems: "center",
     padding: "0 40px",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-    zIndex: 1900,
+    zIndex: 3000,
     transition: "left 0.3s ease, width 0.3s ease",
     boxSizing: "border-box",
   },
