@@ -48,7 +48,7 @@ export default function AppLayout({ children }) {
           background: "#fff",
           //overflowX: "hidden",
           //overflowY: "auto",
-          overflow: "visible",
+          //overflow: "visible",
         }}
       >
         {children}
