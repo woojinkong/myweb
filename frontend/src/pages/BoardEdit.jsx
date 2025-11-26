@@ -299,12 +299,16 @@ const styles = {
     fontSize: "14px",
   },
   toolbarWrapper: {
-  position: "sticky",
-  top: "60px",                      // Navbar 높이
+  position: "fixed",
+  top: "60px",
+  left: "0",
+  width: "100%",
   zIndex: 3000,
-  background: "transparent",
+  background: "#fafafa",
+  padding: "8px 0",
   display: "flex",
   justifyContent: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
   },
   toolbar: {
   width: "100%",
