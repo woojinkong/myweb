@@ -276,7 +276,7 @@ const styles = {
     alignItems: "center",
     padding: "0 40px",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-    zIndex: 3000,
+    zIndex: 1800,
     transition: "left 0.3s ease, width 0.3s ease",
     boxSizing: "border-box",
   },
