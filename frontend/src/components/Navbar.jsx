@@ -109,12 +109,12 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
          padding: isMobile ? "0 10px" : "0 40px",
         justifyContent: isMobile ? "flex-start" : "space-between",
         left: isMobile ? 0 : (isSidebarOpen ? 150 : 50),
-        transition: isMobile ? "none" : "left 0.3s ease",
-        width: "100%",
+        width: isMobile ? "100%" : "calc(100% - 50px)",
       }}
     >
       {isMobile && (
         <button onClick={(e)=>{
+          e.stopPropagation();
           toggleSidebar();
         }} 
         style={{
