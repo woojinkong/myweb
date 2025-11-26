@@ -213,6 +213,9 @@ const CustomImage = Image.extend({
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>📋 게시글 작성</h2>
+      <div style={styles.toolbarWrapper}>
+          <Toolbar />
+        </div>
 
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
@@ -224,9 +227,7 @@ const CustomImage = Image.extend({
           required
         />
 
-        <div style={styles.toolbarWrapper}>
-          <Toolbar />
-        </div>
+        
 
         <div style={styles.editorBox} className="tiptap">
           <EditorContent editor={editor} />

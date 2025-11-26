@@ -238,7 +238,9 @@ export default function BoardEdit() {
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>✏️ 게시글 수정</h2>
-
+      <div style={styles.toolbarWrapper}>
+          <Toolbar />
+        </div>
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
@@ -247,8 +249,7 @@ export default function BoardEdit() {
           style={styles.input}
         />
 
-        <Toolbar />
-
+        
         <div style={styles.editorBox} className="tiptap">
           <EditorContent editor={editor} />
         </div>
@@ -297,20 +298,23 @@ const styles = {
     borderRadius: "6px",
     fontSize: "14px",
   },
+  toolbarWrapper: {
+  position: "sticky",
+  top: "60px",                      // Navbar 높이
+  zIndex: 3000,
+  background: "transparent",
+  display: "flex",
+  justifyContent: "center",
+  },
   toolbar: {
-  position: "fixed",
-  top: "60px",                         // 네비바 높이
-  left: "50%",
-  transform: "translateX(-50%)",
-  width: "calc(100% - 24px)",          // 화면 좌우 여백 확보
+  width: "100%",
   maxWidth: "680px",
   background: "#fafafa",
-  zIndex: 3000,
   padding: "8px",
-  border: "1px solid #ddd",
   borderRadius: "8px",
+  border: "1px solid #ddd",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
- },
+},
 
   btn: {
     border: "none",
@@ -333,8 +337,6 @@ const styles = {
     border: "1px solid #ccc",
     borderRadius: "6px",
     padding: "12px",
-    marginTop: "80px",     // ⭐ 툴바 높이 + 여백
-    
   },
   buttonRow: {
     display: "flex",
