@@ -40,18 +40,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   className={`sidebar-container ${isOpen ? "open" : ""}`}
   style={{
     ...styles.sidebar,
-    ...(isMobile
-      ? {
-          width: "220px",
-          left: 0,
-          transform: isOpen ? "translateX(0)" : "translateX(-220px)",
-          transition: "transform 0.25s ease",
-          zIndex: 3000,
-        }
-      : {
-          width: isOpen ? "150px" : "50px",
-          transform: "none",
-        }),
+    ...(isMobile ? {} 
+      : { width: isOpen ? "150px" : "50px" }),
   }}
 >
 
@@ -114,8 +104,7 @@ const styles = {
     background: "#fdfdfd",
     borderRight: "1px solid #e5e5e5",
     paddingTop: "8px",
-    transition: "width 0.25s ease",
-    overflow: "hidden",
+    transition: "all 0.25s ease",
     zIndex: 2000,
     fontFamily: "'Pretendard', 'Inter', sans-serif",
   },
