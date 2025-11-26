@@ -279,17 +279,20 @@ const styles = {
   },
 
   toolbar: {
-    position: "sticky",
-    top: "60px",
-    zIndex: 2000,
-    background: "#fafafa",
-    border: "1px solid #ddd",
-    padding: "8px",
-    display: "flex",
-    gap: "6px",
-    borderRadius: "8px",
-    flexWrap: "wrap",
-  },
+  position: "fixed",
+  top: "60px",                         // 네비바 높이
+  left: "50%",
+  transform: "translateX(-50%)",
+  width: "calc(100% - 24px)",          // 화면 좌우 여백 확보
+  maxWidth: "680px",
+  background: "#fafafa",
+  zIndex: 3000,
+  padding: "8px",
+  border: "1px solid #ddd",
+  borderRadius: "8px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+},
+
 
 btn: {
   border: "none",
@@ -332,12 +335,13 @@ colorPicker: {
   },
 
   editorBox: {
-    minHeight: "250px",
-    border: "1px solid #e0e0e0",
-    borderRadius: "6px",
-    padding: "12px",
-    background: "#fff",
-  },
+  minHeight: "250px",
+  border: "1px solid #ccc",
+  borderRadius: "6px",
+  padding: "12px",
+  marginTop: "80px",     // ⭐ 툴바 높이 + 여백
+},
+
 
   button: {
     padding: "10px",
