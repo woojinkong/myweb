@@ -8,7 +8,7 @@ import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail } from "react-i
 import useIsMobile from "../hooks/useIsMobile";
 
 
-
+//navbar수정
 export default function Navbar({ isSidebarOpen,toggleSidebar }) {
   const { user, logout,loading } = useContext(AuthContext);
   const navigate = useNavigate();
