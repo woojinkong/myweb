@@ -1,0 +1,30 @@
+import axiosInstance from "./axiosInstance";
+
+// 🔔 내 알림 전체 조회
+export const fetchNotifications = async (page = 0, size = 10) => {
+  const res = await axiosInstance.get(`/notifications?page=${page}&size=${size}`);
+  return res.data; // Page 객체 전체 반환
+};
+
+
+// 📩 안 읽은 알림 개수 조회
+export const fetchUnreadCount = async () => {
+  const res = await axiosInstance.get("/notifications/unread-count");
+  return res.data;
+};
+
+// ✅ 개별 알림 읽음 처리
+export const markAsRead = async (id) => {
+  await axiosInstance.post(`/notifications/${id}/read`);
+};
+
+// ✅ 전체 알림 읽음 처리 (이게 지금 빠져 있었음!)
+export const markAllAsRead = async () => {
+  await axiosInstance.post(`/notifications/read-all`);
+};
+
+// ⭐ 전체 삭제
+export const deleteAllNotifications = async () => {
+  const res = await axiosInstance.delete("/notifications/delete-all");
+  return res.data;
+};

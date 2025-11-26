@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: konghome_frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - blue
+      - green
+    networks:
+      - kong-network
+
+  blue:
+    build: ./backend/backend
+
+    container_name: blue
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=blue
+      - PASSWORD=dnwls2247!
+      - SECRET=dnwlstmfrltjdlgodqhrgkrpgowntpdy
+      - MAIL_PASSWORD=vgpxxukqecpjabmn
+    volumes:
+      - /home/ubuntu/app/uploads:/app/uploads
+    networks:
+      - kong-network
+
+  green:
+    build: ./backend/backend
+
+    container_name: green
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=green
+      - PASSWORD=dnwls2247!
+      - SECRET=dnwlstmfrltjdlgodqhrgkrpgowntpdy
+      - MAIL_PASSWORD=vgpxxukqecpjabmn
+    volumes:
+      - /home/ubuntu/app/uploads:/app/uploads
+    networks:
+      - kong-network
+
+networks:
+  kong-network:
+    driver: bridge
