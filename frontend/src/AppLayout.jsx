@@ -5,9 +5,10 @@ import Footer from "./components/Footer";
 import useIsMobile from "./hooks/useIsMobile";
 
 export default function AppLayout({ children }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
   const isMobile = useIsMobile();
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile); 
+  // 모바일이면 false, PC면 true
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
 
   const closeSidebar = () => setIsSidebarOpen(false); // ⭐ 추가
