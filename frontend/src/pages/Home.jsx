@@ -6,7 +6,7 @@ import { FiFolder } from "react-icons/fi";
 import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
 import useIsMobile from "../hooks/useIsMobile";
-
+//home
 export default function Home() {
   const [groups, setGroups] = useState([]);
   const [boardsByGroup, setBoardsByGroup] = useState({});

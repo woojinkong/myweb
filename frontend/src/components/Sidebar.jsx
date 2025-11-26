@@ -46,8 +46,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 >
 
       <div style={styles.header}>
+      {!isMobile && (
         <button onClick={toggleSidebar} style={styles.hamburger}>☰</button>
-      </div>
+      )}
+    </div>
+
 
       {loading && (
         <p style={{ textAlign: "center", color: "#888", fontSize: "13px" }}>
