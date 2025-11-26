@@ -224,7 +224,7 @@ const CustomImage = Image.extend({
           required
         />
 
-        <div className="toolbar-wrapper">
+        <div style={styles.toolbarWrapper}>
           <Toolbar />
         </div>
 
