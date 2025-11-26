@@ -1,0 +1,28 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/ec2_server.pem
+        chmod 600 ~/.ssh/ec2_server.pem
+        echo "Host ec2server" >> ~/.ssh/config
+        echo "    HostName ${{ secrets.EC2_HOST }}" >> ~/.ssh/config
+        echo "    User ubuntu" >> ~/.ssh/config
+        echo "    IdentityFile ~/.ssh/ec2_server.pem" >> ~/.ssh/config
+        echo "    StrictHostKeyChecking no" >> ~/.ssh/config
+
+    - name: Deploy via SSH
+      run: |
+        ssh ec2server "~/deploy.sh"
