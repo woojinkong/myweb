@@ -109,11 +109,14 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
          padding: isMobile ? "0 10px" : "0 40px",
         justifyContent: isMobile ? "flex-start" : "space-between",
         left: isMobile ? 0 : (isSidebarOpen ? 150 : 50),
-        width: isMobile ? "100%" : `calc(100vw - ${isSidebarOpen ? 150 : 50}px)`,
+        width: "100%",
       }}
     >
       {isMobile && (
-        <button onClick={toggleSidebar} 
+        <button onClick={(e)=>{
+          e.stopPropagation();
+          toggleSidebar();
+        }} 
         style={{
           fontSize: "22px",
           marginLeft: "10px",      // 왼쪽에 딱 붙기
