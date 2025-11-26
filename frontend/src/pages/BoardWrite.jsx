@@ -173,7 +173,7 @@ const CustomImage = Image.extend({
       H2
     </button>
 
-    <button type="button" tyle={styles.btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
       H3
     </button>
 
@@ -282,12 +282,16 @@ const styles = {
   },
 
   toolbarWrapper: {
-  position: "sticky",
-  top: "60px",                      // Navbar 높이
+  position: "fixed",
+  top: "60px",
+  left: "0",
+  width: "100%",
   zIndex: 3000,
-  background: "transparent",
+  background: "#fafafa",
+  padding: "8px 0",
   display: "flex",
   justifyContent: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
   },
 
 
