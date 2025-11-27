@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { fetchUnreadCount } from "../api/notificationApi";
 import { fetchSiteName } from "../api/siteApi";
 import { fetchUnreadMessages } from "../api/messageApi"; // ✅ 추가
-import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail } from "react-icons/fi";
+import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail, FiMenu } from "react-icons/fi";
 import useIsMobile from "../hooks/useIsMobile";
 
 
@@ -108,14 +108,16 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
       style={{
         ...styles.nav,
          padding: isMobile ? "0 10px" : "0 40px",
-        justifyContent: isMobile ? "flex-start" : "space-between",
+        //justifyContent: isMobile ? "flex-start" : "space-between",
+         justifyContent: "space-between",
 
             // ⭐ 모바일에서는 고정값 적용
           ...(isMobile
         ? {
             left: 0,
             width: "100%",
-            transition: "none",
+            //transition: "none",
+            transition: "transform 0.3s ease",
           }
         : {
             left: isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED,
@@ -137,7 +139,8 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
           marginRight: "10px",     // 로고와 간격만 약간
           padding: "0",
         }}>
-          ☰
+          {/* ☰ */}
+          <FiMenu size={24} />
         </button>
       )}
 
