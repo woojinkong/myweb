@@ -44,7 +44,7 @@ export default function AppLayout({ children }) {
           width: isMobile
             ? "100%"
             : (isSidebarOpen ? "calc(100% - 150px)" : "calc(100% - 50px)"),
-          transition: "all 0.3s ease",
+          transition: isMobile ? "none" : "all 0.3s ease",
           background: "#fff",
           overflowY: "auto",
         }}
