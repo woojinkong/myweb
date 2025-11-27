@@ -13,6 +13,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 🔥 여기 추가 */
+html, body {
+  -webkit-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
