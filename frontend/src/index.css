@@ -71,3 +71,15 @@ button:focus-visible {
   }
 }
 
+.board-row-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  /* 표준 속성 (브라우저는 아직 무시하지만 경고 제거됨) */
+  line-clamp: 2;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
