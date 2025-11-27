@@ -88,7 +88,7 @@ export const ImageUpload = Extension.create({
 });
 
 // 이미지 리사이즈 함수
-export async function resizeImage(file, maxWidth = 1600) {
+function resizeImage(file, maxWidth = 1600) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -138,6 +138,3 @@ async function uploadAndInsertImage(file, editor) {
     alert("이미지 업로드 중 오류 발생");
   }
 }
-
-
-export { resizeImage };
