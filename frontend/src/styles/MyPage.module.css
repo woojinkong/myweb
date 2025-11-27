@@ -1,0 +1,113 @@
+/* =============================
+   공통 스타일 (PC + 모바일)
+============================= */
+
+.container {
+  max-width: 650px;
+  margin: 70px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.profileBox {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.profileImg {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e5e5e5;
+  margin-bottom: 12px;
+}
+
+/* 이미지 선택 input */
+.fileInput {
+  display: block;
+  margin: 0 auto 12px auto;
+  text-align: center;
+}
+
+/* 기본 버튼 */
+.btn {
+  padding: 10px 20px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.btnBlue {
+  background: #2196F3;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* 정보 Box */
+.infoBox {
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.infoBox p {
+  margin: 10px 0;
+}
+
+.infoBox input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.buttonBox {
+  text-align: center;
+  margin-top: 25px;
+}
+
+/* =============================
+   모바일 (max-width: 480px)
+============================= */
+
+@media (max-width: 480px) {
+  .container {
+    margin: 30px 15px;
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .profileImg {
+    width: 120px;
+    height: 120px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 16px;
+  }
+
+  .infoBox input {
+    font-size: 14px;
+  }
+}
