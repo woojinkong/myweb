@@ -165,7 +165,7 @@ export default function Home() {
                         }
                       />
 
-                      <span style={{ fontWeight: 500 }}>{board.userId}</span>
+                      <span style={{ fontWeight: 500 }}>{board.nickName}</span>
 
                       <span style={{ opacity: 0.6, fontSize: "10.5px" }}>
                         • {new Date(board.createdDate).toLocaleDateString()}
