@@ -300,7 +300,7 @@ const handleReport = async () => {
       {/* 작성자 정보 */}
       <div style={styles.metaBox}>
       <img
-        src={board.profileUrl ? `${BASE_URL}${board.profileUrl}` : "/default-profile.png"}
+        src={board.profileUrl ? `${BASE_URL}${board.profileUrl}` : "/default_profile.png"}
         alt="프로필"
         style={styles.profileImg}
         onClick={(e) =>

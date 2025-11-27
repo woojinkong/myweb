@@ -179,14 +179,14 @@ public class AuthController {
         String email = request.get("email");
 
         // 🛑 이메일이 이미 존재하면 인증번호 발송 금지!
-//        boolean exists = repo.existsByEmail(email);
-//        if (exists) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT)
-//                    .body(Map.of(
-//                            "success", false,
-//                            "message", "이미 가입된 이메일입니다."
-//                    ));
-//        }
+        boolean exists = repo.existsByEmail(email);
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "이미 가입된 이메일입니다."
+                    ));
+        }
 
 
         emailService.sendVerificationCode(email);
