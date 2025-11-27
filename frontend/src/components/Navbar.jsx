@@ -366,13 +366,14 @@ const styles = {
 
   badge: {
     position: "absolute",
-    top: "-6px",
-    right: "-10px",
+    top: "2px",
+    right: "-6px",
     background: "red",
     color: "white",
     borderRadius: "50%",
     fontSize: "11px",
     padding: "2px 5px",
+    zIndex: 10
   },
   profileButton: {
   background: "transparent",
