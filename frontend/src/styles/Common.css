@@ -170,7 +170,7 @@
   white-space: nowrap !important;
   }
   .actionRow {
-  flex-shrink: 0 !important;   /* 절대 줄어들지 않음 */
+  flex-shrink: 1 !important;   /* 절대 줄어들지 않음 */
 }
 
 
