@@ -83,15 +83,5 @@ button:focus-visible {
   text-overflow: ellipsis;
 }
 
-button {
-  outline: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-button:focus {
-  outline: none !important;
-}
-button:active {
-  outline: none !important;
-}
 
 

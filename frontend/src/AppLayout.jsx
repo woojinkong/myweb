@@ -66,6 +66,6 @@ const styles = {
     right: 0,
     bottom: 0,
     background: "rgba(0,0,0,0.3)", // 어두운 반투명 효과
-    zIndex: 1700, // Sidebar 보다 아래, main 보다 위
+    zIndex: 1900, // Sidebar 보다 아래, main 보다 위
   }
 };
