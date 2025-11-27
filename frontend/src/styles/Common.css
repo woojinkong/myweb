@@ -115,7 +115,6 @@
 
   /* 모바일 네비바 */
   .navbar-container {
-    padding: 0 14px;
     white-space: nowrap;
   }
   
@@ -225,22 +224,8 @@
   max-width: 320px;
   height: 50px;
 }
-
-.row-title{
-  white-space: normal !important;
-  line-height: 1.3;
+.board-row-title {
+    font-size: 13px !important;
 }
-
-/* 🔥 제목과 작성자 정보 줄바꿈 허용 */
-.row-line {
-    flex-wrap: wrap !important;
-    align-items: flex-start !important;
- }
-
-  /* 🔥 작성자 정보 줄바꿈 가능하도록 */
- .row-info-inline {
-    flex-shrink: 0 !important;
-    white-space: nowrap !important;
- }
 
 }
