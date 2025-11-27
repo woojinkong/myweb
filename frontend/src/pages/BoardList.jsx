@@ -233,7 +233,7 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
         {/* 제목 + 작성자 정보 한 줄로 붙이기 */}
         <div style={styles.rowLine}>
-          <div style={styles.rowTitle}>
+          <div style={styles.rowTitle} className="row-Title">
             {board.title}
             <span style={styles.comment}>[{board.commentCount}]</span>
           </div>
@@ -461,7 +461,7 @@ rowLine: {
   gap: "8px",
   width: "100%",
   minWidth: 0,
-  flexWrap: "wrap",       // ★ 강제 한 줄 배치
+  flexWrap: "nowrap",       // ★ 강제 한 줄 배치
 },
 rowInfoInline: {
   display: "flex",
