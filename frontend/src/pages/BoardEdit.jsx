@@ -277,7 +277,7 @@ export default function BoardEdit() {
 const styles = {
   container: {
     maxWidth: "680px",
-    margin: "130px auto 40px",
+    margin: "40px auto 40px",
     padding: "20px",
     background: "#fff",
     border: "1px solid #eee",
