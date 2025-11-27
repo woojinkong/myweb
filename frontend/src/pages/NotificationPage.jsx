@@ -31,6 +31,11 @@ const [totalPages, setTotalPages] = useState(0);
     try {
       await markAsRead(noti.id);
       const link = noti.link;
+       // ⭐ 출석체크 알림: 백엔드에서 지정한 링크
+    if (link === "/mypage/points") {
+      navigate("/mypage");
+      return;
+    }
 
        // 게시글 알림: /board/123
     if (link.startsWith("/board/")) {

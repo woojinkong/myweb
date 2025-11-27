@@ -116,8 +116,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         ? {
             left: 0,
             width: "100%",
-            //transition: "none",
-            transition: "transform 0.3s ease",
+            transition: "none",
           }
         : {
             left: isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED,
