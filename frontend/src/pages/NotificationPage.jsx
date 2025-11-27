@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchNotifications, markAsRead, markAllAsRead,deleteAllNotifications } from "../api/notificationApi";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-
+import "../styles/notification.css";
 export default function NotificationPage() {
   const [notifications, setNotifications] = useState([]);
   const [page, setPage] = useState(0);
@@ -99,40 +99,34 @@ const [totalPages, setTotalPages] = useState(0);
 
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h2 style={styles.title}>🔔 내 알림함</h2>
+    <div className="notification-container">
+      <div className="notification-header">
+        <h2 className="notification-title">🔔 내 알림함</h2>
 
         {notifications.length > 0 && (
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={handleMarkAllRead} style={styles.readAllBtn}>
+          <div className="notification-btn-row">
+            <button className="notification-btn green" onClick={handleMarkAllRead}>
               전체 읽음 처리
             </button>
-
-            <button onClick={handleDeleteAll} style={styles.deleteAllBtn}>
+            <button className="notification-btn red" onClick={handleDeleteAll}>
               전체 삭제
             </button>
           </div>
         )}
       </div>
 
-
       {notifications.length === 0 ? (
-        <p style={styles.empty}>새로운 알림이 없습니다.</p>
+        <p className="notification-empty">새로운 알림이 없습니다.</p>
       ) : (
-        <ul style={styles.list}>
+        <ul className="notification-list">
           {notifications.map((n) => (
             <li
               key={n.id}
+              className={`notification-item ${n.isRead ? "read" : "unread"}`}
               onClick={() => handleClick(n)}
-              style={{
-                ...styles.item,
-                backgroundColor: n.isRead ? "#f0f0f0" : "#e8f5e9",
-                color: n.isRead ? "#777" : "#222",
-              }}
             >
-              <div style={styles.message}>{n.message}</div>
-              <div style={styles.date}>
+              <div className="notification-message">{n.message}</div>
+              <div className="notification-date">
                 {new Date(n.createdDate).toLocaleString("ko-KR")}
               </div>
             </li>
@@ -140,78 +134,21 @@ const [totalPages, setTotalPages] = useState(0);
         </ul>
       )}
 
-      {/* ⭐⭐⭐ 페이징 UI는 여기! ⭐⭐⭐ */}
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        <button disabled={page === 0} onClick={() => setPage(page - 1)}>이전</button>
-        <span style={{ margin: "0 12px" }}>{page + 1} / {totalPages}</span>
-        <button disabled={page + 1 >= totalPages} onClick={() => setPage(page + 1)}>다음</button>
+      <div className="notification-pagination">
+        <button disabled={page === 0} onClick={() => setPage(page - 1)}>
+          이전
+        </button>
+        <span>
+          {page + 1} / {totalPages}
+        </span>
+        <button
+          disabled={page + 1 >= totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          다음
+        </button>
       </div>
-
     </div>
   );
 }
 
-const styles = {
-  container: {
-    padding: "80px 40px 40px",
-    maxWidth: "800px",
-    margin: "0 auto",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: "700",
-  },
-  readAllBtn: {
-    padding: "8px 16px",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "500",
-    transition: "0.2s",
-  },
-  empty: {
-    textAlign: "center",
-    fontSize: "16px",
-    color: "#777",
-  },
-  list: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-  },
-  item: {
-    border: "1px solid #ddd",
-    borderRadius: "10px",
-    padding: "15px",
-    marginBottom: "12px",
-    cursor: "pointer",
-    transition: "0.2s",
-  },
-  message: {
-    fontSize: "16px",
-    fontWeight: "500",
-  },
-  date: {
-    fontSize: "13px",
-    color: "#888",
-    marginTop: "4px",
-  },
-
-  deleteAllBtn: {
-    padding: "8px 16px",
-    backgroundColor: "#d9534f",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-};
