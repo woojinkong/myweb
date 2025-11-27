@@ -109,8 +109,17 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         ...styles.nav,
          padding: isMobile ? "0 10px" : "0 40px",
         justifyContent: isMobile ? "flex-start" : "space-between",
-        left: isMobile ? 0 : (isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED),
-        width: isMobile ? "100%" :`calc(100% - ${isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED}px)`,
+         // ⭐ 모바일은 항상 고정
+    ...(isMobile
+      ? {
+          left: 0,
+          width: "100%",
+        }
+      : {
+          // ⭐ PC에서는 사이드바 넓이에 따라 조절
+          left: isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED,
+          width: `calc(100% - ${isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED}px)`,
+        }),
       }}
     >
       {isMobile && (
@@ -277,7 +286,7 @@ const styles = {
     padding: "0 40px",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
     zIndex: 1800,
-    transition: "left 0.3s ease, width 0.3s ease",
+    transition: isMobile ? "none" : "left 0.3s ease, width 0.3s ease",
     boxSizing: "border-box",
   },
   logoBox: { display: "flex", alignItems: "center" },

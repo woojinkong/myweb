@@ -46,7 +46,6 @@ export default function AppLayout({ children }) {
             : (isSidebarOpen ? "calc(100% - 150px)" : "calc(100% - 50px)"),
           transition: "all 0.3s ease",
           background: "#fff",
-          overflowX: "hidden",
           overflowY: "auto",
         }}
       >
