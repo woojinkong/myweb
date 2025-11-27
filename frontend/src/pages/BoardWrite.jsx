@@ -21,7 +21,6 @@ export default function BoardWrite() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-
   const groupId = new URLSearchParams(location.search).get("groupId");
   const [title, setTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -289,7 +288,6 @@ const styles = {
   display: "flex",
   justifyContent: "center",
   maxWidth: "680px",
-  margin: "0 auto",
   width: "100%",
   },
   toolbar: {
