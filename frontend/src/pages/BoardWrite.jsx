@@ -173,7 +173,7 @@ const CustomImage = Image.extend({
       H2
     </button>
 
-    <button type="button" tyle={styles.btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+    <button type="button" style={styles.btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
       H3
     </button>
 
