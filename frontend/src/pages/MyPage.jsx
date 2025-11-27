@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 import Cookies from "js-cookie";
-import { resizeImage } from "../api/ImageUpload";
-
+//되돌림
 export default function MyPage() {
   const [userInfo, setUserInfo] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -30,21 +29,10 @@ export default function MyPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = async (e) => {
-      const file = e.target.files[0];
-   if (!file) return;
-    if (file.size > 15 * 1024 * 1024) {
-      alert("용량이 너무 큽니다.");
-      return;
-  }
-
-    // 1) 1600px 리사이즈 (혹은 600px로 조절)
-    const resized = await resizeImage(file, 800);
-
-    // 2) 상태 저장
-    setSelectedFile(resized);
-    setPreview(URL.createObjectURL(resized));
-
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
   const handleSaveProfile = async () => {
