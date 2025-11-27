@@ -47,9 +47,7 @@ export default function AppLayout({ children }) {
           transition: "all 0.3s ease",
           background: "#fff",
           overflowX: "hidden",
-          //overflowY: "auto",
-          maxWidth: "100%",              // ⭐ 추가
-          boxSizing: "border-box",       // ⭐ 핵심
+          overflowY: "auto",
         }}
       >
         {children}
