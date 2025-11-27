@@ -38,7 +38,7 @@ export default function AppLayout({ children }) {
         className="main-content"
         style={{
           flex: 1,
-          marginTop: "60px",
+          marginTop: "30px",
           padding: "10px",
           marginLeft: isMobile ? 0 : (isSidebarOpen ? "150px" : "50px"),
           width: isMobile

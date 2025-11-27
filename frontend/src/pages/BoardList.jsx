@@ -240,9 +240,19 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
           <div style={styles.rowInfoInline}>
             <img src={profileSrc} style={styles.rowInfoProfile} />
-            <span>{board.nickName}</span>
+            <span  style={{
+                maxWidth: "60px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap"
+              }}>{board.nickName}</span>
             <span>·</span>
-            <span>{new Date(board.createdDate).toLocaleDateString()}</span>
+            <span style={{
+              maxWidth: "50px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap"
+            }}>{new Date(board.createdDate).toLocaleDateString()}</span>
           </div>
         </div>
 
@@ -470,8 +480,7 @@ rowInfoInline: {
   fontSize: "11px",
   color: "#777",
   whiteSpace: "nowrap",
-  flexShrink: 1,        // ← 절대 줄바꿈되지 않음
-  minWidth: 0,
+  flexShrink: 0,        // ← 절대 줄바꿈되지 않음
 },
 
 rowInfoProfile: {

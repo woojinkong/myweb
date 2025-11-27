@@ -251,7 +251,7 @@ const CustomImage = Image.extend({
 const styles = {
   container: {
     maxWidth: "680px",
-    margin: "40px auto 40px",
+    margin: "20px auto",
     padding: "20px",
     background: "#fff",
     border: "1px solid #eee",
