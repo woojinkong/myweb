@@ -404,7 +404,7 @@ const styles = {
   color: colors.text.main,
   overflow: "hidden",
   textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
+  //whiteSpace: "nowrap",
   marginRight: "20px",   // ⭐ 여기! 제목과 오른쪽 정보 사이 간격 조절
   minWidth: 0,              // ★ ellipsis 필수 조건
   flex: "1 1 auto",         // ★ 제목이 공간 차지하고 줄어들도록 설정
