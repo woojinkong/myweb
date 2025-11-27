@@ -303,6 +303,7 @@ const styles = {
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
     zIndex: 3000,
     boxSizing: "border-box",
+    overflow: "visible", // ★ 추가
   },
   logoBox: { display: "flex", alignItems: "center" },
   logo: {
