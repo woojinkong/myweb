@@ -120,7 +120,7 @@ export default function Home() {
 
               const profileSrc = board.profileUrl
                 ? `${BASE_URL}${board.profileUrl}`
-                : "/default-profile.png";
+                : "/default_profile.png";
 
               return (
                 <li
