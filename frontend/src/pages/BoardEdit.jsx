@@ -9,7 +9,6 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
-
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from "@tiptap/extension-underline";
@@ -26,7 +25,6 @@ export default function BoardEdit() {
   const [title, setTitle] = useState("");
   const [groupId, setGroupId] = useState("");
   const [saving, setSaving] = useState(false);
-
 
   const CustomImage = Image.extend({
   addAttributes() {
@@ -306,7 +304,6 @@ const styles = {
   display: "flex",
   justifyContent: "center",
   maxWidth: "680px",
-  margin: "0 auto",
   width: "100%",
   },
   toolbar: {

@@ -461,7 +461,7 @@ rowLine: {
   gap: "8px",
   width: "100%",
   minWidth: 0,
-  flexWrap: "nowrap",       // ★ 강제 한 줄 배치
+  flexWrap: "wrap",       // ★ 강제 한 줄 배치
 },
 rowInfoInline: {
   display: "flex",
@@ -470,7 +470,7 @@ rowInfoInline: {
   fontSize: "11px",
   color: "#777",
   whiteSpace: "nowrap",
-  flexShrink: 0,        // ← 절대 줄바꿈되지 않음
+  flexShrink: 1,        // ← 절대 줄바꿈되지 않음
 },
 
 rowInfoProfile: {
