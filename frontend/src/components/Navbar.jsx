@@ -117,6 +117,9 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
             left: 0,
             width: "100%",
             transition: "none",
+             position: "fixed",
+            top: 0,
+            zIndex: isSidebarOpen ? 1500 : 3000,   // ★ 핵심
           }
         : {
             left: isSidebarOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_CLOSED,
@@ -129,15 +132,20 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         >
       {isMobile && (
         <button type="button" onClick={(e)=>{
-          e.stopPropagation();
-          toggleSidebar();
+           e.preventDefault();
+           e.stopPropagation();
+           toggleSidebar();
         }} 
         style={{
           fontSize: "22px",
-          marginLeft: "10px",      // 왼쪽에 딱 붙기
-          marginRight: "10px",     // 로고와 간격만 약간
+          marginLeft: "10px",
+          marginRight: "10px",
           padding: "0",
-        }}>
+          outline: "none",
+          border: "none",
+          background: "transparent",
+          WebkitTapHighlightColor: "transparent",  // 모바일 터치 하이라이트 제거
+              }}>
           {/* ☰ */}
           <FiMenu size={24} />
         </button>
@@ -291,7 +299,7 @@ const styles = {
     alignItems: "center",
     padding: "0 40px",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-    zIndex: 1800,
+    zIndex: 3000,
     boxSizing: "border-box",
   },
   logoBox: { display: "flex", alignItems: "center" },
@@ -320,7 +328,7 @@ const styles = {
   display: "flex",
   alignItems: "center",
   gap: "5px",
-  zIndex: 2000,
+  zIndex: 3000,
 },
   select: { padding: "6px", borderRadius: "4px", border: "1px solid #ccc" },
   input: {
