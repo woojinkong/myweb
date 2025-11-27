@@ -282,26 +282,22 @@ const styles = {
   },
 
   toolbarWrapper: {
-  position: "fixed",
-  top: "60px",
-  left: "0",
-  width: "100%",
-  zIndex: 3000,
-  background: "#fafafa",
-  padding: "8px 0",
+  position: "sticky",
+  top: "60px",                      // Navbar 높이
+  zIndex: 1950,
+  background: "transparent",
   display: "flex",
   justifyContent: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+  maxWidth: "680px",
+  margin: "0 auto",
+  width: "100%",
   },
-
-
-
-
   toolbar: {
   width: "100%",
   maxWidth: "680px",
+  margin: "0 auto",
   background: "#fafafa",
-  padding: "8px",
+  padding: "8px 0",
   borderRadius: "8px",
   border: "1px solid #ddd",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)",

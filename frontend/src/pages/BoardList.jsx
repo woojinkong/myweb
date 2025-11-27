@@ -396,6 +396,8 @@ const styles = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   marginRight: "20px",   // ⭐ 여기! 제목과 오른쪽 정보 사이 간격 조절
+  minWidth: 0,              // ★ ellipsis 필수 조건
+  flex: "1 1 auto",         // ★ 제목이 공간 차지하고 줄어들도록 설정
 },
   comment: {
     color: colors.text.light,
@@ -459,6 +461,7 @@ rowLine: {
   gap: "8px",
   width: "100%",
   minWidth: 0,
+  flexWrap: "nowrap",       // ★ 강제 한 줄 배치
 },
 rowInfoInline: {
   display: "flex",
