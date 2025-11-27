@@ -287,8 +287,8 @@ const styles = {
   background: "transparent",
   display: "flex",
   justifyContent: "center",
-  maxWidth: "680px",
   width: "100%",
+  left: 0,
   },
   toolbar: {
   width: "100%",

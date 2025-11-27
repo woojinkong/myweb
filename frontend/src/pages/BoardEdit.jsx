@@ -303,7 +303,7 @@ const styles = {
   background: "transparent",
   display: "flex",
   justifyContent: "center",
-  maxWidth: "680px",
+  left: 0,
   width: "100%",
   },
   toolbar: {
