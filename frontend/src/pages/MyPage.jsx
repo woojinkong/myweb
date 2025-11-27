@@ -2,6 +2,32 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 import Cookies from "js-cookie";
 //되돌림
+
+
+// 이미지 리사이즈 함수
+function resizeImage(file, maxWidth = 1600) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = maxWidth / img.width;
+      const canvas = document.createElement("canvas");
+      canvas.width = maxWidth;
+      canvas.height = img.height * scale;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(
+        (blob) => resolve(new File([blob], file.name, { type: "image/jpeg" })),
+        "image/jpeg",
+        0.8 // 압축률
+      );
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+
 export default function MyPage() {
   const [userInfo, setUserInfo] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -29,10 +55,20 @@ export default function MyPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setSelectedFile(file);
-    setPreview(URL.createObjectURL(file));
+  const handleFileChange = async (e) => {
+     const file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 15 * 1024 * 1024) {
+    alert("이미지 용량이 너무 큽니다.");
+    return;
+  }
+
+  // ★ BoardWrite와 동일한 방식으로 리사이즈
+  const resized = await resizeImage(file, 800);   // 프로필용은 800px 추천
+
+  setSelectedFile(resized);
+  setPreview(URL.createObjectURL(resized));
   };
 
   const handleSaveProfile = async () => {
@@ -81,7 +117,7 @@ export default function MyPage() {
             preview ||
             (userInfo.profileImage
               ? `${BASE_URL}${userInfo.profileImage}`
-              : "https://via.placeholder.com/120?text=Profile")
+              : "/default_profile.png")
           }
           alt="프로필"
           style={styles.profileImg}
