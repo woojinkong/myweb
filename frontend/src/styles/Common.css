@@ -70,19 +70,6 @@
 }
 
 
-button, a, div, span {
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:focus, button:active {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.navbar-container button {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-}
 
 
 /* ============================================
