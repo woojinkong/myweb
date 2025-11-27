@@ -226,4 +226,9 @@
   height: 50px;
 }
 
+.row-Title{
+  white-space: normal !important;
+  line-height: 1.3;
+}
+
 }
