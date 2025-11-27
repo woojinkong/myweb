@@ -76,7 +76,7 @@ useEffect(() => {
                 ? profile.profileImage.startsWith("http")
                   ? profile.profileImage
                   : `${BASE_URL}${profile.profileImage}`
-                : "/images/default_profile.png"
+                : "/default_profile.png"
             }
             alt="프로필"
             style={styles.profileImage}
