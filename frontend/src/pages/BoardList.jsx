@@ -248,7 +248,7 @@ function BoardRow({ board, navigate, BASE_URL }) {
               }}>{board.nickName}</span>
             <span>·</span>
             <span style={{
-              maxWidth: "50px",
+              maxWidth: "100px",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap"
@@ -480,7 +480,8 @@ rowInfoInline: {
   fontSize: "11px",
   color: "#777",
   whiteSpace: "nowrap",
-  flexShrink: 0,        // ← 절대 줄바꿈되지 않음
+  flexShrink: 0,     
+  minWidth: "150px", 
 },
 
 rowInfoProfile: {
