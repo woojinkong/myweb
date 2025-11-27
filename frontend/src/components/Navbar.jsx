@@ -128,7 +128,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
           }}
         >
       {isMobile && (
-        <button onClick={(e)=>{
+        <button type="button" onClick={(e)=>{
           e.stopPropagation();
           toggleSidebar();
         }} 
