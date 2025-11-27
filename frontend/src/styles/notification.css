@@ -1,0 +1,155 @@
+/* ========================
+   Notification Page (PC)
+======================== */
+.notification-container {
+  padding: 80px 40px 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notification-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.notification-btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.notification-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  transition: 0.2s;
+}
+
+.notification-btn.green {
+  background-color: #4caf50;
+  color: white;
+}
+
+.notification-btn.red {
+  background-color: #d9534f;
+  color: #fff;
+}
+
+.notification-empty {
+  text-align: center;
+  font-size: 16px;
+  color: #777;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.notification-item.unread {
+  background-color: #e8f5e9;
+  color: #222;
+}
+
+.notification-item.read {
+  background-color: #f0f0f0;
+  color: #777;
+}
+
+.notification-message {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.notification-date {
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.notification-pagination {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.notification-pagination button {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.notification-pagination button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+
+/* ========================
+   📱 Mobile (max 768px)
+======================== */
+@media (max-width: 768px) {
+  .notification-container {
+    padding: 70px 16px 30px !important;
+  }
+
+  .notification-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .notification-title {
+    font-size: 18px;
+  }
+
+  .notification-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+  }
+
+  .notification-item {
+    padding: 12px;
+  }
+
+  .notification-message {
+    font-size: 14px;
+  }
+
+  .notification-date {
+    font-size: 11px;
+  }
+
+  .notification-pagination {
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .notification-pagination button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}

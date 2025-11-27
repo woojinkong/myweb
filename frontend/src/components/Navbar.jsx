@@ -164,6 +164,8 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         ...styles.menu,
         gap: isMobile ? "8px" : "16px",
         marginLeft: "auto",
+        paddingRight: isMobile ? "6px" : "12px",   // ★ 추가
+       overflow: "visible",                     // ★ 추가
       }}>
         {/* 🔍 검색 */}
         {showSearch ? (
@@ -358,6 +360,7 @@ const styles = {
   display: "flex",
   alignItems: "center",     // ★ 세로 중앙 정렬
   justifyContent: "center",
+  overflow: "visible",   // ★ 추가
 },
 
   badge: {
