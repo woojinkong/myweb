@@ -232,13 +232,13 @@ function BoardRow({ board, navigate, BASE_URL }) {
       <div style={styles.rowContent}>
 
         {/* 제목 + 작성자 정보 한 줄로 붙이기 */}
-        <div style={styles.rowLine}>
-          <div style={styles.rowTitle} className="row-Title">
+        <div style={styles.rowLine} className="row-ling">
+          <div style={styles.rowTitle} className="row-title">
             {board.title}
             <span style={styles.comment}>[{board.commentCount}]</span>
           </div>
 
-          <div style={styles.rowInfoInline}>
+          <div style={styles.rowInfoInline} className="row-info-infline">
             <img src={profileSrc} style={styles.rowInfoProfile} />
             <span>{board.nickName}</span>
             <span>·</span>
