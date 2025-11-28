@@ -73,7 +73,7 @@ public class SecurityConfig {
                                 "/api/user/reset-password",
                                 "/api/user/check-nickName",
                                 "/api/user/nickName/**",
-                                "/hc","/env","/error"
+                                "/hc","/env","/error","sitemap.xml"
                                 ).permitAll()
 
                         /* ============================
