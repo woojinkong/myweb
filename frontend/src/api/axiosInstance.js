@@ -1,5 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import { getViewKey } from "./viewKey";
+
 
 const axiosInstance = axios.create({
   baseURL: "/api",
@@ -33,11 +35,18 @@ axiosInstance.interceptors.request.use((config) => {
   const cleanUrl = config.url.split("?")[0];
   const method = config.method.toUpperCase();
 
+  
+
     // ⭐ 관리자 API는 항상 토큰 유지 (맨 위에 있어야 함!)
   if (cleanUrl.startsWith("/admin")) {
     const token = Cookies.get("accessToken");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
+  }
+
+    // 🔥 GET /board/** 요청이면 viewKey 추가
+  if (method === "GET" && cleanUrl.startsWith("/board/")) {
+    config.headers["X-View-Key"] = getViewKey();
   }
 
   // 🎯 GET이고 공개 API면 토큰 제거 (비로그인 허용)
