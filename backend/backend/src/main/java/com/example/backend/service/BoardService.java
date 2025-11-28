@@ -16,12 +16,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +31,6 @@ public class BoardService {
     private final ReportRepository reportRepository;
     private final BoardGroupRepository boardGroupRepository;
     private final PointService pointService;
-    // 조회 기록 저장용 (boardId + viewKey)
-    private final Map<String, LocalDateTime> viewCache = new ConcurrentHashMap<>();
-
 
     // ===============================================================
     //   📌 전체 게시글 조회 (관리자용 / 테스트용)
@@ -116,32 +111,14 @@ public class BoardService {
     // ===============================================================
     //   📌 게시글 상세 조회 — 조회수 증가 포함
     // ===============================================================
-    public BoardDetailResponse findByIdForRead(Long id, String viewKey) {
+    public BoardDetailResponse findByIdForRead(Long id) {
 
         Board board = boardRepository.findById(id).orElse(null);
         if (board == null) return null;
 
-        checkViewCount(board, viewKey);
+        increaseViewCount(board);
 
         return toDetailDto(board);
-    }
-
-    private void checkViewCount(Board board, String viewKey) {
-
-        if (viewKey == null || viewKey.isBlank()) {
-            increaseViewCount(board);
-            return;
-        }
-
-        String key = board.getBoardNo() + "_" + viewKey;
-
-        LocalDateTime last = viewCache.get(key);
-
-        // ⭐ 24시간 기준
-        if (last == null || Duration.between(last, LocalDateTime.now()).toHours() >= 24) {
-            increaseViewCount(board);
-            viewCache.put(key, LocalDateTime.now());
-        }
     }
 
     // 조회수 증가

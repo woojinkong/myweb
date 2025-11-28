@@ -75,9 +75,8 @@ public class BoardController {
      *  📌 (2) 게시글 상세 조회
      * =========================================================== */
     @GetMapping("/{id}")
-    public ResponseEntity<BoardDetailResponse> getBoard(@PathVariable Long id,
-                                                        @RequestHeader(value = "X-View-Key", required = false) String viewKey) {
-        BoardDetailResponse response = boardService.findByIdForRead(id, viewKey);
+    public ResponseEntity<BoardDetailResponse> getBoard(@PathVariable Long id) {
+        BoardDetailResponse response = boardService.findByIdForRead(id);
         return response != null
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.notFound().build();
@@ -374,31 +373,6 @@ public class BoardController {
         boardService.unpinBoard(id);
         return ResponseEntity.ok("UNPINNED");
     }
-
-
-
-    @PostMapping("/{id}/move")
-    public ResponseEntity<?> moveBoard(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long id,
-            @RequestParam("targetGroupId") Long targetGroupId
-    ) {
-
-        if (userDetails == null || !"ADMIN".equalsIgnoreCase(userDetails.getUser().getRole())) {
-            return ResponseEntity.status(403).body("관리자만 게시판 이동이 가능합니다.");
-        }
-
-        Board board = boardService.findByIdRaw(id);
-        if (board == null) return ResponseEntity.notFound().build();
-
-        BoardGroup group = boardGroupService.findById(targetGroupId);
-
-        board.setBoardGroup(group);
-        boardService.saveWithoutCooldown(board);
-
-        return ResponseEntity.ok("게시판 이동 완료");
-    }
-
 
 
 
