@@ -20,8 +20,13 @@ export default function BoardDetail() {
   const [siteTitle, setSiteTitle] = useState("KongHome");
   const BASE_URL = import.meta.env.VITE_API_URL;
   const [reporting, setReporting] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [moveMode, setMoveMode] = useState(false);
+  const [targetGroup, setTargetGroup] = useState(null)
 
-      const handleCopyLink = async () => {
+
+
+  const handleCopyLink = async () => {
   const url = `${window.location.origin}/board/${id}`;
 
   // 1) clipboard API 지원되는 경우 (HTTPS 또는 localhost)
@@ -56,7 +61,17 @@ export default function BoardDetail() {
 };
 
 
-
+    useEffect(() => {
+  const loadGroups = async () => {
+    try {
+      const res = await axiosInstance.get("/board-group");
+      setGroups(res.data);
+    } catch (err) {
+      console.error("그룹 목록 로드 실패:", err);
+    }
+  };
+  loadGroups();
+}, []);
 
 
     useEffect(() => {
@@ -407,9 +422,78 @@ const handleReport = async () => {
             <button onClick={handleDelete} style={buttons.danger}>
               🗑 삭제
             </button>
+            {user?.role === "ADMIN" && (
+            <button
+              onClick={() => setMoveMode(true)}
+              style={buttons.secondary}
+            >
+              📂 게시판 이동
+            </button>
+          )}
           </>
         )}
       </div>
+
+           {moveMode && (
+        <div style={{
+          marginTop: "15px",
+          padding: isMobile ? "8px" : "10px",
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          background: "#fafafa"
+        }}>
+          <h4 style={{ fontSize: isMobile ? "14px" : "16px" }}>게시판 이동</h4>
+
+          <select
+            value={targetGroup ?? board.groupId}
+            onChange={(e) => setTargetGroup(e.target.value)}
+            style={{
+              padding: "8px",
+              marginTop: "10px",
+              width: "100%",         // ⭐ 모바일 대응을 위한 핵심
+              boxSizing: "border-box"
+            }}
+          >
+            {groups.map(g => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+
+          <div style={{
+            marginTop: "10px",
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",  // ⭐ 모바일에서는 세로 정렬
+            gap: "10px"
+          }}>
+            <button
+              style={{ ...buttons.primary, width: isMobile ? "100%" : "auto" }}
+              onClick={async () => {
+                try {
+                  await axiosInstance.post(`/board/${id}/move?targetGroupId=${targetGroup}`);
+                  alert("이동 완료");
+                  navigate(`/board?groupId=${targetGroup}`);
+                } catch (err) {
+                  console.error("이동 실패:", err);
+                  alert("이동 중 오류가 발생했습니다.");
+                }
+              }}
+            >
+              이동하기
+            </button>
+
+            <button
+              style={{ ...buttons.outline, width: isMobile ? "100%" : "auto" }}
+              onClick={() => setMoveMode(false)}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+
     </div>
     </>
   );

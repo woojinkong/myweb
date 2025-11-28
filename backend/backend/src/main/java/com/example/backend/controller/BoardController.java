@@ -376,5 +376,30 @@ public class BoardController {
 
 
 
+    @PostMapping("/{id}/move")
+    public ResponseEntity<?> moveBoard(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id,
+            @RequestParam("targetGroupId") Long targetGroupId
+    ) {
+
+        if (userDetails == null || !"ADMIN".equalsIgnoreCase(userDetails.getUser().getRole())) {
+            return ResponseEntity.status(403).body("관리자만 게시판 이동이 가능합니다.");
+        }
+
+        Board board = boardService.findByIdRaw(id);
+        if (board == null) return ResponseEntity.notFound().build();
+
+        BoardGroup group = boardGroupService.findById(targetGroupId);
+
+        board.setBoardGroup(group);
+        boardService.saveWithoutCooldown(board);
+
+        return ResponseEntity.ok("게시판 이동 완료");
+    }
+
+
+
+
 
 }
