@@ -1,6 +1,5 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { getViewKey } from "./viewKey";
 
 const axiosInstance = axios.create({
   baseURL: "/api",
