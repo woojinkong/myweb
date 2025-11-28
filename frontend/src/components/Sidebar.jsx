@@ -110,6 +110,9 @@ const styles = {
     transition: "all 0.25s ease",
     zIndex: 2000,
     fontFamily: "'Pretendard', 'Inter', sans-serif",
+    overflowY: "auto",
+    overflowX: "hidden",
+    WebkitOverflowScrolling: "touch",
   },
 
   header: {
