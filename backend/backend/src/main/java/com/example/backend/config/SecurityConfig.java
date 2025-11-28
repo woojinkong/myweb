@@ -2,6 +2,7 @@ package com.example.backend.config;
 
 import com.example.backend.auth.IpBlockFilter;
 import com.example.backend.auth.JwtAuthFilter;
+import com.example.backend.auth.VisitLogFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final VisitLogFilter visitLogFilter;
     @Autowired
     private IpBlockFilter ipBlockFilter;
 
@@ -130,8 +132,9 @@ public class SecurityConfig {
                 )
 
                 // JWT 인증 필터 등록
+                .addFilterBefore(visitLogFilter, LogoutFilter.class)
                 .addFilterBefore(ipBlockFilter, LogoutFilter.class)
-		.addFilterBefore(jwtAuthFilter, LogoutFilter.class);
+		        .addFilterBefore(jwtAuthFilter, LogoutFilter.class);
         return http.build();
     }
 
@@ -147,8 +150,8 @@ public class SecurityConfig {
                 "http://49.165.63.8:5173",
                 "http://43.203.21.175",
                 "https://43.203.21.175",
-		"https://konghome.kr",
-		"https://www.konghome.kr"
+                "https://konghome.kr",
+                "https://www.konghome.kr"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 

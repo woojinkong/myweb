@@ -455,7 +455,9 @@ const handleReport = async () => {
               boxSizing: "border-box"
             }}
           >
-            {groups.map(g => (
+            {groups
+            .filter(g => g.type !== "DIVIDER")  // ⭐ DIVIDER 제외!
+            .map(g => (
               <option key={g.id} value={g.id}>
                 {g.name}
               </option>
