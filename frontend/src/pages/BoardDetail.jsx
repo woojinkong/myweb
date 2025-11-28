@@ -8,11 +8,12 @@ import { colors, buttons, cardBase } from "../styles/common";
 import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
 import AdBanner from "./AdBanner";
+import useIsMobile from "../hooks/useIsMobile";
 export default function BoardDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-
+  const isMobile = useIsMobile();
   const [board, setBoard] = useState(null);
   const [likeCount, setLikeCount] = useState(0);
   const [liked, setLiked] = useState(false);
