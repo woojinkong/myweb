@@ -22,9 +22,9 @@ public class VisitService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
 
-        boolean alreadyVisited = visitLogRepository
-                .findByIpAddressAndVisitDateBetween(ip, startOfDay, endOfDay)
-                .isPresent();
+        boolean alreadyVisited =
+                !visitLogRepository.findByIpAddressAndVisitDateBetween(ip, startOfDay, endOfDay).isEmpty();
+
 
         if (!alreadyVisited) {
             VisitLog log = VisitLog.builder()
