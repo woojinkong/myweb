@@ -75,8 +75,9 @@ public class BoardController {
      *  📌 (2) 게시글 상세 조회
      * =========================================================== */
     @GetMapping("/{id}")
-    public ResponseEntity<BoardDetailResponse> getBoard(@PathVariable Long id) {
-        BoardDetailResponse response = boardService.findByIdForRead(id);
+    public ResponseEntity<BoardDetailResponse> getBoard(@PathVariable Long id,
+                                                        @RequestHeader(value = "X-View-Key", required = false) String viewKey) {
+        BoardDetailResponse response = boardService.findByIdForRead(id, viewKey);
         return response != null
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.notFound().build();
