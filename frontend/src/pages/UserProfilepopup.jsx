@@ -113,6 +113,15 @@ useEffect(() => {
           >
             <FiFileText /> 작성글 보기
           </button>
+          <button
+          style={styles.actionBtn}
+          onClick={() =>
+            navigate(`/comments/user?userId=${profile.userId}`)
+          }
+        >
+           댓글 보기
+        </button>
+
         </div>
       </div>
 

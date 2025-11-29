@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -75,6 +76,16 @@ public class CommentController {
     @GetMapping("/comments/count")
     public long getCommentCount(@RequestParam Long boardNo) {
         return commentService.countByBoardNo(boardNo);
+    }
+
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<CommentResponse>> searchByUser(
+            @RequestParam String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(commentService.findByUser(userId, page, size));
     }
 
 }

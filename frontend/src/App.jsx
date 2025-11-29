@@ -27,6 +27,7 @@ import Outbox from "./pages/Outbox";
 import AppLayout from "./AppLayout";
 import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
+import UserCommentList from "./pages/UserCommentList";
 
 //라우터만담당
 function App() {
@@ -133,6 +134,12 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/comments/user"
+                element={
+                  <UserCommentList />
+                }
+              />
 
               {/* 👑 관리자용 */}
               <Route
@@ -183,6 +190,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              
           </Routes>
         </AppLayout>
       </AuthProvider>
