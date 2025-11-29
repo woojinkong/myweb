@@ -144,11 +144,17 @@ export default function CommentSection({ boardId }) {
                   }}
                 />
               ) : (
-                <div
+                <img
+                  src="/default_profile.png"
+                  alt="기본 프로필"
                   style={{
-                    ...styles.avatar,
-                    background: depthStyles.avatarBg,
-                   }}
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "1px solid #dee2e6",
+                    cursor: "pointer",
+                  }}
                      onClick={(e) =>
                     setPopupUserId({ id: comment.userId, x: e.clientX, y: e.clientY })
                    }
