@@ -197,6 +197,14 @@ public class CommentService {
     }
 
 
+    public Page<CommentResponse> findByUser(String userId, int page, int size) {
+        Page<Comment> comments = commentRepository.findByUserIdOrderByCreatedDateDesc(
+                userId,
+                PageRequest.of(page, size)
+        );
+
+        return comments.map(c -> toDto(c, true));
+    }
 
 
 

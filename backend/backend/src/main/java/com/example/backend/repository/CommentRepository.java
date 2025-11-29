@@ -31,4 +31,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     long countByBoardBoardNoAndParentIsNull(Long boardNo);
 
+    // 특정 사용자가 작성한 모든 댓글 조회 (최신순)
+    Page<Comment> findByUserIdOrderByCreatedDateDesc(String userId, Pageable pageable);
+
+
 }
