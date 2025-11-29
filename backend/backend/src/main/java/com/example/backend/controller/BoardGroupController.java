@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.BoardGroupResponse;
 import com.example.backend.entity.BoardGroup;
 import com.example.backend.service.BoardGroupService;
 
@@ -68,4 +69,12 @@ public class BoardGroupController {
         service.moveGroup(id, false);
         return ResponseEntity.ok().build();
     }
+
+    // ⭐ 사이드바용: 게시판 그룹 리스트 + 오늘 새 글 여부
+    @GetMapping("/with-new")
+    public ResponseEntity<List<BoardGroupResponse>> getGroupsWithNewFlag() {
+        return ResponseEntity.ok(service.getGroupListWithNewFlag());
+    }
+
+
 }

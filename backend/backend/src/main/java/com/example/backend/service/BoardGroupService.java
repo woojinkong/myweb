@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.BoardGroupResponse;
 import com.example.backend.entity.BoardGroup;
 import com.example.backend.repository.BoardGroupRepository;
 
@@ -9,6 +10,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,6 +20,7 @@ public class BoardGroupService {
 
     private final BoardGroupRepository boardGroupRepository;
     private final BoardRepository boardRepository;
+
     // ✅ 게시판 생성
     public BoardGroup create(BoardGroup group) {
 
@@ -101,6 +105,21 @@ public class BoardGroupService {
         }
     }
 
+    public List<BoardGroupResponse> getGroupListWithNewFlag() {
+        List<BoardGroup> groups = boardGroupRepository.findAll();
+
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+
+        return groups.stream()
+                .map(g -> BoardGroupResponse.builder()
+                        .groupId(g.getId())
+                        .name(g.getName())
+                        .hasNew(boardRepository.existsNewBoardsToday(g.getId(), todayStart))
+                        .build()
+                ).toList();
+    }
+
+
     // ===============================
     // 🔥 서버 최초 실행 시 기본 게시판 생성
     // ===============================
@@ -125,8 +144,6 @@ public class BoardGroupService {
 //            boardGroupRepository.save(group);
 //        }
 //    }
-
-
 
 
 }
