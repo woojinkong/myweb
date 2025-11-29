@@ -3,7 +3,7 @@ import axiosInstance from "../api/axiosInstance";
 import UserProfilePopup from "./UserProfilepopup";
 
 
-export default function CommentSection({ boardId  }) {
+export default function CommentSection({ boardId }) {
   const [comments, setComments] = useState([]);
   const [content, setContent] = useState("");
   const [replyTarget, setReplyTarget] = useState(null); // 대댓글 대상
@@ -141,7 +141,7 @@ export default function CommentSection({ boardId  }) {
                    
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "/default-profile.png"; // ✅ 로컬 fallback 이미지
+                    e.target.src = "/default_profile.png"; // ✅ 로컬 fallback 이미지
                   }}
                 />
               ) : (
