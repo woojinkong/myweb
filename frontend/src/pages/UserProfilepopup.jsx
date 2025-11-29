@@ -108,7 +108,7 @@ useEffect(() => {
           <button
             style={styles.actionBtn}
             onClick={() =>
-              navigate(`/board/search?type=userId&keyword=${profile.userId}`)
+              navigate(`/board/search?type=userId&keyword=${profile.nickName}`)
             }
           >
             <FiFileText /> 작성글 보기
