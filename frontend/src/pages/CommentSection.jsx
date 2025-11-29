@@ -126,7 +126,6 @@ export default function CommentSection({ boardId }) {
               {/* ✅ 프로필 이미지 (없으면 회색 원 표시) */}
               {comment.profileUrl ? (
                 <img
-
                   src={`${BASE_URL}${comment.profileUrl}`}
                   alt="프로필"
                   style={{
@@ -149,7 +148,10 @@ export default function CommentSection({ boardId }) {
                   style={{
                     ...styles.avatar,
                     background: depthStyles.avatarBg,
-                  }}
+                   }}
+                     onClick={(e) =>
+                    setPopupUserId({ id: comment.userId, x: e.clientX, y: e.clientY })
+                   }
                 />
               )}
 
