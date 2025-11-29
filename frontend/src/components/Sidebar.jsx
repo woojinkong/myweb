@@ -14,7 +14,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   // 📌 그룹 목록 가져오기
   const loadGroups = useCallback(async () => {
     try {
-      const res = await axiosInstance.get("/board-group");
+      const res = await axiosInstance.get("/board-group/with-new");
       setGroups(res.data || []);
     } catch (err) {
       console.error("❌ 게시판 그룹 불러오기 실패:", err);
@@ -27,7 +27,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     loadGroups();
   }, [loadGroups, location.pathname]);
 
-  // 📌 활성화 강조 스타일
+   // 📌 활성화 그룹 스타일
   const getActiveStyle = (id) => {
     const isActive = String(currentGroupId) === String(id);
     return isActive ? styles.active : {};
@@ -60,6 +60,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
       <ul style={styles.list}>
         {groups.map((group) => {
+          const id = group.groupId;        // ⭐ API에서 받는 key는 groupId
+          const name = group.name;
+          const hasNew = group.hasNew;
+
           // 🔥 구분선은 번호 없음 + 번호 증가 X
           if (group.type === "DIVIDER") {
             return (
@@ -77,18 +81,21 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           numberCounter++;
 
           return (
-            <li key={group.id} style={styles.item}>
+            <li key={id} style={styles.item}>
               <Link
-                to={`/board?groupId=${group.id}`}
-                style={{ ...styles.link, ...getActiveStyle(group.id) }}
+                to={`/board?groupId=${id}`}
+                style={{ ...styles.link, ...getActiveStyle(id) }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f3f3")}
-                 onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-
+                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
               >
-                {/* 번호만 표시 */}
+                {/* 번호 */}
                 <span style={styles.number}>{number}.</span>
 
-                {isOpen && <span>{group.name}</span>}
+                {/* 그룹 이름 */}
+                {isOpen && <span>{name}</span>}
+
+                {/* 🔥 빨간점 표시 (오늘 새 글 있음) */}
+                {hasNew && <span style={styles.redDot}></span>}
               </Link>
             </li>
           );
@@ -189,6 +196,14 @@ const styles = {
     textAlign: "center",
     color: "#bbb",
     fontSize: "10px",
+  },
+   redDot: {
+    width: "6px",
+    height: "6px",
+    background: "red",
+    borderRadius: "50%",
+    marginLeft: "auto",
+    marginRight: "2px",
   },
 };
 

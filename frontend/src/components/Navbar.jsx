@@ -364,13 +364,14 @@ const styles = {
 
   badge: {
   position: "absolute",
-  top: "4px",
-  right: "0px",
+  top: "12px",
+  right: "50%",
+  transform: "translate(50%, -80%)",
   width: "8px",
   height: "8px",
   background: "red",
   borderRadius: "50%",
-  zIndex: 10
+  pointerEvents: "none",
 },
 
   profileButton: {

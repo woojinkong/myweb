@@ -79,5 +79,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     """)
     Page<Board> findByUserNickNameContainingIgnoreCase(@Param("keyword") String keyword, Pageable pageable);
 
+    @Query("SELECT COUNT(b) > 0 FROM Board b WHERE b.boardGroup.id = :groupId AND b.createdDate >= :todayStart")
+    boolean existsNewBoardsToday(@Param("groupId") Long groupId, @Param("todayStart") LocalDateTime todayStart);
 
 }
