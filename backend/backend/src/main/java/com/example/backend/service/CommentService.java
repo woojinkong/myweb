@@ -188,6 +188,7 @@ public class CommentService {
             .createdDate(c.getCreatedDate())
             .modifiedDate(c.getModifiedDate())
             .profileUrl(profileUrl) // ✅ 프로필 이미지 경로 포함
+            .boardNo(c.getBoard().getBoardNo())
             .build();
         }
 

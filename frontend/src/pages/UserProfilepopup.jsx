@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { FiMail, FiFileText, FiX } from "react-icons/fi";
+import { FiMail, FiFileText, FiX, FiMessageSquare } from "react-icons/fi";
 import SendMessageModal from "./SendMessageModal"; // ✅ 쪽지 모달
 import { useNavigate } from "react-router-dom";
 
@@ -119,7 +119,7 @@ useEffect(() => {
             navigate(`/comments/user?userId=${profile.userId}`)
           }
         >
-           댓글 보기
+           <FiMessageSquare/> 댓글 보기
         </button>
 
         </div>

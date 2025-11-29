@@ -16,5 +16,6 @@ public class CommentResponse {
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
     private String profileUrl; // ✅ 추가
+    private Long boardNo; //
     private List<CommentResponse> children = new ArrayList<>();
 }
