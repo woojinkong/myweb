@@ -67,7 +67,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           // 🔥 구분선은 번호 없음 + 번호 증가 X
           if (group.type === "DIVIDER") {
             return (
-              <li key={group.id} style={styles.item}>
+              <li key={id} style={styles.item}>
                 <div style={isOpen ? styles.dividerOpen : styles.dividerClosed}>
                   {isOpen && ` ${group.name} `}
                   {!isOpen && "─"}

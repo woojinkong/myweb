@@ -10,5 +10,6 @@ import lombok.*;
 public class BoardGroupResponse {
     private Long groupId;
     private String name;
+    private String type;
     private boolean hasNew;   // ⭐ 오늘 새 글 있는지 여부
 }

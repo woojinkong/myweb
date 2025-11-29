@@ -114,6 +114,7 @@ public class BoardGroupService {
                 .map(g -> BoardGroupResponse.builder()
                         .groupId(g.getId())
                         .name(g.getName())
+                        .type(g.getType())
                         .hasNew(boardRepository.existsNewBoardsToday(g.getId(), todayStart))
                         .build()
                 ).toList();
