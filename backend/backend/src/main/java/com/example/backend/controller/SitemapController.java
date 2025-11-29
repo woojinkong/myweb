@@ -4,6 +4,7 @@ import com.example.backend.entity.Board;
 import com.example.backend.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +21,7 @@ public class SitemapController {
     private String baseUrl;
 
     private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
+    @Cacheable("sitemap")
     @GetMapping(value = "/sitemap.xml", produces = "application/xml; charset=UTF-8")
     public String sitemap() {
         List<Board> boards = boardRepository.findAll();
