@@ -215,7 +215,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
             title="알림"
           >
             <FiBell style={styles.iconBase} />
-            {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
+            {unreadCount > 0 && <span style={styles.badge}></span>}
           </div>
         )}
 
@@ -228,9 +228,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
           >
             <FiMail style={styles.iconBase} />
             {unreadMsgCount > 0 && (
-              <span style={{ ...styles.badge, background: "orange" }}>
-                {unreadMsgCount}
-              </span>
+              <span style={styles.badge}></span>
             )}
           </div>
         )}
@@ -365,16 +363,16 @@ const styles = {
 },
 
   badge: {
-    position: "absolute",
-    top: "2px",
-    right: "-6px",
-    background: "red",
-    color: "white",
-    borderRadius: "50%",
-    fontSize: "11px",
-    padding: "2px 5px",
-    zIndex: 10
-  },
+  position: "absolute",
+  top: "4px",
+  right: "0px",
+  width: "8px",
+  height: "8px",
+  background: "red",
+  borderRadius: "50%",
+  zIndex: 10
+},
+
   profileButton: {
   background: "transparent",
   border: "none",
