@@ -9,6 +9,11 @@ spring:
       hibernate:
         format_sql: true
 
+  cache:
+    type: caffeine
+
 server:
   port: 8080
   forward-headers-strategy: native
+
+  
