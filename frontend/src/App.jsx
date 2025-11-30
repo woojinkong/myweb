@@ -28,7 +28,6 @@ import AppLayout from "./AppLayout";
 import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
-import MapPage from "./pages/MapPage";
 
 //라우터만담당
 function App() {
@@ -132,15 +131,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <MyPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/map"
-                element={
-                  <ProtectedRoute>
-                    <MapPage />
                   </ProtectedRoute>
                 }
               />

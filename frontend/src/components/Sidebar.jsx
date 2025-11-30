@@ -60,26 +60,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       )}
 
       <ul style={styles.list}>
-
-       {/* 지도 메뉴 */}
-      {/* <li style={styles.item}>
-        <Link
-          to="/map"
-          style={{
-            ...styles.link,
-            ...(location.pathname === "/map" ? styles.active : {})
-          }}
-        >
-          <img
-            src="/icons/map-icon.png"
-            style={{
-              width: isOpen ? "18px" : "22px",
-              marginRight: isOpen ? "8px" : "0"
-            }}
-          />
-          {isOpen && <span>지도보기</span>}
-        </Link>
-      </li> */}
         {groups.map((group) => {
           const id = group.groupId;        // ⭐ API에서 받는 key는 groupId
           const name = group.name;
