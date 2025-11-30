@@ -71,7 +71,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           }}
         >
           <img
-            src="/icons/map-icon.svg"
+            src="/icons/map-icon.png"
             style={{
               width: isOpen ? "18px" : "22px",
               marginRight: isOpen ? "8px" : "0"
@@ -79,13 +79,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           />
           {isOpen && <span>지도보기</span>}
         </Link>
-      </li>
-
-      {/* 구분선 */}
-      <li style={styles.item}>
-        <div style={isOpen ? styles.dividerOpen : styles.dividerClosed}>
-          {isOpen ? "게시판" : "─"}
-        </div>
       </li>
         {groups.map((group) => {
           const id = group.groupId;        // ⭐ API에서 받는 key는 groupId

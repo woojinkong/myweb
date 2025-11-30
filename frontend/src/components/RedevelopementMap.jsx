@@ -1,7 +1,17 @@
 // src/components/RedevelopmentMap.jsx
 import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+
+// 커스텀 마커 아이콘
+const customMarkerIcon = L.icon({
+  iconUrl: "/icons/map-icon.png", // public/icons/map-icon.png
+  iconSize: [32, 32],             // 아이콘 크기
+  iconAnchor: [16, 32],           // 마커 위치 중심
+  popupAnchor: [0, -32],          // 팝업 위치
+});
 
 const mapStyle = {
   width: "100%",
@@ -11,8 +21,9 @@ const mapStyle = {
 };
 
 export default function RedevelopmentMap() {
-  // 서울 시청 근처 좌표 (원하면 청량리 쪽 좌표로 바꿔도 됨)
-  const seoulCenter = [37.5665, 126.9780];
+  // 청량리역 좌표
+  const cheongnyangni  = [37.580178, 127.047226]
+;
 
   return (
     <div style={{ maxWidth: "900px", margin: "80px auto", padding: "0 16px" }}>
@@ -24,7 +35,7 @@ export default function RedevelopmentMap() {
       </p>
 
       <MapContainer
-        center={seoulCenter}
+        center={cheongnyangni }
         zoom={13}
         scrollWheelZoom={true}
         style={mapStyle}
@@ -34,11 +45,9 @@ export default function RedevelopmentMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* 테스트용 마커 하나 */}
-        <Marker position={seoulCenter}>
-          <Popup>
-            서울중심마커
-          </Popup>
+        {/* 청량리역 마커 */}
+        <Marker position={cheongnyangni} icon={customMarkerIcon}>
+          <Popup>청량리역</Popup>
         </Marker>
       </MapContainer>
     </div>
