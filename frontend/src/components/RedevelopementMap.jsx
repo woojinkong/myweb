@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-
+//leaflet재설치
 // 커스텀 마커 아이콘
 const customMarkerIcon = L.icon({
   iconUrl: "/icons/map-icon.png", // public/icons/map-icon.png
