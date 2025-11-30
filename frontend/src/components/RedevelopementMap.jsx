@@ -21,8 +21,9 @@ const mapStyle = {
 
 export default function RedevelopmentMap() {
   // 청량리역 좌표
-  const cheongnyangni  = [37.580427, 127.046977]
-;
+  const cheongnyangni  = [37.580427, 127.046977];
+  //좌표변경
+  
 
   return (
     <div style={{ maxWidth: "900px", margin: "80px auto", padding: "0 16px" }}>
