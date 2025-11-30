@@ -74,7 +74,7 @@ export default function MyPage() {
       alert("프로필 저장 완료");
       window.location.reload();
     } catch (err) {
-      alert("프로필 저장 실패");
+      alert("프로필 저장 실패",err);
     }
   };
 
