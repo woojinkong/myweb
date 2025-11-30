@@ -234,32 +234,7 @@ const styles = {
     marginRight: "2px",
   },
 
-  mapIcon: {
-  display: "flex",
-  alignItems: "center",
-  textDecoration: "none",
-  color: "#333",
-  fontSize: "14px",
-  padding: "6px 8px",
-  borderRadius: "6px",
-  marginLeft: "8px",
-  marginTop: "4px",
-  transition: "0.2s",
-},
-mapIconCollapsed: {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  textDecoration: "none",
-  color: "#333",
-  padding: "6px",
-  width: "32px",
-  height: "32px",
-  borderRadius: "6px",
-  transition: "0.2s",
-  marginTop: "4px",
-  marginLeft: "4px",
-},
+
 
 
 };
