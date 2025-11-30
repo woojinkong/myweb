@@ -62,7 +62,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       <ul style={styles.list}>
 
        {/* 지도 메뉴 */}
-      <li style={styles.item}>
+      {/* <li style={styles.item}>
         <Link
           to="/map"
           style={{
@@ -79,7 +79,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           />
           {isOpen && <span>지도보기</span>}
         </Link>
-      </li>
+      </li> */}
         {groups.map((group) => {
           const id = group.groupId;        // ⭐ API에서 받는 key는 groupId
           const name = group.name;
