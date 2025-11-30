@@ -49,6 +49,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       {!isMobile && (
         <button onClick={toggleSidebar} style={styles.hamburger}>☰</button>
       )}
+       
     </div>
 
 
@@ -59,6 +60,33 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       )}
 
       <ul style={styles.list}>
+
+       {/* 지도 메뉴 */}
+      <li style={styles.item}>
+        <Link
+          to="/map"
+          style={{
+            ...styles.link,
+            ...(location.pathname === "/map" ? styles.active : {})
+          }}
+        >
+          <img
+            src="/icons/map-icon.svg"
+            style={{
+              width: isOpen ? "18px" : "22px",
+              marginRight: isOpen ? "8px" : "0"
+            }}
+          />
+          {isOpen && <span>지도보기</span>}
+        </Link>
+      </li>
+
+      {/* 구분선 */}
+      <li style={styles.item}>
+        <div style={isOpen ? styles.dividerOpen : styles.dividerClosed}>
+          {isOpen ? "게시판" : "─"}
+        </div>
+      </li>
         {groups.map((group) => {
           const id = group.groupId;        // ⭐ API에서 받는 key는 groupId
           const name = group.name;
@@ -205,5 +233,34 @@ const styles = {
     marginLeft: "auto",
     marginRight: "2px",
   },
+
+  mapIcon: {
+  display: "flex",
+  alignItems: "center",
+  textDecoration: "none",
+  color: "#333",
+  fontSize: "14px",
+  padding: "6px 8px",
+  borderRadius: "6px",
+  marginLeft: "8px",
+  marginTop: "4px",
+  transition: "0.2s",
+},
+mapIconCollapsed: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  color: "#333",
+  padding: "6px",
+  width: "32px",
+  height: "32px",
+  borderRadius: "6px",
+  transition: "0.2s",
+  marginTop: "4px",
+  marginLeft: "4px",
+},
+
+
 };
 
