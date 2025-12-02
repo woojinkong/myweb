@@ -55,6 +55,7 @@ public class BoardGroupService {
         existing.setAdminOnlyWrite(updatedGroup.isAdminOnlyWrite());
         existing.setAllowComment(updatedGroup.isAllowComment());
         existing.setWritePoint(updatedGroup.getWritePoint());
+        existing.setAdminOnly(updatedGroup.isAdminOnly());
 
 
         return boardGroupRepository.save(existing);

@@ -57,6 +57,13 @@ public class BoardController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
 
+        // ⭐ 여기에만 로그 5줄 넣으면 됨
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("====================");
+        System.out.println("AUTH = " + auth);
+        System.out.println("AUTHORITIES = " + auth.getAuthorities());
+        System.out.println("PRINCIPAL = " + auth.getPrincipal());
+        System.out.println("====================");
         // 로그인 정보
         String role = (userDetails != null)
                 ? userDetails.getUser().getRole()
