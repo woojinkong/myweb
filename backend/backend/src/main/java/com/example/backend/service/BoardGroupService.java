@@ -116,6 +116,7 @@ public class BoardGroupService {
                         .name(g.getName())
                         .type(g.getType())
                         .hasNew(boardRepository.existsNewBoardsToday(g.getId(), todayStart))
+                        .adminOnly(g.isAdminOnly())
                         .build()
                 ).toList();
     }
