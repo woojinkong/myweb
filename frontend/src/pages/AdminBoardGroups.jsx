@@ -15,14 +15,16 @@ export default function AdminBoardGroups() {
     name: "",
     adminOnlyWrite: false,
     allowComment: true,
-    writePoint: 0,  // ⭐ 추가
+    writePoint: 0,
+    adminOnly:false,
   });
 
   const [editForm, setEditForm] = useState({
     name: "",
     adminOnlyWrite: false,
     allowComment: true,
-    writePoint: 0, // ⭐ 추가
+    writePoint: 0,
+    adminOnly: false,
   });
 
   /* ===============================
@@ -60,7 +62,7 @@ export default function AdminBoardGroups() {
     try {
       await axiosInstance.post("/board-group", { ...form, type: "BOARD" });
       alert("게시판이 생성되었습니다!");
-      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0});
+      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0, adminOnly: false,});
       loadGroups();
     } catch (err) {
       alert("게시판 생성 실패",err);
@@ -113,7 +115,8 @@ export default function AdminBoardGroups() {
       name: g.name,
       adminOnlyWrite: g.adminOnlyWrite,
       allowComment: g.allowComment,
-      writePoint: g.writePoint,   // ⭐ 필수
+      writePoint: g.writePoint,
+      adminOnly: g.adminOnly,
     });
   };
 
@@ -166,7 +169,14 @@ export default function AdminBoardGroups() {
           />
           관리자만 글쓰기
         </label>
-
+        <label style={styles.label}>
+        <input
+          type="checkbox"
+          checked={form.adminOnly}
+          onChange={(e) => setForm({ ...form, adminOnly: e.target.checked })}
+        />
+        관리자만 보기 (Admin Only)
+      </label>
         <label style={styles.label}>
           <input
             type="checkbox"
@@ -246,6 +256,16 @@ export default function AdminBoardGroups() {
                       />
                       관리자만 글쓰기
                     </label>
+                    <label style={styles.label}>
+                    <input
+                      type="checkbox"
+                      checked={editForm.adminOnly}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, adminOnly: e.target.checked })
+                      }
+                    />
+                    관리자만 보기 (Admin Only)
+                  </label>
 
                     <label style={styles.label}>
                       <input
@@ -277,6 +297,7 @@ export default function AdminBoardGroups() {
                 ) : (
                   <div>
                     <strong>{g.name}</strong>{" "}
+                    {g.adminOnly && "🔒"}  {/* ⭐ 관리자 전용 표시 */}
                     {g.adminOnlyWrite && "👑"}
                     {!g.allowComment && " 🚫"}
                     <span style={{ color: "#555", marginLeft: "10px" }}>

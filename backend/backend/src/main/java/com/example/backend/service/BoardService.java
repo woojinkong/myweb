@@ -58,6 +58,7 @@ public class BoardService {
 // ===============================================================
     public Page<BoardListResponse> findAllByBoardGroup(Long groupId, Pageable pageable) {
 
+
         // 1) pinned = true (상단 고정글) — 페이징 없음
         List<Board> pinnedList = boardRepository
                 .findByBoardGroupIdAndPinnedTrueOrderByCreatedDateDesc(groupId);
