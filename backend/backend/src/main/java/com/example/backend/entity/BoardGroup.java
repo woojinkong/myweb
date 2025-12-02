@@ -48,7 +48,7 @@ public class BoardGroup {
     @Column(nullable = false)
     private int writePoint = 0;
 
-
+    @Column(nullable = false)
     private boolean adminOnly = false;
 
 
