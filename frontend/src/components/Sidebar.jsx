@@ -11,7 +11,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
-
+   // 🔥 관리자 ROLE 출력 확인
+  console.log("현재 유저 ROLE =", user?.role);
   // 📌 그룹 목록 가져오기
   const loadGroups = useCallback(async () => {
     try {
