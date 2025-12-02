@@ -2,11 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../api/axiosInstance";
 import useIsMobile from "../hooks/useIsMobile";
+import useAuth from "../hooks/useAuth";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
   const currentGroupId = new URLSearchParams(location.search).get("groupId");
-
+  const { user } = useAuth();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
@@ -60,10 +61,19 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       )}
 
       <ul style={styles.list}>
-        {groups.map((group) => {
-          const id = group.groupId;        // ⭐ API에서 받는 key는 groupId
+        {groups
+        .filter((group) => {
+          // 1) 관리자만 보기인 경우 → 비관리자는 숨김
+          if (group.adminOnly && user?.role !== "ADMIN") {
+            return false;
+          }
+          return true;
+        })
+        .map((group) => {
+          const id = group.groupId;
           const name = group.name;
           const hasNew = group.hasNew;
+
 
           // 🔥 구분선은 번호 없음 + 번호 증가 X
           if (group.type === "DIVIDER") {

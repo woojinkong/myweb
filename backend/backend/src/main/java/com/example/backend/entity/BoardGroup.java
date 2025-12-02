@@ -49,6 +49,7 @@ public class BoardGroup {
     private int writePoint = 0;
 
 
+    private boolean adminOnly = false;
 
 
 

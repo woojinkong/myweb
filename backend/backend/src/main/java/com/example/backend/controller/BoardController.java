@@ -53,8 +53,20 @@ public class BoardController {
             @RequestParam("groupId") Long groupId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "new") String sort   // ⭐ 추가
+            @RequestParam(defaultValue = "new") String sort,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+
+        // 로그인 정보
+        String role = (userDetails != null)
+                ? userDetails.getUser().getRole()
+                : "GUEST";
+
+        // adminOnly 게시판 체크
+        BoardGroup group = boardGroupService.findById(groupId);
+        if (group.isAdminOnly() && !"ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(403).body(null);
+        }
 
         // 🔥 Sort 옵션 매핑
         Sort sortOption = switch (sort) {
@@ -76,7 +88,25 @@ public class BoardController {
      * =========================================================== */
     @GetMapping("/{id}")
     public ResponseEntity<BoardDetailResponse> getBoard(@PathVariable Long id,
-                                                        @RequestHeader(value = "X-View-Key", required = false) String viewKey) {
+                                                        @RequestHeader(value = "X-View-Key", required = false) String viewKey ,
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        // 1) 게시글 원본 가져오기
+        Board board = boardService.findByIdRaw(id);
+        if (board == null) return ResponseEntity.notFound().build();
+
+        // 2) 게시글이 속한 게시판 그룹
+        BoardGroup group = board.getBoardGroup();
+
+        // 3) 유저 권한 가져오기 (비로그인 = GUEST)
+        String role = (userDetails != null)
+                ? userDetails.getUser().getRole()
+                : "GUEST";
+
+        // 4) 관리자 전용 게시판이면 일반 유저 차단
+        if (group.isAdminOnly() && !"ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(403).build();
+        }
+
         BoardDetailResponse response = boardService.findByIdForRead(id, viewKey);
         return response != null
                 ? ResponseEntity.ok(response)
