@@ -24,7 +24,7 @@ public class SitemapController {
     @Cacheable("sitemap")
     @GetMapping(value = "/sitemap.xml", produces = "application/xml; charset=UTF-8")
     public String sitemap() {
-        System.out.println("### Sitemap 생성 시작: DB 조회 실행됨 ###");
+
         List<Board> boards = boardRepository.findAll();
 
         StringBuilder sb = new StringBuilder();
