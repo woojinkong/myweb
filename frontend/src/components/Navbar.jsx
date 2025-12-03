@@ -6,13 +6,13 @@ import { fetchSiteName } from "../api/siteApi";
 import { fetchUnreadMessages } from "../api/messageApi"; // ✅ 추가
 import { FiSearch, FiBell, FiLogIn, FiLogOut, FiUserPlus, FiMail, FiMenu } from "react-icons/fi";
 import useIsMobile from "../hooks/useIsMobile";
-
+import AdminPasswordModal from "../pages/AdminPasswordModal";
 
 //navbar수정
 export default function Navbar({ isSidebarOpen,toggleSidebar }) {
   const { user, logout,loading } = useContext(AuthContext);
   const navigate = useNavigate();
-
+  const [showAdminPwdModal, setShowAdminPwdModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [type, setType] = useState("title");
@@ -239,14 +239,22 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
             {/* 👑 관리자 */}
             {user.role === "ADMIN" && (
               <button
-                onClick={() => navigate("/admin/dashboard")}
+                onClick={() => setShowAdminPwdModal(true)}
                 style={styles.adminButton}
                 title="관리자 페이지"
               >
                 ⚙️
               </button>
             )}
-
+            {showAdminPwdModal && (
+              <AdminPasswordModal
+                onClose={() => setShowAdminPwdModal(false)}
+                onSuccess={() => {
+                  setShowAdminPwdModal(false);
+                  navigate("/admin/dashboard");
+                }}
+              />
+            )}
             {/* 🧍 프로필 사진 */}
             <button
               onClick={() => navigate("/mypage")}
