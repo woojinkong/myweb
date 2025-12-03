@@ -28,8 +28,6 @@ import AppLayout from "./AppLayout";
 import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
-import DailyStatsPage from "./pages/DailyStatsPage";
-import MonthlyStatsPage from "./pages/MonthlyStatsPage";
 
 //라우터만담당
 function App() {
@@ -189,22 +187,6 @@ function App() {
                 element={
                   <ProtectedRoute adminOnly>
                     <AdminIpBlock />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/stats/daily"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <DailyStatsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/stats/monthly"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <MonthlyStatsPage />
                   </ProtectedRoute>
                 }
               />

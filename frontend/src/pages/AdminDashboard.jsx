@@ -150,19 +150,6 @@ export default function AdminDashboard() {
       action: () => navigate("/admin/adsetting"),
       color: "#6f42c1",
   },
-  {
-    title: "일별 통계",
-    icon: "📊",
-    action: () => navigate("/admin/stats/daily"),
-    color: "#28a745",
-  },
-  {
-    title: "월별 통계",
-    icon: "📈",
-    action: () => navigate("/admin/stats/monthly"),
-    color: "#20c997",
-  },
-
   ];
 
   return (
