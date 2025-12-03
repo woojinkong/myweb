@@ -28,9 +28,9 @@ export default function AdminPasswordModal({ onClose, onSuccess }) {
   return (
     <div style={modalStyles.overlay}>
       <div style={modalStyles.modal}>
-        <h3>관리자 비밀번호</h3>
+        <h3 style={modalStyles.title}>관리자 비밀번호</h3>
 
-        <form onSubmit={handleSubmit} style={{ marginTop: "10px" }}>
+        <form onSubmit={handleSubmit} style={modalStyles.form}>
           <input
             type="password"
             placeholder="비밀번호 입력"
@@ -38,6 +38,7 @@ export default function AdminPasswordModal({ onClose, onSuccess }) {
             onChange={(e) => setPassword(e.target.value)}
             style={modalStyles.input}
           />
+
           {error && <div style={modalStyles.error}>{error}</div>}
 
           <div style={modalStyles.btnBox}>
@@ -64,42 +65,58 @@ const modalStyles = {
     alignItems: "center",
     zIndex: 4000,
   },
+
   modal: {
     background: "#fff",
-    padding: "20px",
+    padding: "24px",
     width: "90%",
     maxWidth: "360px",
-    borderRadius: "10px",
+    borderRadius: "12px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-    animation: "fadeIn 0.25s",
   },
+
+  title: {
+    fontSize: "18px",
+    marginBottom: "14px",
+  },
+
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+
   input: {
     width: "100%",
-    padding: "10px",
+    boxSizing: "border-box",
+    padding: "12px",
     borderRadius: "6px",
     border: "1px solid #ccc",
     fontSize: "15px",
   },
+
   error: {
-    marginTop: "6px",
     color: "red",
     fontSize: "13px",
   },
+
   btnBox: {
-    marginTop: "15px",
     display: "flex",
     justifyContent: "flex-end",
     gap: "10px",
+    marginTop: "10px",
   },
+
   cancel: {
-    padding: "8px 14px",
-    border: "1px solid #aaa",
+    padding: "8px 18px",
+    border: "1px solid #ccc",
     borderRadius: "6px",
-    background: "#f5f5f5",
+    background: "#f6f6f6",
     cursor: "pointer",
   },
+
   confirm: {
-    padding: "8px 14px",
+    padding: "8px 18px",
     border: "none",
     borderRadius: "6px",
     background: "#007bff",
