@@ -28,7 +28,7 @@ import AppLayout from "./AppLayout";
 import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
-import DailyStatsPage from "./pages/DailystatsPage";
+import DailyStatsPage from "./pages/DailyStatsPage";
 import MonthlyStatsPage from "./pages/MonthlyStatsPage";
 
 //라우터만담당
