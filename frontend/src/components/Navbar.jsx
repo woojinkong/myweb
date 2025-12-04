@@ -237,7 +237,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         {user ? (
           <>
             {/* 👑 관리자 */}
-            {user.role === "ADMIN" && (
+            {!loading && user.role === "ADMIN" && (
               <button
                 onClick={() => setShowAdminPwdModal(true)}
                 style={styles.adminButton}
