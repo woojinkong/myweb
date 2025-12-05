@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import axiosInstance from "../api/axiosInstance";
 import { cardBase, colors } from "../styles/common";
-
+import VisitsChart from "../components/charts/VisitChart";
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -15,6 +15,9 @@ export default function AdminDashboard() {
     totalBoards: 0,
     activeUsers: 0
   });
+  // 🔥 추가: 방문자 차트 관련 상태
+  const [visitRange, setVisitRange] = useState("daily");   // "daily" | "weekly" | "monthly"
+  const [visitChartData, setVisitChartData] = useState([]); // 차트에 넘길 데이터
 
   // ⭐ 사이트 이름 관리
   const [siteName, setSiteName] = useState("");
@@ -100,6 +103,29 @@ export default function AdminDashboard() {
       };
       loadAdStatus();
     }, []);
+
+
+    // 📊 방문자 통계 (일/주/월) 불러오기
+    useEffect(() => {
+      const fetchVisitStats = async () => {
+        try {
+          // range에 따라 엔드포인트를 다르게 호출
+          const urlMap = {
+            daily: "/admin/stats/daily",
+            weekly: "/admin/stats/weekly",
+            monthly: "/admin/stats/monthly",
+          };
+
+          const res = await axiosInstance.get(urlMap[visitRange]);
+          setVisitChartData(res.data); // 배열 형태 [{ label: "...", count: 숫자 }, ...] 라고 가정
+        } catch (err) {
+          console.error("방문자 통계 불러오기 실패:", err);
+        }
+      };
+
+  fetchVisitStats();
+}, [visitRange]);
+
 
 
   // 🌟 관리자 기능 목록 정의
@@ -210,6 +236,7 @@ export default function AdminDashboard() {
           <p style={styles.cardTitle}>오늘 방문자</p>
           <h3 style={styles.cardValue}>{stats.todayVisits}</h3>
         </div>
+
         <div style={styles.card}>
           <p style={styles.cardTitle}>총 게시글 수</p>
           <h3 style={styles.cardValue}>{stats.totalBoards}</h3>
@@ -219,6 +246,56 @@ export default function AdminDashboard() {
           <h3 style={styles.cardValue}>{stats.activeUsers}</h3>
         </div>
       </div>
+        {/* 🔥 방문자 차트 섹션 추가 */}
+        <div style={{ marginTop: "40px", padding: "20px", background: "#f9f9f9", borderRadius: "10px" }}>
+          <h3 style={{ marginBottom: "15px" }}>📈 방문자 추이</h3>
+
+          {/* 탭/버튼으로 일/주/월 전환 */}
+          <div style={{ marginBottom: "15px" }}>
+            <button
+              onClick={() => setVisitRange("daily")}
+              style={{
+                marginRight: "8px",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: visitRange === "daily" ? "2px solid #4CAF50" : "1px solid #ccc",
+                background: visitRange === "daily" ? "#e8f5e9" : "white",
+                cursor: "pointer",
+              }}
+            >
+              일별
+            </button>
+            <button
+              onClick={() => setVisitRange("weekly")}
+              style={{
+                marginRight: "8px",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: visitRange === "weekly" ? "2px solid #4CAF50" : "1px solid #ccc",
+                background: visitRange === "weekly" ? "#e8f5e9" : "white",
+                cursor: "pointer",
+              }}
+            >
+              주별
+            </button>
+            <button
+              onClick={() => setVisitRange("monthly")}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: visitRange === "monthly" ? "2px solid #4CAF50" : "1px solid #ccc",
+                background: visitRange === "monthly" ? "#e8f5e9" : "white",
+                cursor: "pointer",
+              }}
+            >
+              월별
+            </button>
+          </div>
+
+          {/* 실제 차트 */}
+          <VisitsChart range={visitRange} data={visitChartData} />
+        </div>  
+
       <div style={{ marginTop: "40px" }}>
         <h3 style={{ marginBottom: "15px" }}>📢 광고 상태</h3>
         {adStatus.map((ad) => (
