@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
       // ❗ 중요: refresh 실패 시에만 토큰 제거
       if (err.response?.status === 403 || err.response?.status === 401) {
-        Cookies.remove("accessToken");
+        //Cookies.remove("accessToken");
         setUser(null);
       }
     } finally {

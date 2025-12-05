@@ -32,6 +32,8 @@ export default function Login() {
       const res = await axiosInstance.post("/auth/login", form);
       const accessToken = res.data.accessToken;
       const user = res.data.user;
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+
 
       // ✅ accessToken 저장
       // ✅ accessToken 저장 (반드시 sameSite 지정)
