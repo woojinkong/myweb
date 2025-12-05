@@ -72,7 +72,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
 }, [user]);
 
  // 🔥 여기서 loading UI 출력
-  if (loading) {
+  if (loading || !user) {
     return (
       <nav style={{
         height: "60px",
@@ -237,7 +237,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
         {user ? (
           <>
             {/* 👑 관리자 */}
-            {!loading && user.role === "ADMIN" && (
+            {user && user.role === "ADMIN" && (
               <button
                 onClick={() => setShowAdminPwdModal(true)}
                 style={styles.adminButton}
@@ -246,7 +246,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
                 ⚙️
               </button>
             )}
-            {showAdminPwdModal && (
+            {user && user.role === "ADMIN" && showAdminPwdModal && (
               <AdminPasswordModal
                 onClose={() => setShowAdminPwdModal(false)}
                 onSuccess={() => {
