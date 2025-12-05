@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
 export default function AdminPasswordModal({ onClose, onSuccess }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -16,7 +15,7 @@ export default function AdminPasswordModal({ onClose, onSuccess }) {
 
       if (res.data === true) {
         onSuccess();
-        navigate("/admin/dashboard");
+        onClose();
       } else {
         setError("비밀번호가 올바르지 않습니다.");
       }
