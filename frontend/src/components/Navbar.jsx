@@ -251,7 +251,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
                 onClose={() => setShowAdminPwdModal(false)}
                 onSuccess={() => {
                   setShowAdminPwdModal(false);
-                  navigate("/admin/dashboard");
+                  //navigate("/admin/dashboard");
                 }}
               />
             )}
