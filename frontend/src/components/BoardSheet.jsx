@@ -35,6 +35,7 @@ export default function BoardSheet() {
           columnSorting: true,
           search: true,
           toolbar: true,
+         onselection: () => {},
         });
       } catch (err) {
         console.error("시트 로드 오류:", err);
@@ -44,21 +45,63 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
+
+  // 좌표(A1) → row, col 숫자로 변환
+const parseCell = (cell) => {
+  const col = cell.match(/[A-Z]+/)[0];
+  const row = parseInt(cell.match(/\d+/)[0], 10) - 1;
+
+  // A→0, B→1 ... 변환
+  const colNum = col.split('').reduce((acc, c) => acc * 26 + (c.charCodeAt(0) - 64), 0) - 1;
+
+  return { row, col: colNum };
+};
+
+const getSelectedCells = () => {
+  if (!jss.current) return [];
+
+  const selection = jss.current.getSelected();
+  if (!selection) return [];
+
+  let start, end;
+
+  // Case 1) Excel 형식 "A1:B3"
+  if (selection.match(/[A-Z]+[0-9]+/)) {
+    const parts = selection.split(":");
+    const s = parseCell(parts[0]);
+    const e = parts[1] ? parseCell(parts[1]) : s;
+    start = s;
+    end = e;
+  } 
+  // Case 2) 숫자 형식 "0,0" or "0,0:2,3"
+  else {
+    const parts = selection.split(":");
+
+    const [row1, col1] = parts[0].split(",").map(Number);
+    start = { row: row1, col: col1 };
+
+    if (parts[1]) {
+      const [row2, col2] = parts[1].split(",").map(Number);
+      end = { row: row2, col: col2 };
+    } else {
+      end = start;
+    }
+  }
+
+  const cells = [];
+  for (let r = start.row; r <= end.row; r++) {
+    for (let c = start.col; c <= end.col; c++) {
+      cells.push([r, c]);
+    }
+  }
+  return cells;
+};
+
+
+
   /* ======================================
      📌 셀 스타일 함수들
   ====================================== */
-
-  const getSelectedCells = () => {
-  if (!jss.current) return [];
-
-  const sel = jss.current.highlighted; // v4 전용 선택 API
-
-  // 선택이 없으면 []
-  if (!sel || !sel.length) return [];
-
-  // [ [row, col], ... ] 그대로 return
-  return sel;
-    };
 
   const setBold = () => {
   const cells = getSelectedCells();
