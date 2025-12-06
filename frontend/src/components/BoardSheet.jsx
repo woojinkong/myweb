@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
-// ★ v4는 jspreadsheet가 아니라 jexcel 로 import 必
+// v4는 jspreadsheet가 아니라 jexcel로 import
 import jexcel from "jspreadsheet-ce";
 
 import "jspreadsheet-ce/dist/jspreadsheet.css";
@@ -12,8 +12,11 @@ export default function BoardSheet() {
   const { groupId } = useParams();
   const sheetRef = useRef(null);
   const jss = useRef(null);
-  const [groupName, setGroupName] = useState("");
 
+  // 선택된 셀 좌표 저장
+  const selectionRef = useRef([]);
+
+  const [groupName, setGroupName] = useState("");
   const [fontSize, setFontSize] = useState("14");
 
   useEffect(() => {
@@ -38,14 +41,20 @@ export default function BoardSheet() {
           search: true,
           toolbar: true,
 
-          // ★ selection 갱신을 위해 반드시 필요
-          onselection: () => {},
+          // ★ 선택될 때마다 정확한 좌표 저장
+          onselection: (instance, x1, y1, x2, y2) => {
+            const selected = [];
+            for (let r = y1; r <= y2; r++) {
+              for (let c = x1; c <= x2; c++) {
+                selected.push([r, c]);
+              }
+            }
+            selectionRef.current = selected;
+          },
         });
 
-        // 확인 로그
         console.log("Loaded jexcel:", jexcel);
         console.log("jss instance:", jss.current);
-
       } catch (err) {
         console.error("시트 로드 오류:", err);
       }
@@ -54,46 +63,15 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
-
   /* ======================================
-      📌 jexcel v4 선택 영역 처리
+     선택된 셀 제공
   ====================================== */
   const getSelectedCells = () => {
-    const obj = jss.current;
-    if (!obj) return [];
-
-    // 1) 드래그 범위(highlighted)
-    if (obj.highlighted) {
-      const { x1, y1, x2, y2 } = obj.highlighted;
-      const cells = [];
-
-      for (let r = y1; r <= y2; r++) {
-        for (let c = x1; c <= x2; c++) {
-          cells.push([r, c]);
-        }
-      }
-      return cells;
-    }
-
-    // 2) 단일 선택 셀 (selectedCell = "B3" 형태)
-    if (obj.selectedCell) {
-      const cell = obj.selectedCell;
-      const colLetters = cell.match(/[A-Z]+/)[0];
-      const rowNumber = parseInt(cell.match(/[0-9]+/)[0], 10) - 1;
-
-      // A→0 변환
-      const colIndex =
-        colLetters.split("").reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 64), 0) - 1;
-
-      return [[rowNumber, colIndex]];
-    }
-
-    return [];
+    return selectionRef.current || [];
   };
 
-
   /* ======================================
-      📌 스타일 적용
+      스타일 적용 함수들
   ====================================== */
   const setBold = () => {
     const cells = getSelectedCells();
@@ -117,15 +95,17 @@ export default function BoardSheet() {
   };
 
   const changeFontSize = () => {
+    const px = fontSize.trim();
+    if (!px) return;
+
     const cells = getSelectedCells();
     cells.forEach(([r, c]) => {
-      jss.current.setStyle(r, c, "font-size", `${fontSize}px`);
+      jss.current.setStyle(r, c, "font-size", `${px}px`);
     });
   };
 
-
   /* ======================================
-      📌 저장 / 다운로드
+      저장 및 다운로드
   ====================================== */
   const handleSave = async () => {
     if (!jss.current) return;
@@ -145,29 +125,35 @@ export default function BoardSheet() {
     if (jss.current) jss.current.download();
   };
 
-
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
       <h2>📄 {groupName || "시트"}</h2>
 
+      {/* 커스텀 툴바 */}
       <div style={toolbarStyle}>
         <button style={btnStyle} onClick={setBold}>Bold</button>
 
         <label style={labelStyle}>글자색</label>
-        <input type="color" style={colorPickerStyle}
-          onChange={(e) => changeTextColor(e.target.value)} />
+        <input
+          type="color"
+          style={colorPickerStyle}
+          onChange={(e) => changeTextColor(e.target.value)}
+        />
 
         <label style={labelStyle}>배경색</label>
-        <input type="color" style={colorPickerStyle}
-          onChange={(e) => changeBgColor(e.target.value)} />
+        <input
+          type="color"
+          style={colorPickerStyle}
+          onChange={(e) => changeBgColor(e.target.value)}
+        />
 
         <label style={labelStyle}>폰트(px)</label>
         <input
           type="number"
-          style={numberInputStyle}
           min="8"
           max="40"
           value={fontSize}
+          style={numberInputStyle}
           onChange={(e) => setFontSize(e.target.value)}
         />
 
@@ -182,7 +168,6 @@ export default function BoardSheet() {
     </div>
   );
 }
-
 
 /* ===========================================
    스타일
