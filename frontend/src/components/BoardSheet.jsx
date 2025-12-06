@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import jspreadsheet from "jspreadsheet-ce";
@@ -10,9 +10,20 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jssInstance = useRef(null);
 
+  const [groupName, setGroupName] = useState("");
+
   useEffect(() => {
     const loadSheet = async () => {
       try {
+        // ----------------------------------
+        // 📌 1) 게시판 정보 불러오기 (이름)
+        // ----------------------------------
+        const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
+        setGroupName(groupRes.data.name);
+
+        // ----------------------------------
+        // 📌 2) 시트 데이터 불러오기
+        // ----------------------------------
         const res = await axiosInstance.get(`/sheet/${groupId}`);
         const sheetJson = res.data.sheetData ? JSON.parse(res.data.sheetData) : [];
 
@@ -28,18 +39,8 @@ export default function BoardSheet() {
           filters: true,
           columnSorting: true,
           search: true,
-
-          toolbar: [
-            { type: "button", content: "undo", onclick: () => jssInstance.current.undo() },
-            { type: "button", content: "redo", onclick: () => jssInstance.current.redo() },
-
-            { type: "button", content: "bold", onclick: () => jssInstance.current.setStyle("font-weight", "bold") },
-            { type: "button", content: "italic", onclick: () => jssInstance.current.setStyle("font-style", "italic") },
-            { type: "button", content: "underline", onclick: () => jssInstance.current.setStyle("text-decoration", "underline") },
-
-            { type: "color", content: "forecolor" },
-            { type: "color", content: "backcolor" },
-          ],
+          
+          toolbar: true,   // ★ 기본 툴바 사용 (권장)
 
           allowInsertColumn: true,
           allowInsertRow: true,
@@ -75,14 +76,16 @@ export default function BoardSheet() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-      <h2>📄 시트 게시판</h2>
+      <h2>📄 {groupName || "시트"}</h2>
 
       <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
         <button onClick={handleExport} style={styles.exportBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={styles.saveBtn}>저장하기</button>
       </div>
 
-      <div ref={sheetRef}></div>
+        <div className="jss-container">
+        <div ref={sheetRef}></div>
+        </div>
     </div>
   );
 }
