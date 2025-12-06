@@ -48,12 +48,26 @@ export default function BoardList() {
 
       try {
 
-        const [groupRes, boardRes] = await Promise.all([
-        axiosInstance.get(`/board-group/${groupId}`),
-        axiosInstance.get(`/board?groupId=${groupId}&page=${page}&size=${size}&sort=${sort}`)
-        ]);
+        // 1) 그룹 먼저 가져오기
+      const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
+      setGroup(groupRes.data);
 
-        setGroup(groupRes.data);
+      // 2) 시트 게시판이면 바로 이동
+      if (groupRes.data.sheetEnabled) {
+        navigate(`/sheet/${groupId}`);
+        return;
+      }
+
+      // 3) 일반 게시판이면 글 목록 가져오기
+      const boardRes = await axiosInstance.get(
+        `/board?groupId=${groupId}&page=${page}&size=${size}&sort=${sort}`
+      );
+
+        // const [groupRes, boardRes] = await Promise.all([
+        // axiosInstance.get(`/board-group/${groupId}`),
+        // axiosInstance.get(`/board?groupId=${groupId}&page=${page}&size=${size}&sort=${sort}`)
+        // ]);
+        // setGroup(groupRes.data);
         setBoards(boardRes.data.content);
         setTotalPages(boardRes.data.totalPages);
       } catch (err) {

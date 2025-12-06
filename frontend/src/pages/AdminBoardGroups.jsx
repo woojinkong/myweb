@@ -17,6 +17,7 @@ export default function AdminBoardGroups() {
     allowComment: true,
     writePoint: 0,
     adminOnly:false,
+    sheetEnabled: false,     // ⭐ 추가
   });
 
   const [editForm, setEditForm] = useState({
@@ -25,6 +26,7 @@ export default function AdminBoardGroups() {
     allowComment: true,
     writePoint: 0,
     adminOnly: false,
+    sheetEnabled: false,     // ⭐ 추가
   });
 
   /* ===============================
@@ -60,9 +62,11 @@ export default function AdminBoardGroups() {
     e.preventDefault();
 
     try {
-      await axiosInstance.post("/board-group", { ...form, type: "BOARD" });
+      await axiosInstance.post("/board-group", { ...form, type: "BOARD",
+        sheetEnabled: form.sheetEnabled
+       });
       alert("게시판이 생성되었습니다!");
-      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0, adminOnly: false,});
+      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0, adminOnly: false, sheetEnabled: false, });
       loadGroups();
     } catch (err) {
       alert("게시판 생성 실패",err);
@@ -117,6 +121,7 @@ export default function AdminBoardGroups() {
       allowComment: g.allowComment,
       writePoint: g.writePoint,
       adminOnly: g.adminOnly,
+      sheetEnabled: g.sheetEnabled,
     });
   };
 
@@ -185,6 +190,15 @@ export default function AdminBoardGroups() {
           />
           댓글 허용
         </label>
+        <label style={styles.label}>
+          <input
+            type="checkbox"
+            checked={form.sheetEnabled}
+            onChange={(e) => setForm({ ...form, sheetEnabled: e.target.checked })}
+          />
+          시트 게시판 활성화
+        </label>
+
         <label style={styles.label}>
           필요 포인트
           <input
@@ -276,6 +290,16 @@ export default function AdminBoardGroups() {
                         }
                       />
                       댓글 허용
+                    </label>
+                    <label style={styles.label}>
+                      <input
+                        type="checkbox"
+                        checked={editForm.sheetEnabled}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, sheetEnabled: e.target.checked })
+                        }
+                      />
+                      시트 게시판
                     </label>
 
                   </>

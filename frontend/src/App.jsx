@@ -28,6 +28,7 @@ import AppLayout from "./AppLayout";
 import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
+import BoardSheet from "./components/BoardSheet";
 
 //라우터만담당
 function App() {
@@ -138,6 +139,13 @@ function App() {
                 path="/comments/user"
                 element={
                   <UserCommentList />
+                }
+              />
+
+              <Route
+                path="/sheet/:groupId"
+                element={
+                  <BoardSheet />
                 }
               />
 

@@ -51,6 +51,8 @@ public class BoardGroup {
     @Column(nullable = false)
     private boolean adminOnly = false;
 
+    @Column(nullable = false)
+    private boolean sheetEnabled = false;
 
 
 }
