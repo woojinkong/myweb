@@ -80,8 +80,13 @@ export default function VisitsChart({ range, data }) {
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: "900px" }}>
-      <Line data={chartData} options={options} />
-    </div>
-  );
+  <div style={{ width: "100%", maxWidth: "900px" }}>
+    <Line
+      key={JSON.stringify(chartData)}   // 🔥 차트 재렌더 핵심
+      data={chartData}
+      options={options}
+    />
+  </div>
+);
+
 }
