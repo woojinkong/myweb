@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import jspreadsheet from "jspreadsheet-ce";
+
+// ★ v4는 jspreadsheet가 아니라 jexcel 로 import 必
+import jexcel from "jspreadsheet-ce";
+
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
 
@@ -11,7 +14,6 @@ export default function BoardSheet() {
   const jss = useRef(null);
   const [groupName, setGroupName] = useState("");
 
-  // 폰트 사이즈 상태 (UI용)
   const [fontSize, setFontSize] = useState("14");
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function BoardSheet() {
 
         if (sheetRef.current) sheetRef.current.innerHTML = "";
 
-        jss.current = jspreadsheet(sheetRef.current, {
+        jss.current = jexcel(sheetRef.current, {
           data: sheetJson,
           minDimensions: [10, 30],
           defaultColWidth: 120,
@@ -35,7 +37,9 @@ export default function BoardSheet() {
           columnSorting: true,
           search: true,
           toolbar: true,
-         onselection: () => {},
+
+          // ★ 반드시 넣어야 selection 업데이트 정상 동작함
+          onselection: () => {},
         });
       } catch (err) {
         console.error("시트 로드 오류:", err);
@@ -45,109 +49,91 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
+  /* ======================================
+     좌표 파싱 (A1 또는 "0,0" 둘 다 지원)
+  ====================================== */
 
-  // 좌표(A1) → row, col 숫자로 변환
-const parseCell = (cell) => {
-  const col = cell.match(/[A-Z]+/)[0];
-  const row = parseInt(cell.match(/\d+/)[0], 10) - 1;
+  const parseCell = (cell) => {
+    // Excel 형식 (A1)
+    if (/[A-Z]+[0-9]+/.test(cell)) {
+      const col = cell.match(/[A-Z]+/)[0];
+      const row = parseInt(cell.match(/[0-9]+/)[0], 10) - 1;
 
-  // A→0, B→1 ... 변환
-  const colNum = col.split('').reduce((acc, c) => acc * 26 + (c.charCodeAt(0) - 64), 0) - 1;
+      const colNum =
+        col.split("").reduce((acc, c) => acc * 26 + (c.charCodeAt(0) - 64), 0) - 1;
 
-  return { row, col: colNum };
-};
-
-const getSelectedCells = () => {
-  if (!jss.current) return [];
-
-  const selection = jss.current.getSelected();
-  if (!selection) return [];
-
-  let start, end;
-
-  // Case 1) Excel 형식 "A1:B3"
-  if (selection.match(/[A-Z]+[0-9]+/)) {
-    const parts = selection.split(":");
-    const s = parseCell(parts[0]);
-    const e = parts[1] ? parseCell(parts[1]) : s;
-    start = s;
-    end = e;
-  } 
-  // Case 2) 숫자 형식 "0,0" or "0,0:2,3"
-  else {
-    const parts = selection.split(":");
-
-    const [row1, col1] = parts[0].split(",").map(Number);
-    start = { row: row1, col: col1 };
-
-    if (parts[1]) {
-      const [row2, col2] = parts[1].split(",").map(Number);
-      end = { row: row2, col: col2 };
-    } else {
-      end = start;
+      return { row, col: colNum };
     }
-  }
 
-  const cells = [];
-  for (let r = start.row; r <= end.row; r++) {
-    for (let c = start.col; c <= end.col; c++) {
-      cells.push([r, c]);
+    // 숫자 형식 ("0,0")
+    if (/^\d+,\d+$/.test(cell)) {
+      const [row, col] = cell.split(",").map(Number);
+      return { row, col };
     }
-  }
-  return cells;
-};
 
+    return null;
+  };
 
+  const getSelectedCells = () => {
+    if (!jss.current) return [];
+
+    const selection = jss.current.getSelected(); // v4 공식 API
+    if (!selection) return [];
+
+    const parts = selection.split(":");
+
+    const start = parseCell(parts[0]);
+    const end = parts[1] ? parseCell(parts[1]) : start;
+
+    if (!start || !end) return [];
+
+    const cells = [];
+    for (let r = start.row; r <= end.row; r++) {
+      for (let c = start.col; c <= end.col; c++) {
+        cells.push([r, c]);
+      }
+    }
+    return cells;
+  };
 
   /* ======================================
-     📌 셀 스타일 함수들
+     셀 스타일 함수
   ====================================== */
 
   const setBold = () => {
-  const cells = getSelectedCells();
-  if (!cells.length) return;
-
-  cells.forEach(([row, col]) => {
-    jss.current.setStyle(row, col, "font-weight", "bold");
-  });
-};
-
+    const cells = getSelectedCells();
+    cells.forEach(([row, col]) =>
+      jss.current.setStyle(row, col, "font-weight", "bold")
+    );
+  };
 
   const changeTextColor = (color) => {
-  const cells = getSelectedCells();
-  if (!cells.length) return;
-
-  cells.forEach(([row, col]) => {
-    jss.current.setStyle(row, col, "color", color);
-  });
-};
-
+    const cells = getSelectedCells();
+    cells.forEach(([row, col]) =>
+      jss.current.setStyle(row, col, "color", color)
+    );
+  };
 
   const changeBgColor = (color) => {
-  const cells = getSelectedCells();
-  if (!cells.length) return;
-
-  cells.forEach(([row, col]) => {
-    jss.current.setStyle(row, col, "background-color", color);
-  });
-};
-
+    const cells = getSelectedCells();
+    cells.forEach(([row, col]) =>
+      jss.current.setStyle(row, col, "background-color", color)
+    );
+  };
 
   const changeFontSize = () => {
-  const px = fontSize.trim();
-  if (!px) return;
+    const px = fontSize.trim();
+    if (!px) return;
 
-  const cells = getSelectedCells();
-  if (!cells.length) return;
+    const cells = getSelectedCells();
+    cells.forEach(([row, col]) =>
+      jss.current.setStyle(row, col, "font-size", `${px}px`)
+    );
+  };
 
-  cells.forEach(([row, col]) => {
-    jss.current.setStyle(row, col, "font-size", `${px}px`);
-  });
-};
-
-
-
-  
+  /* ======================================
+     저장 / 다운로드
+  ====================================== */
 
   const handleSave = async () => {
     if (!jss.current) return;
@@ -171,13 +157,9 @@ const getSelectedCells = () => {
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
       <h2>📄 {groupName || "시트"}</h2>
 
-      {/* =========================================
-          📌 커스텀 툴바 UI
-      ========================================== */}
       <div style={toolbarStyle}>
         <button style={btnStyle} onClick={setBold}>Bold</button>
 
-        {/* 글자색 */}
         <label style={labelStyle}>글자색</label>
         <input
           type="color"
@@ -185,7 +167,6 @@ const getSelectedCells = () => {
           style={colorPickerStyle}
         />
 
-        {/* 배경색 */}
         <label style={labelStyle}>배경색</label>
         <input
           type="color"
@@ -193,15 +174,14 @@ const getSelectedCells = () => {
           style={colorPickerStyle}
         />
 
-        {/* 폰트 사이즈 */}
-        <label style={labelStyle}>폰트크기(px)</label>
+        <label style={labelStyle}>폰트(px)</label>
         <input
           type="number"
           value={fontSize}
           onChange={(e) => setFontSize(e.target.value)}
-          style={numberInputStyle}
           min="8"
           max="40"
+          style={numberInputStyle}
         />
         <button style={btnStyle} onClick={changeFontSize}>적용</button>
 
@@ -216,9 +196,8 @@ const getSelectedCells = () => {
   );
 }
 
-
 /* ===========================================
-   스타일 선언
+   스타일
 =========================================== */
 const toolbarStyle = {
   display: "flex",
@@ -228,7 +207,7 @@ const toolbarStyle = {
   background: "#f5f5f5",
   padding: "10px",
   border: "1px solid #ddd",
-  borderRadius: "8px"
+  borderRadius: "8px",
 };
 
 const btnStyle = {
@@ -236,25 +215,25 @@ const btnStyle = {
   background: "#eee",
   border: "1px solid #ccc",
   borderRadius: "4px",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const labelStyle = {
-  fontSize: "14px"
+  fontSize: "14px",
 };
 
 const colorPickerStyle = {
   width: "32px",
   height: "32px",
   border: "none",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const numberInputStyle = {
   width: "60px",
   padding: "4px",
   border: "1px solid #ccc",
-  borderRadius: "4px"
+  borderRadius: "4px",
 };
 
 const blueBtn = {
@@ -263,7 +242,7 @@ const blueBtn = {
   color: "#fff",
   border: "none",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const greenBtn = {
@@ -272,5 +251,5 @@ const greenBtn = {
   color: "#fff",
   border: "none",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
 };
