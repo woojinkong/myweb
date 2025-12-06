@@ -16,7 +16,7 @@ export default function BoardSheet() {
   useEffect(() => {
     const loadSheet = async () => {
       try {
-        const res = await axiosInstance.get(`/api/sheet/${groupId}`);
+        const res = await axiosInstance.get(`/sheet/${groupId}`);
         const sheetJson = res.data.sheetData
           ? JSON.parse(res.data.sheetData)
           : [];
@@ -54,7 +54,7 @@ export default function BoardSheet() {
     const jsonData = JSON.stringify(jssInstance.current.getJson());
 
     try {
-      await axiosInstance.post(`/api/sheet/${groupId}`, jsonData, {
+      await axiosInstance.post(`/sheet/${groupId}`, jsonData, {
         headers: { "Content-Type": "application/json" },
       });
       alert("저장 완료!");
