@@ -38,12 +38,13 @@ export default function BoardSheet() {
           search: true,
           toolbar: true,
 
-          // ★ 반드시 넣어야 selection 업데이트 정상 동작함
+          // ★ selection 갱신을 위해 반드시 필요
           onselection: () => {},
         });
-        // ★ v4가 로딩되었는지 확인하는 핵심 로그
-            console.log("Loaded jexcel:", jexcel);
-            console.log("jss instance:", jss.current);
+
+        // 확인 로그
+        console.log("Loaded jexcel:", jexcel);
+        console.log("jss instance:", jss.current);
 
       } catch (err) {
         console.error("시트 로드 오류:", err);
@@ -53,92 +54,79 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
+
   /* ======================================
-     좌표 파싱 (A1 또는 "0,0" 둘 다 지원)
+      📌 jexcel v4 선택 영역 처리
   ====================================== */
-
-  const parseCell = (cell) => {
-    // Excel 형식 (A1)
-    if (/[A-Z]+[0-9]+/.test(cell)) {
-      const col = cell.match(/[A-Z]+/)[0];
-      const row = parseInt(cell.match(/[0-9]+/)[0], 10) - 1;
-
-      const colNum =
-        col.split("").reduce((acc, c) => acc * 26 + (c.charCodeAt(0) - 64), 0) - 1;
-
-      return { row, col: colNum };
-    }
-
-    // 숫자 형식 ("0,0")
-    if (/^\d+,\d+$/.test(cell)) {
-      const [row, col] = cell.split(",").map(Number);
-      return { row, col };
-    }
-
-    return null;
-  };
-
   const getSelectedCells = () => {
-    if (!jss.current) return [];
+    const obj = jss.current;
+    if (!obj) return [];
 
-    const selection = jss.current.getSelected(); // v4 공식 API
-    if (!selection) return [];
+    // 1) 드래그 범위(highlighted)
+    if (obj.highlighted) {
+      const { x1, y1, x2, y2 } = obj.highlighted;
+      const cells = [];
 
-    const parts = selection.split(":");
-
-    const start = parseCell(parts[0]);
-    const end = parts[1] ? parseCell(parts[1]) : start;
-
-    if (!start || !end) return [];
-
-    const cells = [];
-    for (let r = start.row; r <= end.row; r++) {
-      for (let c = start.col; c <= end.col; c++) {
-        cells.push([r, c]);
+      for (let r = y1; r <= y2; r++) {
+        for (let c = x1; c <= x2; c++) {
+          cells.push([r, c]);
+        }
       }
+      return cells;
     }
-    return cells;
+
+    // 2) 단일 선택 셀 (selectedCell = "B3" 형태)
+    if (obj.selectedCell) {
+      const cell = obj.selectedCell;
+      const colLetters = cell.match(/[A-Z]+/)[0];
+      const rowNumber = parseInt(cell.match(/[0-9]+/)[0], 10) - 1;
+
+      // A→0 변환
+      const colIndex =
+        colLetters.split("").reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 64), 0) - 1;
+
+      return [[rowNumber, colIndex]];
+    }
+
+    return [];
   };
 
-  /* ======================================
-     셀 스타일 함수
-  ====================================== */
 
+  /* ======================================
+      📌 스타일 적용
+  ====================================== */
   const setBold = () => {
     const cells = getSelectedCells();
-    cells.forEach(([row, col]) =>
-      jss.current.setStyle(row, col, "font-weight", "bold")
-    );
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "font-weight", "bold");
+    });
   };
 
   const changeTextColor = (color) => {
     const cells = getSelectedCells();
-    cells.forEach(([row, col]) =>
-      jss.current.setStyle(row, col, "color", color)
-    );
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "color", color);
+    });
   };
 
   const changeBgColor = (color) => {
     const cells = getSelectedCells();
-    cells.forEach(([row, col]) =>
-      jss.current.setStyle(row, col, "background-color", color)
-    );
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "background-color", color);
+    });
   };
 
   const changeFontSize = () => {
-    const px = fontSize.trim();
-    if (!px) return;
-
     const cells = getSelectedCells();
-    cells.forEach(([row, col]) =>
-      jss.current.setStyle(row, col, "font-size", `${px}px`)
-    );
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "font-size", `${fontSize}px`);
+    });
   };
 
-  /* ======================================
-     저장 / 다운로드
-  ====================================== */
 
+  /* ======================================
+      📌 저장 / 다운로드
+  ====================================== */
   const handleSave = async () => {
     if (!jss.current) return;
 
@@ -157,6 +145,7 @@ export default function BoardSheet() {
     if (jss.current) jss.current.download();
   };
 
+
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
       <h2>📄 {groupName || "시트"}</h2>
@@ -165,28 +154,23 @@ export default function BoardSheet() {
         <button style={btnStyle} onClick={setBold}>Bold</button>
 
         <label style={labelStyle}>글자색</label>
-        <input
-          type="color"
-          onChange={(e) => changeTextColor(e.target.value)}
-          style={colorPickerStyle}
-        />
+        <input type="color" style={colorPickerStyle}
+          onChange={(e) => changeTextColor(e.target.value)} />
 
         <label style={labelStyle}>배경색</label>
-        <input
-          type="color"
-          onChange={(e) => changeBgColor(e.target.value)}
-          style={colorPickerStyle}
-        />
+        <input type="color" style={colorPickerStyle}
+          onChange={(e) => changeBgColor(e.target.value)} />
 
         <label style={labelStyle}>폰트(px)</label>
         <input
           type="number"
-          value={fontSize}
-          onChange={(e) => setFontSize(e.target.value)}
+          style={numberInputStyle}
           min="8"
           max="40"
-          style={numberInputStyle}
+          value={fontSize}
+          onChange={(e) => setFontSize(e.target.value)}
         />
+
         <button style={btnStyle} onClick={changeFontSize}>적용</button>
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
@@ -198,6 +182,7 @@ export default function BoardSheet() {
     </div>
   );
 }
+
 
 /* ===========================================
    스타일
@@ -221,9 +206,7 @@ const btnStyle = {
   cursor: "pointer",
 };
 
-const labelStyle = {
-  fontSize: "14px",
-};
+const labelStyle = { fontSize: "14px" };
 
 const colorPickerStyle = {
   width: "32px",
