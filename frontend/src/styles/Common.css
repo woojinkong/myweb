@@ -104,15 +104,6 @@
   background: transparent !important;
 }
 
-/* 버튼 초기화 충돌 방지 */
-.jss-container button {
-  all: unset !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-
 
 /* ============================================
    📱 Mobile (최대 768px)

@@ -34,7 +34,7 @@ export default function BoardSheet() {
           filters: true,
           columnSorting: true,
           search: true,
-          toolbar: false,
+          toolbar: true,
         });
       } catch (err) {
         console.error("시트 로드 오류:", err);
@@ -48,34 +48,63 @@ export default function BoardSheet() {
      📌 셀 스타일 함수들
   ====================================== */
 
+  const getSelectedCells = () => {
+  if (!jss.current) return [];
+
+  const sel = jss.current.highlighted; // v4 전용 선택 API
+
+  // 선택이 없으면 []
+  if (!sel || !sel.length) return [];
+
+  // [ [row, col], ... ] 그대로 return
+  return sel;
+    };
+
   const setBold = () => {
-    const selected = jss.current.getSelected();
-    if (!selected) return;
-    jss.current.setStyle(selected, "font-weight", "bold");
-  };
+  const cells = getSelectedCells();
+  if (!cells.length) return;
+
+  cells.forEach(([row, col]) => {
+    jss.current.setStyle(row, col, "font-weight", "bold");
+  });
+};
+
 
   const changeTextColor = (color) => {
-    const selected = jss.current.getSelected();
-    if (!selected) return;
-    jss.current.setStyle(selected, "color", color);
-  };
+  const cells = getSelectedCells();
+  if (!cells.length) return;
+
+  cells.forEach(([row, col]) => {
+    jss.current.setStyle(row, col, "color", color);
+  });
+};
+
 
   const changeBgColor = (color) => {
-    const selected = jss.current.getSelected();
-    if (!selected) return;
-    jss.current.setStyle(selected, "background-color", color);
-  };
+  const cells = getSelectedCells();
+  if (!cells.length) return;
+
+  cells.forEach(([row, col]) => {
+    jss.current.setStyle(row, col, "background-color", color);
+  });
+};
+
 
   const changeFontSize = () => {
-    const px = fontSize.trim();
-    if (!px) return;
+  const px = fontSize.trim();
+  if (!px) return;
 
-    const selected = jss.current.getSelected();
-    if (!selected) return;
+  const cells = getSelectedCells();
+  if (!cells.length) return;
 
-    jss.current.setStyle(selected, "font-size", `${px}px`);
-  };
+  cells.forEach(([row, col]) => {
+    jss.current.setStyle(row, col, "font-size", `${px}px`);
+  });
+};
 
+
+
+  
 
   const handleSave = async () => {
     if (!jss.current) return;
