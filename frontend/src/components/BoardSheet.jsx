@@ -41,6 +41,10 @@ export default function BoardSheet() {
           // ★ 반드시 넣어야 selection 업데이트 정상 동작함
           onselection: () => {},
         });
+        // ★ v4가 로딩되었는지 확인하는 핵심 로그
+            console.log("Loaded jexcel:", jexcel);
+            console.log("jss instance:", jss.current);
+
       } catch (err) {
         console.error("시트 로드 오류:", err);
       }
@@ -184,7 +188,6 @@ export default function BoardSheet() {
           style={numberInputStyle}
         />
         <button style={btnStyle} onClick={changeFontSize}>적용</button>
-
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
       </div>
