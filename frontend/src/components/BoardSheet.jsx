@@ -16,7 +16,7 @@ export default function BoardSheet() {
   const selectionRef = useRef([]);
 
   const [groupName, setGroupName] = useState("");
-  const [fontSize, setFontSize] = useState("14");
+//   const [fontSize, setFontSize] = useState("14");
 
   useEffect(() => {
     const loadSheet = async () => {
@@ -65,43 +65,43 @@ export default function BoardSheet() {
   /* ======================================
      선택된 셀 제공
   ====================================== */
-  const getSelectedCells = () => {
-    return selectionRef.current || [];
-  };
+//   const getSelectedCells = () => {
+//     return selectionRef.current || [];
+//   };
 
   /* ======================================
       스타일 적용 함수들
   ====================================== */
-  const setBold = () => {
-    const cells = getSelectedCells();
-    cells.forEach(([r, c]) => {
-      jss.current.setStyle(r, c, "font-weight", "bold");
-    });
-  };
+//   const setBold = () => {
+//     const cells = getSelectedCells();
+//     cells.forEach(([r, c]) => {
+//       jss.current.setStyle(r, c, "font-weight", "bold");
+//     });
+//   };
 
-  const changeTextColor = (color) => {
-    const cells = getSelectedCells();
-    cells.forEach(([r, c]) => {
-      jss.current.setStyle(r, c, "color", color);
-    });
-  };
+//   const changeTextColor = (color) => {
+//     const cells = getSelectedCells();
+//     cells.forEach(([r, c]) => {
+//       jss.current.setStyle(r, c, "color", color);
+//     });
+//   };
 
-  const changeBgColor = (color) => {
-    const cells = getSelectedCells();
-    cells.forEach(([r, c]) => {
-      jss.current.setStyle(r, c, "background-color", color);
-    });
-  };
+//   const changeBgColor = (color) => {
+//     const cells = getSelectedCells();
+//     cells.forEach(([r, c]) => {
+//       jss.current.setStyle(r, c, "background-color", color);
+//     });
+//   };
 
-  const changeFontSize = () => {
-    const px = fontSize.trim();
-    if (!px) return;
+//   const changeFontSize = () => {
+//     const px = fontSize.trim();
+//     if (!px) return;
 
-    const cells = getSelectedCells();
-    cells.forEach(([r, c]) => {
-      jss.current.setStyle(r, c, "font-size", `${px}px`);
-    });
-  };
+//     const cells = getSelectedCells();
+//     cells.forEach(([r, c]) => {
+//       jss.current.setStyle(r, c, "font-size", `${px}px`);
+//     });
+//   };
 
   /* ======================================
       저장 및 다운로드
@@ -130,7 +130,7 @@ export default function BoardSheet() {
 
       {/* 커스텀 툴바 */}
       <div style={toolbarStyle}>
-        <button style={btnStyle} onClick={setBold}>Bold</button>
+        {/* <button style={btnStyle} onClick={setBold}>Bold</button>
 
         <label style={labelStyle}>글자색</label>
         <input
@@ -156,7 +156,7 @@ export default function BoardSheet() {
           onChange={(e) => setFontSize(e.target.value)}
         />
 
-        <button style={btnStyle} onClick={changeFontSize}>적용</button>
+        <button style={btnStyle} onClick={changeFontSize}>적용</button> */}
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
       </div>
@@ -182,29 +182,29 @@ const toolbarStyle = {
   borderRadius: "8px",
 };
 
-const btnStyle = {
-  padding: "6px 10px",
-  background: "#eee",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  cursor: "pointer",
-};
+// const btnStyle = {
+//   padding: "6px 10px",
+//   background: "#eee",
+//   border: "1px solid #ccc",
+//   borderRadius: "4px",
+//   cursor: "pointer",
+// };
 
-const labelStyle = { fontSize: "14px" };
+// const labelStyle = { fontSize: "14px" };
 
-const colorPickerStyle = {
-  width: "32px",
-  height: "32px",
-  border: "none",
-  cursor: "pointer",
-};
+// const colorPickerStyle = {
+//   width: "32px",
+//   height: "32px",
+//   border: "none",
+//   cursor: "pointer",
+// };
 
-const numberInputStyle = {
-  width: "60px",
-  padding: "4px",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-};
+// const numberInputStyle = {
+//   width: "60px",
+//   padding: "4px",
+//   border: "1px solid #ccc",
+//   borderRadius: "4px",
+// };
 
 const blueBtn = {
   padding: "6px 12px",
