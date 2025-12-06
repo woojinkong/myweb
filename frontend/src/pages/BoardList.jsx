@@ -252,8 +252,14 @@ function BoardRow({ board, navigate, BASE_URL }) {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap"
-            }}>{new Date(board.createdDate).toLocaleDateString()}</span>
-          </div>
+            }}>{new Date(board.createdDate).toLocaleDateString()}
+            </span>
+             <span>·</span>
+              {/* 👁 조회수 표시 추가 */}
+              <span style={{ whiteSpace: "nowrap", color: "#666", fontSize: "11px" }}>
+                👁 {board.viewCount}
+              </span>
+            </div>
         </div>
 
       </div>
