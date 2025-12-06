@@ -104,6 +104,13 @@
   background: transparent !important;
 }
 
+/* 📌 v4 검색창을 맨 왼쪽으로 이동 (완벽버전) */
+.jss-container .jtoolbar .jtoolbar-search,
+.jss-container .jtoolbar .jexcel_search {
+  order: -1 !important;
+  margin-right: 10px !important;
+}
+
 
 /* ============================================
    📱 Mobile (최대 768px)
