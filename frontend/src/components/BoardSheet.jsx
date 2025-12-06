@@ -3,9 +3,8 @@ import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
 // v4는 jspreadsheet가 아니라 jexcel로 import
-import jexcel from "jspreadsheet-ce";
-
-import "jspreadsheet-ce/dist/jspreadsheet.css";
+import jexcel from "jexcel";
+import "jexcel/dist/jexcel.css";
 import "jsuites/dist/jsuites.css";
 
 export default function BoardSheet() {

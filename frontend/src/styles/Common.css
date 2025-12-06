@@ -110,6 +110,27 @@
   order: -1 !important;
   margin-right: 10px !important;
 }
+.jss-container * {
+  font-family: inherit !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}
+.jss-container table {
+  max-width: none !important;
+  width: auto !important;
+  table-layout: auto !important;
+}
+.jss-container td,
+.jss-container th {
+  max-width: none !important;
+  white-space: normal !important;
+}
+.jss-container td {
+  vertical-align: middle !important;
+  overflow: visible !important;
+  background-color: inherit !important;
+}
+
 
 
 /* ============================================
