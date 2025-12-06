@@ -53,7 +53,8 @@ export default function BoardSheet() {
   const handleSave = async () => {
     if (!jss) return;
 
-    const jsonData = JSON.stringify(jss.getJson());
+    const jsonData = JSON.stringify(jss.getData());
+
 
     try {
       await axiosInstance.post(`/sheet/${groupId}`, jsonData, {
