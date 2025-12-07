@@ -1,24 +1,71 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-
-// ⭐ jspreadsheet v4.13.2 import
-import jspreadsheet from "jspreadsheet-ce";
-import "jspreadsheet-ce/dist/jspreadsheet.css";
-import "jsuites/dist/jsuites.css";
+import DataGrid from "react-data-grid";
+import "react-data-grid/lib/styles.css";
 
 export default function BoardSheet() {
   const { groupId } = useParams();
-  const sheetRef = useRef(null);
-  const jss = useRef(null);
-
-  const selectionRef = useRef([]);
 
   const [groupName, setGroupName] = useState("");
-//   const [fontSize, setFontSize] = useState("14");
+  const [columns, setColumns] = useState([]);
+  const [rows, setRows] = useState([]);
 
+  /* ------------------------------------------------------
+    1) 2D 배열 → React Data Grid 구조로 변환
+  ------------------------------------------------------ */
+  const convert2DToGrid = (data2d) => {
+    if (!data2d || data2d.length === 0) {
+      // 기본 10x30 시트 제공
+      const defaultCols = [...Array(10)].map((_, i) => ({
+        key: `col${i}`,
+        name: `${i + 1}열`,
+        editable: true
+      }));
+
+      const defaultRows = [...Array(30)].map((_, r) => {
+        const obj = { id: r };
+        for (let c = 0; c < 10; c++) obj[`col${c}`] = "";
+        return obj;
+      });
+
+      return { columns: defaultCols, rows: defaultRows };
+    }
+
+    const colCount = data2d[0].length;
+
+    const cols = [...Array(colCount)].map((_, i) => ({
+      key: `col${i}`,
+      name: `${i + 1}열`,
+      editable: true
+    }));
+
+    const newRows = data2d.map((rowArr, rowIndex) => {
+      const obj = { id: rowIndex };
+      rowArr.forEach((v, colIndex) => {
+        obj[`col${colIndex}`] = v ?? "";
+      });
+      return obj;
+    });
+
+    return { columns: cols, rows: newRows };
+  };
+
+  /* ------------------------------------------------------
+    2) React Data Grid rows → 2D 배열로 변환 (저장)
+  ------------------------------------------------------ */
+  const convertGridTo2D = () => {
+    const result = rows.map((row) =>
+      columns.map((c) => row[c.key] ?? "")
+    );
+    return result;
+  };
+
+  /* ------------------------------------------------------
+    3) 초기 데이터 로드
+  ------------------------------------------------------ */
   useEffect(() => {
-    const loadSheet = async () => {
+    const load = async () => {
       try {
         const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
         setGroupName(groupRes.data.name);
@@ -26,176 +73,91 @@ export default function BoardSheet() {
         const res = await axiosInstance.get(`/sheet/${groupId}`);
         const sheetJson = res.data.sheetData ? JSON.parse(res.data.sheetData) : [];
 
-        if (sheetRef.current) sheetRef.current.innerHTML = "";
-
-        jss.current = jspreadsheet(sheetRef.current, {
-          data: sheetJson,
-          minDimensions: [10, 30],
-          tableHeight: "620px",
-          tableOverflow: true,
-          filters: true,
-          search: true,
-          columnSorting: true,
-          toolbar: true,
-
-          onselection: (instance, x1, y1, x2, y2) => {
-            const selected = [];
-            for (let r = y1; r <= y2; r++) {
-              for (let c = x1; c <= x2; c++) {
-                selected.push([r, c]);
-              }
-            }
-            selectionRef.current = selected;
-          }
-        });
+        const converted = convert2DToGrid(sheetJson);
+        setColumns(converted.columns);
+        setRows(converted.rows);
 
       } catch (err) {
-        console.error("시트 로드 오류:", err);
+        console.error("시트 불러오기 오류:", err);
       }
     };
-
-    loadSheet();
+    load();
   }, [groupId]);
 
-//   const getSelectedCells = () => {
-//     return selectionRef.current || [];
-//   };
+  /* ------------------------------------------------------
+    4) 행 추가
+  ------------------------------------------------------ */
+  const addRow = () => {
+    const newRow = { id: rows.length };
+    columns.forEach((c) => {
+      newRow[c.key] = "";
+    });
+    setRows([...rows, newRow]);
+  };
 
-//   // ⭐ Bold
-//   const setBold = () => {
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "font-weight", "bold");
-//     });
-//   };
+  /* ------------------------------------------------------
+    5) 열 추가
+  ------------------------------------------------------ */
+  const addColumn = () => {
+    const newColIndex = columns.length;
+    const newKey = `col${newColIndex}`;
 
-//   // ⭐ 글자색
-//   const changeTextColor = (color) => {
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "color", color);
-//     });
-//   };
+    const newCol = { key: newKey, name: `${newColIndex + 1}열`, editable: true };
+    const newColumns = [...columns, newCol];
 
-//   // ⭐ 배경색
-//   const changeBgColor = (color) => {
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "background-color", color);
-//     });
-//   };
+    const newRows = rows.map((r) => ({
+      ...r,
+      [newKey]: ""
+    }));
 
-  // ⭐ 폰트 크기
-//   const changeFontSize = () => {
-//     const px = fontSize.trim();
-//     if (!px) return;
+    setColumns(newColumns);
+    setRows(newRows);
+  };
 
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "font-size", `${px}px`);
-//     });
-//   };
-
-  // ⭐ 저장 기능
-  const handleSave = async () => {
-    const jsonData = JSON.stringify(jss.current.getJson());
+  /* ------------------------------------------------------
+    6) 저장 (rows → 2D 변환 후 백엔드 전송)
+  ------------------------------------------------------ */
+  const saveSheet = async () => {
+    const array2d = convertGridTo2D();
     try {
-      await axiosInstance.post(`/sheet/${groupId}`, jsonData, {
+      await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(array2d), {
         headers: { "Content-Type": "application/json" }
       });
       alert("저장 완료!");
-    } catch {
-      alert("저장 실패!");
+    } catch (err) {
+      alert("저장 실패",err);
     }
-  };
-
-  // ⭐ 엑셀 다운로드
-  const handleExport = () => {
-    if (jss.current) jss.current.download();
   };
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-      <h2>📄 {groupName || "시트"}</h2>
+      <h2>📄 {groupName}</h2>
 
-      <div style={toolbarStyle}>
-        {/* <button style={btnStyle} onClick={setBold}>Bold</button>
-
-        <label style={labelStyle}>글자색</label>
-        <input type="color" style={colorPickerStyle} onChange={(e) => changeTextColor(e.target.value)} />
-
-        <label style={labelStyle}>배경색</label>
-        <input type="color" style={colorPickerStyle} onChange={(e) => changeBgColor(e.target.value)} />
-
-        <label style={labelStyle}>폰트(px)</label>
-        <input type="number" min="8" max="40" value={fontSize}
-               style={numberInputStyle}
-               onChange={(e) => setFontSize(e.target.value)} /> */}
-
-        {/* <button style={btnStyle} onClick={changeFontSize}>적용</button> */}
-
-        <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
-        <button onClick={handleSave} style={greenBtn}>저장</button>
+      {/* 커스텀 툴바 */}
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "10px",
+          padding: "10px",
+          background: "#f7f7f7",
+          borderRadius: "6px",
+          border: "1px solid #ddd"
+        }}
+      >
+        <button onClick={addRow}>행 추가</button>
+        <button onClick={addColumn}>열 추가</button>
+        <button onClick={saveSheet}>저장</button>
       </div>
 
-      <div className="jss-container">
-        <div ref={sheetRef}></div>
+      {/* React Data Grid */}
+      <div style={{ height: "650px" }}>
+        <DataGrid
+          columns={columns}
+          rows={rows}
+          onRowsChange={setRows}
+        />
       </div>
     </div>
   );
 }
-
-/* =========================== 스타일 ====================== */
-
-const toolbarStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  marginBottom: "12px",
-  background: "#f5f5f5",
-  padding: "10px",
-  border: "1px solid #ddd",
-  borderRadius: "8px"
-};
-
-// const btnStyle = {
-//   padding: "6px 10px",
-//   background: "#eee",
-//   border: "1px solid #ccc",
-//   borderRadius: "4px",
-//   cursor: "pointer"
-// };
-
-// const labelStyle = { fontSize: "14px" };
-
-// const colorPickerStyle = {
-//   width: "32px",
-//   height: "32px",
-//   border: "none",
-//   cursor: "pointer"
-// };
-
-// const numberInputStyle = {
-//   width: "60px",
-//   padding: "4px",
-//   border: "1px solid #ccc",
-//   borderRadius: "4px"
-// };
-
-const blueBtn = {
-  padding: "6px 12px",
-  background: "#2196f3",
-  color: "#fff",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer"
-};
-
-const greenBtn = {
-  padding: "6px 12px",
-  background: "#4caf50",
-  color: "#fff",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer"
-};
