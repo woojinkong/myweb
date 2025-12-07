@@ -29,7 +29,6 @@ import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
 import BoardSheet from "./components/BoardSheet";
-import HotSheet from "./components/HotSheet";
 
 //라우터만담당
 function App() {
@@ -147,12 +146,6 @@ function App() {
                 path="/sheet/:groupId"
                 element={
                   <BoardSheet />
-                }
-              />
-              <Route
-                path="/hot-sheet/:groupId"
-                element={
-                  <HotSheet />
                 }
               />
 
