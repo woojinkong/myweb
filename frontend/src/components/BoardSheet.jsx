@@ -11,13 +11,13 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jss = useRef(null);
 
-  const selectionRef = useRef([]);
+  const selectionRef = useRef(null); // { x1, y1, x2, y2 }
   const [groupName, setGroupName] = useState("");
   const [selectedText, setSelectedText] = useState("");
 
-  /* -----------------------------------------------------
-     A1 좌표 변환
-  ----------------------------------------------------- */
+  /* ---------------------------------------------
+     A1 좌표 → "A1" 문자열 변환
+  --------------------------------------------- */
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let colName = "";
@@ -28,9 +28,9 @@ export default function BoardSheet() {
     return colName + (row + 1);
   };
 
-  /* -----------------------------------------------------
+  /* ---------------------------------------------
      IME 한국어 강제 적용
-  ----------------------------------------------------- */
+  --------------------------------------------- */
   const forceKoreanIME = (cell) => {
     const apply = () => {
       const input = cell.querySelector("input");
@@ -42,7 +42,6 @@ export default function BoardSheet() {
       input.setAttribute("autocomplete", "off");
       input.setAttribute("autocorrect", "off");
       input.setAttribute("spellcheck", "false");
-
       input.style.imeMode = "active";
 
       input.focus();
@@ -51,9 +50,9 @@ export default function BoardSheet() {
     setTimeout(apply, 5);
   };
 
-  /* -----------------------------------------------------
+  /* ---------------------------------------------
      시트 로딩
-  ----------------------------------------------------- */
+  --------------------------------------------- */
   useEffect(() => {
     const loadSheet = async () => {
       try {
@@ -61,16 +60,16 @@ export default function BoardSheet() {
         setGroupName(groupRes.data.name);
 
         const res = await axiosInstance.get(`/sheet/${groupId}`);
-        const json = res.data.sheetData ? JSON.parse(res.data.sheetData) : null;
+        const json = res.data.sheetData ? JSON.parse(res.data.sheetData) : {};
 
         if (sheetRef.current) sheetRef.current.innerHTML = "";
 
-        const colWidths = json?.columnWidth || [];
-        const rowHeights = json?.rowHeight || [];
+        const colWidths = json.columnWidth || [];
+        const rowHeights = json.rowHeight || [];
 
         jss.current = jspreadsheet(sheetRef.current, {
-          data: json?.data || [[]],                 // <-- 최소 Row 보정
-          style: json?.style || {},
+          data: json.data || [[]],
+          style: json.style || {},
 
           columns: colWidths.map((w) => ({ width: w })),
           rows: rowHeights.reduce((acc, h, i) => {
@@ -86,11 +85,10 @@ export default function BoardSheet() {
           columnSorting: true,
           rowResize: true,
           editable: true,
-          textInput: true,
 
-          /* -----------------------------------------------------
-             로딩후 KeyDown 필터 (편집모드 진입 금지)
-          ----------------------------------------------------- */
+          /* ---------------------------------------------
+             로딩 후: 선택상태 문자입력 방지 (영문1타 버그 방지)
+          --------------------------------------------- */
           onload: (instance) => {
             const target = instance.content;
             if (!target) return;
@@ -117,29 +115,27 @@ export default function BoardSheet() {
             });
           },
 
-          /* -----------------------------------------------------
-             편집 시작 시 IME 적용
-          ----------------------------------------------------- */
+          /* ---------------------------------------------
+             편집 시작 → IME 적용
+          --------------------------------------------- */
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
 
-          /* -----------------------------------------------------
-             셀 선택 이벤트 (안전장치 추가)
-          ----------------------------------------------------- */
-          onselection: (instance, x1, y1) => {
+          /* ---------------------------------------------
+             드래그 선택 (범위 저장)
+          --------------------------------------------- */
+          onselection: (instance, x1, y1, x2, y2) => {
             if (!jss.current) return;
-            if (x1 == null || y1 == null) return;
+            selectionRef.current = { x1, y1, x2, y2 };
 
             const cellName = toCellName(x1, y1);
             const v = jss.current.getValue(cellName);
             setSelectedText(v ?? "");
-
-            selectionRef.current = [[y1, x1]];
           },
 
-          /* -----------------------------------------------------
-             클릭 시 내용만 표시 (편집 금지)
-          ----------------------------------------------------- */
+          /* ---------------------------------------------
+             클릭 시 텍스트만 표시
+          --------------------------------------------- */
           onclick: (instance, cell, x, y) => {
             if (!jss.current) return;
             const cellName = toCellName(x, y);
@@ -155,21 +151,18 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
-  /* -----------------------------------------------------
+  /* ---------------------------------------------
      저장
-  ----------------------------------------------------- */
+  --------------------------------------------- */
   const handleSave = async () => {
-    if (!jss.current) {
-      alert("시트가 아직 로드되지 않았습니다.");
-      return;
-    }
+    if (!jss.current) return alert("시트가 아직 로드되지 않았습니다.");
 
-    const data = jss.current.getJson();
-    const style = jss.current.getStyle();
-    const columnWidth = jss.current.getWidth();
-    const rowHeight = jss.current.getHeight();
-
-    const saveObj = { data, style, columnWidth, rowHeight };
+    const saveObj = {
+      data: jss.current.getJson(),
+      style: jss.current.getStyle(),
+      columnWidth: jss.current.getWidth(),
+      rowHeight: jss.current.getHeight(),
+    };
 
     try {
       await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(saveObj), {
@@ -181,75 +174,86 @@ export default function BoardSheet() {
     }
   };
 
-  /* -----------------------------------------------------
-     배경색 적용
-  ----------------------------------------------------- */
+  /* ---------------------------------------------
+     선택범위 전체 적용 유틸
+  --------------------------------------------- */
+  const applyToSelection = (callback) => {
+    const range = selectionRef.current;
+    if (!range || !jss.current) return;
+
+    const { x1, y1, x2, y2 } = range;
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
+        const cell = toCellName(x, y);
+        callback(cell, x, y);
+      }
+    }
+  };
+
+  /* ---------------------------------------------
+     배경색
+  --------------------------------------------- */
   const applyBgColor = (color) => {
-    if (!jss.current) return;
-
-    selectionRef.current.forEach(([r, c]) => {
-      jss.current.setStyle(toCellName(c, r), "background-color", color);
-    });
+    applyToSelection((cell) =>
+      jss.current.setStyle(cell, "background-color", color)
+    );
   };
 
-  /* -----------------------------------------------------
-     행·열 크기 초기화
-  ----------------------------------------------------- */
-  const resetRowColSize = () => {
-    if (!jss.current) return;
-
-    const rows = jss.current.options.data.length;
-    const cols = jss.current.options.data[0]?.length || 10;
-
-    for (let r = 0; r < rows; r++) jss.current.setHeight(r, 30);
-    for (let c = 0; c < cols; c++) jss.current.setWidth(c, 100);
-  };
-
-  /* -----------------------------------------------------
+  /* ---------------------------------------------
      Bold
-  ----------------------------------------------------- */
+  --------------------------------------------- */
   const toggleBold = () => {
-    if (!jss.current) return;
-
-    selectionRef.current.forEach(([r, c]) => {
-      const cell = toCellName(c, r);
-      const w = jss.current.getStyle(cell)?.["font-weight"];
-      jss.current.setStyle(cell, "font-weight", w === "bold" ? "normal" : "bold");
+    applyToSelection((cell) => {
+      const cur = jss.current.getStyle(cell)?.["font-weight"];
+      const next = cur === "bold" ? "normal" : "bold";
+      jss.current.setStyle(cell, "font-weight", next);
     });
   };
 
-  /* -----------------------------------------------------
+  /* ---------------------------------------------
      폰트 크기
-  ----------------------------------------------------- */
+  --------------------------------------------- */
   const applyFontSize = (size) => {
-    if (!jss.current) return;
-
-    const fontSize = Number(size);
-    if (!fontSize) return;
+    const px = Number(size);
+    if (!px || !jss.current) return;
 
     const rowsToResize = new Set();
 
-    selectionRef.current.forEach(([r, c]) => {
-      jss.current.setStyle(toCellName(c, r), "font-size", fontSize + "px");
-      rowsToResize.add(r);
+    applyToSelection((cell, x, y) => {
+      jss.current.setStyle(cell, "font-size", px + "px");
+      rowsToResize.add(y);
     });
 
     rowsToResize.forEach((row) => {
-      const currentHeight = jss.current.getHeight(row);
-      const expected = fontSize + 10;
-
-      if (!currentHeight || currentHeight < expected) {
+      const expected = px + 10;
+      const current = jss.current.getHeight(row);
+      if (!current || current < expected) {
         jss.current.setRowHeight(row, expected);
       }
     });
   };
 
+  /* ---------------------------------------------
+     행/열 추가
+  --------------------------------------------- */
   const handleAddRow = () => jss.current?.insertRow();
   const handleAddCol = () => jss.current?.insertColumn();
 
-  /* -----------------------------------------------------
-     UI
-  ----------------------------------------------------- */
+  /* ---------------------------------------------
+     행·열 크기 초기화
+  --------------------------------------------- */
+  const resetRowColSize = () => {
+    const data = jss.current.options.data;
+    const rows = data.length;
+    const cols = data[0]?.length || 10;
+
+    for (let r = 0; r < rows; r++) jss.current.setHeight(r, 30);
+    for (let c = 0; c < cols; c++) jss.current.setWidth(c, 100);
+  };
+
+  /* ---------------------------------------------
+     UI 렌더링
+  --------------------------------------------- */
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
       <div style={headerRow}>
@@ -262,6 +266,7 @@ export default function BoardSheet() {
         />
       </div>
 
+      {/* ---------------------------- Toolbar ---------------------------- */}
       <div style={toolbarWrapper}>
         <div style={toolbarGroup}>
           <button onClick={handleAddRow} style={toolbarBtn}>＋ 행</button>
@@ -287,9 +292,7 @@ export default function BoardSheet() {
           <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
             <option value="">크기</option>
             {[12, 14, 16, 18, 20, 24, 28, 36, 48].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
+              <option key={n} value={n}>{n}</option>
             ))}
           </select>
 
@@ -299,10 +302,12 @@ export default function BoardSheet() {
         </div>
       </div>
 
+      {/* 선택된 셀 내용 표시 */}
       <div style={selectedBoxStyle}>
         {selectedText || "선택된 셀 내용이 여기에 표시됩니다."}
       </div>
 
+      {/* 시트 */}
       <div className="jss-container">
         <div ref={sheetRef}></div>
       </div>
@@ -310,9 +315,9 @@ export default function BoardSheet() {
   );
 }
 
-/* -----------------------------------------------------
-   스타일 정의
------------------------------------------------------ */
+/* ---------------------------------------------
+   스타일
+--------------------------------------------- */
 const selectedBoxStyle = {
   margin: "10px 0 20px",
   padding: "12px",
@@ -329,7 +334,7 @@ const selectedBoxStyle = {
 
 const toolbarWrapper = {
   position: "sticky",
-  top: "0",
+  top: 0,
   zIndex: 20,
   display: "flex",
   alignItems: "center",
