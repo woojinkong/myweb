@@ -16,6 +16,20 @@ export default function BoardSheet() {
   const [groupName, setGroupName] = useState("");
 
   // ---------------------------------------
+  // ⭐ 숫자 좌표 → A1 형태로 변환 함수
+  // ---------------------------------------
+  const toCellName = (col, row) => {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let colName = "";
+
+    while (col >= 0) {
+      colName = letters[col % 26] + colName;
+      col = Math.floor(col / 26) - 1;
+    }
+    return colName + (row + 1);
+  };
+
+  // ---------------------------------------
   // 🔹 시트 로딩
   // ---------------------------------------
   useEffect(() => {
@@ -40,6 +54,7 @@ export default function BoardSheet() {
           columnSorting: true,
           toolbar: true,
 
+          // 선택된 셀 좌표 저장
           onselection: (instance, x1, y1, x2, y2) => {
             const selected = [];
             for (let r = y1; r <= y2; r++) {
@@ -58,7 +73,6 @@ export default function BoardSheet() {
 
     loadSheet();
   }, [groupId]);
-
 
   // ---------------------------------------
   // ⭐ 저장 기능(data + style)
@@ -88,28 +102,20 @@ export default function BoardSheet() {
   };
 
   // ---------------------------------------
-  // ⭐ 행 추가
+  // ⭐ 행/열 추가
   // ---------------------------------------
-  const handleAddRow = () => {
-    if (!jss.current) return;
-    jss.current.insertRow();
-  };
+  const handleAddRow = () => jss.current?.insertRow();
+  const handleAddCol = () => jss.current?.insertColumn();
 
   // ---------------------------------------
-  // ⭐ 열 추가
-  // ---------------------------------------
-  const handleAddCol = () => {
-    if (!jss.current) return;
-    jss.current.insertColumn();
-  };
-
-  // ---------------------------------------
-  // ⭐ 배경색 적용 공통 함수
+  // ⭐ 배경색 공통 적용 함수 (A1 주소 기반)
   // ---------------------------------------
   const applyBgColor = (color) => {
     if (!jss.current) return;
+
     selectionRef.current.forEach(([r, c]) => {
-      jss.current.setStyle(`${c}-${r}`, "background-color", color);
+      const cell = toCellName(c, r); // ← 여기서 "C3" 형태로 변환
+      jss.current.setStyle(cell, "background-color", color);
     });
   };
 
@@ -118,29 +124,18 @@ export default function BoardSheet() {
       <h2>📄 {groupName || "시트"}</h2>
 
       <div style={toolbarStyle}>
-
         {/* 행/열 추가 */}
         <button onClick={handleAddRow} style={blueBtn}>행 추가</button>
         <button onClick={handleAddCol} style={blueBtn}>열 추가</button>
 
         {/* 배경색 버튼 */}
-        <button onClick={() => applyBgColor("yellow")} style={colorBtn("#fff176")}>
-          노랑
-        </button>
-        <button onClick={() => applyBgColor("#eeeeee")} style={colorBtn("#eeeeee")}>
-          연한 회색
-        </button>
-        <button onClick={() => applyBgColor("#d0f8ce")} style={colorBtn("#d0f8ce")}>
-          연한 초록
-        </button>
-        <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>
-          연한 노랑
-        </button>
-        <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>
-          연한 주황
-        </button>
+        <button onClick={() => applyBgColor("#fff176")} style={colorBtn("#fff176")}>노랑</button>
+        <button onClick={() => applyBgColor("#eeeeee")} style={colorBtn("#eeeeee")}>연한 회색</button>
+        <button onClick={() => applyBgColor("#d0f8ce")} style={colorBtn("#d0f8ce")}>연한 초록</button>
+        <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>연한 노랑</button>
+        <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>연한 주황</button>
 
-        {/* 내보내기 + 저장 */}
+        {/* 다운로드 + 저장 */}
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
       </div>
