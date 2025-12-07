@@ -92,14 +92,18 @@ export default function HotSheet() {
   // 🔹 검색
   // -----------------------------------
   const handleSearch = (value) => {
-    setSearchText(value);
+  setSearchText(value);
 
-    const hot = hotRef.current.hotInstance;
-    const searchPlugin = hot.getPlugin("search");
+  const hot = hotRef.current?.hotInstance;
+  if (!hot) return;
 
-    searchPlugin.query(value);
-    hot.render();
-  };
+  const searchPlugin = hot.getPlugin("search");
+  if (!searchPlugin) return;
+
+  searchPlugin.query(value);
+  hot.render();
+};
+
 
   if (!sheetData.length) return <p style={{ padding: 20 }}>시트 로딩 중...</p>;
 
