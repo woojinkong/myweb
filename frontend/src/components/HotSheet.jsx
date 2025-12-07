@@ -5,13 +5,11 @@ import axiosInstance from "../api/axiosInstance";
 
 import Handsontable from "handsontable";
 import { HotTable } from "@handsontable/react-wrapper";
-
-// Handsontable 스타일
 import "handsontable/dist/handsontable.full.min.css";
 
-// ⭐ 엑셀 다운로드 플러그인
+// ⭐ ExportFile 플러그인 정확한 경로
 import { registerPlugin } from "handsontable/plugins";
-import { ExportFile } from "handsontable/plugins/exportFile";
+import ExportFile from "handsontable/plugins/exportFile/exportFile";
 registerPlugin(ExportFile);
 
 export default function HotSheet() {
@@ -20,9 +18,6 @@ export default function HotSheet() {
   const [sheetData, setSheetData] = useState([]);
   const hotRef = useRef(null);
 
-  /* ---------------------------------------------------------
-    1) 데이터 로딩
-  --------------------------------------------------------- */
   useEffect(() => {
     const load = async () => {
       try {
@@ -33,9 +28,7 @@ export default function HotSheet() {
         const json = res.data.sheetData ? JSON.parse(res.data.sheetData) : [];
 
         if (json.length === 0) {
-          const empty = Array(30)
-            .fill(null)
-            .map(() => Array(10).fill(""));
+          const empty = Array(30).fill(null).map(() => Array(10).fill(""));
           setSheetData(empty);
         } else {
           setSheetData(json);
@@ -47,9 +40,6 @@ export default function HotSheet() {
     load();
   }, [groupId]);
 
-  /* ---------------------------------------------------------
-    2) 저장
-  --------------------------------------------------------- */
   const saveSheet = async () => {
     const hot = hotRef.current.hotInstance;
     const data = hot.getData();
@@ -65,9 +55,6 @@ export default function HotSheet() {
     }
   };
 
-  /* ---------------------------------------------------------
-    3) CSV/엑셀 다운로드
-  --------------------------------------------------------- */
   const exportExcel = () => {
     const hot = hotRef.current.hotInstance;
     const plugin = hot.getPlugin("exportFile");
@@ -78,9 +65,6 @@ export default function HotSheet() {
     });
   };
 
-  /* ---------------------------------------------------------
-    4) 셀 스타일 커스터마이즈 (배경색 + 글자크기)
-  --------------------------------------------------------- */
   const customRenderer = (instance, td, row, col, prop, value) => {
     Handsontable.renderers.TextRenderer.apply(this, [
       instance,
@@ -91,19 +75,16 @@ export default function HotSheet() {
       value,
     ]);
 
-    // 셀 배경색
     if (String(value).includes("!yellow")) {
       td.style.backgroundColor = "#fff6b2";
       td.innerText = value.replace("!yellow", "");
     }
 
-    // 글자 크게
     if (String(value).includes("!big")) {
       td.style.fontSize = "16px";
       td.innerText = value.replace("!big", "");
     }
 
-    // 글자 작게
     if (String(value).includes("!small")) {
       td.style.fontSize = "11px";
       td.innerText = value.replace("!small", "");
@@ -112,14 +93,10 @@ export default function HotSheet() {
 
   if (!sheetData.length) return <p style={{ padding: 20 }}>시트 로딩 중...</p>;
 
-  /* ==========================================================
-      RENDER
-  ========================================================== */
   return (
     <div style={{ padding: "20px", maxWidth: "1300px", margin: "auto" }}>
       <h2>📘 Handsontable 시트 — {groupName}</h2>
 
-      {/* 버튼 영역 */}
       <div style={{ marginBottom: "12px", display: "flex", gap: "10px" }}>
         <button
           onClick={saveSheet}
@@ -150,7 +127,6 @@ export default function HotSheet() {
         </button>
       </div>
 
-      {/* 🔥 최종 Handsontable */}
       <HotTable
         ref={hotRef}
         data={sheetData}
@@ -165,7 +141,7 @@ export default function HotSheet() {
         dropdownMenu={true}
         mergeCells={true}
         width="100%"
-        height="650"
+        height={650}
         stretchH="all"
         licenseKey="non-commercial-and-evaluation"
         colWidths={120}
