@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
+// ⭐ jspreadsheet import
 import jspreadsheet from "jspreadsheet-ce";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
-
-import Modal from "../components/Modal";   // ⭐ 네가 제공한 모달
 
 export default function BoardSheet() {
   const { groupId } = useParams();
@@ -16,10 +15,8 @@ export default function BoardSheet() {
   const selectionRef = useRef([]);
   const [groupName, setGroupName] = useState("");
 
-  // ⭐ 모달 관련 상태
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCell, setEditingCell] = useState({ x: null, y: null });
-  const [editingValue, setEditingValue] = useState("");
+  // ⭐ 선택된 셀 내용 표시용 상태
+  const [selectedText, setSelectedText] = useState("");
 
   // ---------------------------------------
   // A1 표기법 변환
@@ -60,28 +57,23 @@ export default function BoardSheet() {
           columnSorting: true,
           toolbar: true,
 
-          // ⭐ 선택 좌표 저장
-          onselection: (instance, x1, y1, x2, y2) => {
-            const selected = [];
-            for (let r = y1; r <= y2; r++) {
-              for (let c = x1; c <= x2; c++) {
-                selected.push([r, c]);
-              }
-            }
-            selectionRef.current = selected;
-          },
+          // ⭐ 셀 선택될 때마다 텍스트 표시
+          onselection: (instance, x1, y1) => {
+            selectionRef.current = [[y1, x1]];
+            const cellName = toCellName(x1, y1);
+            const value = instance.getValue(cellName) ?? "";
+            setSelectedText(value);
+            },
 
-          // ⭐ 더블클릭 → 모달 오픈
-          oncellDblClick: (instance, cell, x, y) => {
+
+          // ⭐ 셀 클릭 시에도 텍스트 업데이트
+          onclick: (instance, cell, x, y) => {
             const cellName = toCellName(x, y);
             const value = instance.getValue(cellName) ?? "";
-
-            setEditingCell({ x, y });
-            setEditingValue(value);
-
-            setModalOpen(true);
+            setSelectedText(value);
           },
         });
+
       } catch (err) {
         console.error("시트 로드 오류:", err);
       }
@@ -91,16 +83,22 @@ export default function BoardSheet() {
   }, [groupId]);
 
   // ---------------------------------------
-  // ⭐ 팝업(모달)에서 저장
+  // ⭐ 저장(data + style)
   // ---------------------------------------
-  const saveEdit = () => {
-    const { x, y } = editingCell;
-    if (x === null || y === null) return;
+  const handleSave = async () => {
+    const data = jss.current.getJson();
+    const style = jss.current.getStyle();
 
-    const cellName = toCellName(x, y);
-    jss.current.setValue(cellName, editingValue);
+    const saveObj = { data, style };
 
-    setModalOpen(false);
+    try {
+      await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(saveObj), {
+        headers: { "Content-Type": "application/json" },
+      });
+      alert("저장 완료!");
+    } catch {
+      alert("저장 실패!");
+    }
   };
 
   // ---------------------------------------
@@ -110,7 +108,7 @@ export default function BoardSheet() {
   const handleAddCol = () => jss.current?.insertColumn();
 
   // ---------------------------------------
-  // ⭐ 배경색 적용
+  // ⭐ 배경색
   // ---------------------------------------
   const applyBgColor = (color) => {
     if (!jss.current) return;
@@ -119,27 +117,6 @@ export default function BoardSheet() {
       const cell = toCellName(c, r);
       jss.current.setStyle(cell, "background-color", color);
     });
-  };
-
-  // ---------------------------------------
-  // ⭐ 저장(data + style)
-  // ---------------------------------------
-  const saveSheet = async () => {
-    const data = jss.current.getJson();
-    const style = jss.current.getStyle();
-
-    const saveObj = { data, style };
-
-    try {
-      await axiosInstance.post(
-        `/sheet/${groupId}`,
-        JSON.stringify(saveObj),
-        { headers: { "Content-Type": "application/json" } }
-      );
-      alert("저장 완료!");
-    } catch {
-      alert("저장 실패!");
-    }
   };
 
   return (
@@ -157,61 +134,38 @@ export default function BoardSheet() {
         <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>연주황</button>
 
         <button onClick={() => jss.current?.download()} style={blueBtn}>엑셀 다운로드</button>
-        <button onClick={saveSheet} style={greenBtn}>저장</button>
+        <button onClick={handleSave} style={greenBtn}>저장</button>
+      </div>
+
+      {/* ⭐ 툴바 아래 셀 내용 표시 박스 */}
+      <div style={selectedBoxStyle}>
+        {selectedText ? selectedText : "선택된 셀 내용이 여기에 표시됩니다."}
       </div>
 
       <div className="jss-container">
         <div ref={sheetRef}></div>
       </div>
-
-      {/* ⭐ 셀 내용 수정 모달 */}
-      {modalOpen && (
-        <Modal
-          title="셀 내용 수정"
-          onClose={() => setModalOpen(false)}
-          content={
-            <div>
-              <textarea
-                value={editingValue}
-                onChange={(e) => setEditingValue(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "150px",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  border: "1px solid #ccc",
-                  resize: "vertical",
-                }}
-              />
-
-              <button
-                onClick={saveEdit}
-                style={{
-                  marginTop: "10px",
-                  width: "100%",
-                  padding: "10px",
-                  background: "#28a745",
-                  border: "none",
-                  borderRadius: "6px",
-                  color: "white",
-                  fontSize: "14px",
-                  cursor: "pointer"
-                }}
-              >
-                저장
-              </button>
-            </div>
-          }
-        />
-      )}
     </div>
   );
 }
 
-
 // -----------------------------------------------------
 // 스타일
 // -----------------------------------------------------
+const selectedBoxStyle = {
+  margin: "10px 0 20px 0",
+  padding: "12px",
+  minHeight: "70px",
+  background: "#fafafa",
+  border: "1px solid #ccc",
+  borderRadius: "6px",
+  whiteSpace: "pre-wrap", // ⭐ 줄바꿈 유지
+  overflowY: "auto",
+  maxHeight: "200px",
+  fontSize: "14px",
+  lineHeight: "1.5",
+};
+
 const toolbarStyle = {
   display: "flex",
   alignItems: "center",
