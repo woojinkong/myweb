@@ -11,9 +11,11 @@ export default function HotSheet() {
   const { groupId } = useParams();
   const [groupName, setGroupName] = useState("");
   const [sheetData, setSheetData] = useState([]);
+  const [searchText, setSearchText] = useState("");
+
   const hotRef = useRef(null);
 
-  // 1) 서버에서 데이터 로드
+  // 1) 데이터 로드
   useEffect(() => {
     const load = async () => {
       try {
@@ -38,7 +40,8 @@ export default function HotSheet() {
     load();
   }, [groupId]);
 
-  // 2) 저장
+
+  // 2) 저장 기능
   const saveSheet = async () => {
     const hot = hotRef.current.hotInstance;
     const data = hot.getData();
@@ -54,29 +57,69 @@ export default function HotSheet() {
     }
   };
 
+
+  // 3) 행 추가
+  const addRow = () => {
+    const hot = hotRef.current.hotInstance;
+    hot.alter("insert_row", hot.countRows()); // 마지막에 추가
+  };
+
+
+  // 4) 열 추가
+  const addCol = () => {
+    const hot = hotRef.current.hotInstance;
+    hot.alter("insert_col", hot.countCols());
+  };
+
+
+  // 5) 검색 기능 적용
+  const handleSearch = (value) => {
+    setSearchText(value);
+
+    const hot = hotRef.current.hotInstance;
+    const searchPlugin = hot.getPlugin("search");
+
+    searchPlugin.query(value);  // 검색어 적용
+    hot.render();               // 테이블 새로 렌더링
+  };
+
+
   if (!sheetData.length) return <p style={{ padding: 20 }}>시트 로딩 중...</p>;
+
 
   return (
     <div style={{ padding: "20px", maxWidth: "1300px", margin: "auto" }}>
-      <h2>📘 Handsontable 시트 — {groupName}</h2>
+      <h2>{groupName}</h2>
 
-      <div style={{ marginBottom: "10px" }}>
-        <button
-          onClick={saveSheet}
+      {/* 버튼 / 툴바 */}
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          alignItems: "center",
+          marginBottom: "12px"
+        }}
+      >
+        <button onClick={saveSheet} style={btnGreen}>저장</button>
+        <button onClick={addRow} style={btnBlue}>행 추가</button>
+        <button onClick={addCol} style={btnBlue}>열 추가</button>
+
+        {/* 검색 */}
+        <input
+          type="text"
+          placeholder="검색..."
+          value={searchText}
+          onChange={(e) => handleSearch(e.target.value)}
           style={{
-            padding: "6px 12px",
-            background: "#4caf50",
-            color: "#fff",
-            border: "none",
+            padding: "6px 10px",
+            border: "1px solid #ccc",
             borderRadius: "6px",
-            cursor: "pointer"
+            marginLeft: "auto"
           }}
-        >
-          저장
-        </button>
+        />
       </div>
 
-      {/* 핵심: HotTable */}
+      {/* 시트 */}
       <HotTable
         ref={hotRef}
         data={sheetData}
@@ -87,7 +130,28 @@ export default function HotSheet() {
         width="100%"
         height="650px"
         stretchH="all"
+        search={true}  // 검색 플러그인 활성화
       />
     </div>
   );
 }
+
+
+/* 버튼 스타일 */
+const btnBlue = {
+  padding: "6px 12px",
+  background: "#2196f3",
+  color: "#fff",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer"
+};
+
+const btnGreen = {
+  padding: "6px 12px",
+  background: "#4caf50",
+  color: "#fff",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer"
+};
