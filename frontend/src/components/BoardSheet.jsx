@@ -13,9 +13,11 @@ export default function BoardSheet() {
   const jss = useRef(null);
 
   const selectionRef = useRef([]);
-
   const [groupName, setGroupName] = useState("");
 
+  // ---------------------------------------
+  // 🔹 시트 로딩
+  // ---------------------------------------
   useEffect(() => {
     const loadSheet = async () => {
       try {
@@ -23,12 +25,13 @@ export default function BoardSheet() {
         setGroupName(groupRes.data.name);
 
         const res = await axiosInstance.get(`/sheet/${groupId}`);
-        const sheetJson = res.data.sheetData ? JSON.parse(res.data.sheetData) : [];
+        const json = res.data.sheetData ? JSON.parse(res.data.sheetData) : null;
 
         if (sheetRef.current) sheetRef.current.innerHTML = "";
 
         jss.current = jspreadsheet(sheetRef.current, {
-          data: sheetJson,
+          data: json?.data || [],
+          style: json?.style || {},
           minDimensions: [10, 30],
           tableHeight: "620px",
           tableOverflow: true,
@@ -56,11 +59,17 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
-  // -----------------------------------
-  // ⭐ 저장 기능
-  // -----------------------------------
+
+  // ---------------------------------------
+  // ⭐ 저장 기능(data + style)
+  // ---------------------------------------
   const handleSave = async () => {
-    const jsonData = JSON.stringify(jss.current.getJson());
+    const data = jss.current.getJson();
+    const style = jss.current.getStyle();
+
+    const saveObj = { data, style };
+    const jsonData = JSON.stringify(saveObj);
+
     try {
       await axiosInstance.post(`/sheet/${groupId}`, jsonData, {
         headers: { "Content-Type": "application/json" }
@@ -71,27 +80,37 @@ export default function BoardSheet() {
     }
   };
 
-  // -----------------------------------
+  // ---------------------------------------
   // ⭐ 엑셀 다운로드
-  // -----------------------------------
+  // ---------------------------------------
   const handleExport = () => {
     if (jss.current) jss.current.download();
   };
 
-  // -----------------------------------
-  // ⭐ 행 추가 기능
-  // -----------------------------------
+  // ---------------------------------------
+  // ⭐ 행 추가
+  // ---------------------------------------
   const handleAddRow = () => {
     if (!jss.current) return;
     jss.current.insertRow();
   };
 
-  // -----------------------------------
-  // ⭐ 열 추가 기능
-  // -----------------------------------
+  // ---------------------------------------
+  // ⭐ 열 추가
+  // ---------------------------------------
   const handleAddCol = () => {
     if (!jss.current) return;
     jss.current.insertColumn();
+  };
+
+  // ---------------------------------------
+  // ⭐ 배경색 적용 공통 함수
+  // ---------------------------------------
+  const applyBgColor = (color) => {
+    if (!jss.current) return;
+    selectionRef.current.forEach(([r, c]) => {
+      jss.current.setStyle(`${c}-${r}`, "background-color", color);
+    });
   };
 
   return (
@@ -100,9 +119,28 @@ export default function BoardSheet() {
 
       <div style={toolbarStyle}>
 
+        {/* 행/열 추가 */}
         <button onClick={handleAddRow} style={blueBtn}>행 추가</button>
         <button onClick={handleAddCol} style={blueBtn}>열 추가</button>
 
+        {/* 배경색 버튼 */}
+        <button onClick={() => applyBgColor("yellow")} style={colorBtn("#fff176")}>
+          노랑
+        </button>
+        <button onClick={() => applyBgColor("#eeeeee")} style={colorBtn("#eeeeee")}>
+          연한 회색
+        </button>
+        <button onClick={() => applyBgColor("#d0f8ce")} style={colorBtn("#d0f8ce")}>
+          연한 초록
+        </button>
+        <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>
+          연한 노랑
+        </button>
+        <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>
+          연한 주황
+        </button>
+
+        {/* 내보내기 + 저장 */}
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
       </div>
@@ -122,7 +160,8 @@ const toolbarStyle = {
   background: "#f5f5f5",
   padding: "10px",
   border: "1px solid #ddd",
-  borderRadius: "8px"
+  borderRadius: "8px",
+  flexWrap: "wrap"
 };
 
 const blueBtn = {
@@ -142,3 +181,11 @@ const greenBtn = {
   borderRadius: "6px",
   cursor: "pointer"
 };
+
+const colorBtn = (bg) => ({
+  padding: "6px 10px",
+  background: bg,
+  border: "1px solid #ccc",
+  borderRadius: "6px",
+  cursor: "pointer"
+});
