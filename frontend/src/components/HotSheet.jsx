@@ -10,7 +10,6 @@ export default function HotSheet() {
   const { groupId } = useParams();
   const [groupName, setGroupName] = useState("");
   const [sheetData, setSheetData] = useState([]);
-  const [searchText, setSearchText] = useState("");
 
   const hotRef = useRef(null);
 
@@ -46,7 +45,7 @@ export default function HotSheet() {
   // -----------------------------------
   const saveSheet = async () => {
     const hot = hotRef.current.hotInstance;
-    const data = hot.getData(); // 안전한 전체 데이터 가져오기
+    const data = hot.getData(); // 값만 가져옴
 
     try {
       await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(data), {
@@ -67,9 +66,7 @@ export default function HotSheet() {
     const data = hot.getData();
 
     const newRow = Array(hot.countCols()).fill("");
-    const updated = [...data, newRow];
-
-    hot.loadData(updated);
+    hot.loadData([...data, newRow]);
   };
 
   // -----------------------------------
@@ -79,7 +76,7 @@ export default function HotSheet() {
     const hot = hotRef.current.hotInstance;
     const data = hot.getData();
 
-    const updated = data.map((row) => [...row, ""]);
+    const updated = data.map(row => [...row, ""]);
     const newColCount = hot.countCols() + 1;
 
     hot.updateSettings({
@@ -88,30 +85,13 @@ export default function HotSheet() {
     });
   };
 
-  // -----------------------------------
-  // 🔹 검색
-  // -----------------------------------
-  const handleSearch = (value) => {
-  setSearchText(value);
-
-  const hot = hotRef.current?.hotInstance;
-  if (!hot) return;
-
-  const searchPlugin = hot.getPlugin("search");
-  if (!searchPlugin) return;
-
-  searchPlugin.query(value);
-  hot.render();
-};
-
-
   if (!sheetData.length) return <p style={{ padding: 20 }}>시트 로딩 중...</p>;
 
   return (
     <div style={{ padding: "20px", maxWidth: "1300px", margin: "auto" }}>
       <h2>{groupName}</h2>
 
-      {/* 버튼 + 검색 */}
+      {/* 버튼 */}
       <div
         style={{
           display: "flex",
@@ -123,28 +103,18 @@ export default function HotSheet() {
         <button onClick={saveSheet} style={btnGreen}>저장</button>
         <button onClick={addRow} style={btnBlue}>행 추가</button>
         <button onClick={addCol} style={btnBlue}>열 추가</button>
-
-        <input
-          type="text"
-          placeholder="검색..."
-          value={searchText}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{
-            padding: "6px 10px",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            marginLeft: "auto"
-          }}
-        />
       </div>
 
+      {/* 🔹 필터 + 드롭다운 메뉴 활성화 */}
       <HotTable
         ref={hotRef}
         data={sheetData}
         rowHeaders={true}
         colHeaders={true}
         contextMenu={true}
-        search={true}
+        search={{}}           // 검색 안정화
+        filters={true}        // ★ 필터 활성화
+        dropdownMenu={true}   // ★ 필터 UI 버튼 활성화
         licenseKey="non-commercial-and-evaluation"
         width="100%"
         height="650px"
