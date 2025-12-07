@@ -9,10 +9,37 @@ import { HotTable } from "@handsontable/react-wrapper";
 // Handsontable 스타일
 import "handsontable/dist/handsontable.full.min.css";
 
-// // ⭐ 엑셀 다운로드 플러그인
-// import { registerPlugin } from "handsontable/plugins";
-// import { ExportFile } from "handsontable/plugins/exportFile";
-// registerPlugin(ExportFile);
+/* ---------------------------------------------------------
+  🔥 1) 커스텀 렌더러 등록 (이게 핵심)
+--------------------------------------------------------- */
+const customRenderer = function (instance, td, row, col, prop, value) {
+  Handsontable.renderers.TextRenderer.apply(this, [
+    instance,
+    td,
+    row,
+    col,
+    prop,
+    value,
+  ]);
+
+  if (String(value).includes("!yellow")) {
+    td.style.backgroundColor = "#fff6b2";
+    td.innerText = value.replace("!yellow", "");
+  }
+
+  if (String(value).includes("!big")) {
+    td.style.fontSize = "16px";
+    td.innerText = value.replace("!big", "");
+  }
+
+  if (String(value).includes("!small")) {
+    td.style.fontSize = "11px";
+    td.innerText = value.replace("!small", "");
+  }
+};
+
+// 🔥 Handsontable 렌더러 등록
+Handsontable.renderers.registerRenderer("customRenderer", customRenderer);
 
 export default function HotSheet() {
   const { groupId } = useParams();
@@ -66,68 +93,31 @@ export default function HotSheet() {
   };
 
   /* ---------------------------------------------------------
-    3) CSV/엑셀 다운로드
+    3) CSV 다운로드
   --------------------------------------------------------- */
   const exportExcel = () => {
-  const hot = hotRef.current.hotInstance;
-  const data = hot.getData();
+    const hot = hotRef.current.hotInstance;
+    const data = hot.getData();
 
-  const csv = data.map(row => row.join(",")).join("\n");
+    const csv = data.map((row) => row.join(",")).join("\n");
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${groupName}_sheet.csv`;
-  a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${groupName}_sheet.csv`;
+    a.click();
 
-  URL.revokeObjectURL(url);
-};
-
-
-  /* ---------------------------------------------------------
-    4) 셀 스타일 커스터마이즈 (배경색 + 글자크기)
-  --------------------------------------------------------- */
-  const customRenderer = (instance, td, row, col, prop, value) => {
-    Handsontable.renderers.TextRenderer.apply(this, [
-      instance,
-      td,
-      row,
-      col,
-      prop,
-      value,
-    ]);
-
-    // 셀 배경색
-    if (String(value).includes("!yellow")) {
-      td.style.backgroundColor = "#fff6b2";
-      td.innerText = value.replace("!yellow", "");
-    }
-
-    // 글자 크게
-    if (String(value).includes("!big")) {
-      td.style.fontSize = "16px";
-      td.innerText = value.replace("!big", "");
-    }
-
-    // 글자 작게
-    if (String(value).includes("!small")) {
-      td.style.fontSize = "11px";
-      td.innerText = value.replace("!small", "");
-    }
+    URL.revokeObjectURL(url);
   };
 
   if (!sheetData.length) return <p style={{ padding: 20 }}>시트 로딩 중...</p>;
 
-  /* ==========================================================
-      RENDER
-  ========================================================== */
   return (
     <div style={{ padding: "20px", maxWidth: "1300px", margin: "auto" }}>
       <h2>📘 Handsontable 시트 — {groupName}</h2>
 
-      {/* 버튼 영역 */}
       <div style={{ marginBottom: "12px", display: "flex", gap: "10px" }}>
         <button
           onClick={saveSheet}
@@ -158,7 +148,6 @@ export default function HotSheet() {
         </button>
       </div>
 
-      {/* 🔥 최종 Handsontable */}
       <HotTable
         ref={hotRef}
         data={sheetData}
@@ -177,7 +166,7 @@ export default function HotSheet() {
         stretchH="all"
         licenseKey="non-commercial-and-evaluation"
         colWidths={120}
-        renderer={customRenderer}
+        renderer="customRenderer"   // ← 문자열!
       />
     </div>
   );
