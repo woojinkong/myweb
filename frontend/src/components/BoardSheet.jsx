@@ -16,7 +16,7 @@ export default function BoardSheet() {
   const [selectedText, setSelectedText] = useState("");
 
   // --------------------------
-  // A1 좌표 변환
+  // A1 변환
   // --------------------------
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -29,10 +29,10 @@ export default function BoardSheet() {
   };
 
   // --------------------------
-  // IME 한국어 강제 함수
+  // IME 강제 한국어
   // --------------------------
   const forceKoreanIME = (cell) => {
-    setTimeout(() => {
+    const apply = () => {
       const input = cell.querySelector("input");
       if (!input) return;
 
@@ -43,9 +43,13 @@ export default function BoardSheet() {
       input.setAttribute("autocorrect", "off");
       input.setAttribute("spellcheck", "false");
 
+      input.style.imeMode = "active";
+
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
-    }, 0);
+    };
+
+    setTimeout(apply, 5);
   };
 
   // --------------------------
@@ -82,22 +86,16 @@ export default function BoardSheet() {
           search: false,
           columnSorting: true,
           rowResize: true,
-          toolbar: true,
-          transition: "0.15s",
           editable: true,
           textInput: true,
 
-          // ⭐ 클릭 시 자동 편집 진입
-          onfocus: (instance, cell) => {
-            setTimeout(() => instance.openEditor(cell), 0);
-          },
+          // ❌ onfocus 제거 (버그 원인)
 
-          // ⭐ 편집 시작 시 IME 한국어 강제
+          // ✔ 편집 시작 시 IME 적용
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
-          onbeforechange: (_, cell) => forceKoreanIME(cell),
 
-          // 선택 영역 저장
+          // ✔ 선택 시 저장
           onselection: (instance, x1, y1, x2, y2) => {
             const selected = [];
             for (let r = y1; r <= y2; r++) {
@@ -109,11 +107,21 @@ export default function BoardSheet() {
 
             const first = toCellName(x1, y1);
             setSelectedText(jss.current.getValue(first) ?? "");
+
+            const cell = instance.getCell(x1, y1);
+
+            // ⭐ 즉시 편집 진입 + IME 안정화
+            setTimeout(() => instance.openEditor(cell), 0);
+            setTimeout(() => forceKoreanIME(cell), 10);
           },
 
+          // ✔ 클릭 시 셀 내용 표시 + 편집모드 강제
           onclick: (instance, cell, x, y) => {
             const cellName = toCellName(x, y);
             setSelectedText(jss.current.getValue(cellName) ?? "");
+
+            setTimeout(() => instance.openEditor(cell), 0);
+            setTimeout(() => forceKoreanIME(cell), 10);
           },
         });
       } catch (err) {
@@ -146,7 +154,7 @@ export default function BoardSheet() {
   };
 
   // --------------------------
-  // 배경색 적용
+  // 배경색
   // --------------------------
   const applyBgColor = (color) => {
     selectionRef.current.forEach(([r, c]) => {
@@ -155,10 +163,9 @@ export default function BoardSheet() {
   };
 
   // --------------------------
-  // 행/열 간격 초기화
+  // 행·열 크기 초기화
   // --------------------------
   const resetRowColSize = () => {
-    if (!jss.current) return;
     const rows = jss.current.options.data.length;
     const cols = jss.current.options.data[0]?.length || 10;
 
@@ -172,8 +179,8 @@ export default function BoardSheet() {
   const toggleBold = () => {
     selectionRef.current.forEach(([r, c]) => {
       const cell = toCellName(c, r);
-      const weight = jss.current.getStyle(cell)?.["font-weight"];
-      jss.current.setStyle(cell, "font-weight", weight === "bold" ? "normal" : "bold");
+      const w = jss.current.getStyle(cell)?.["font-weight"];
+      jss.current.setStyle(cell, "font-weight", w === "bold" ? "normal" : "bold");
     });
   };
 
@@ -208,8 +215,7 @@ export default function BoardSheet() {
   // --------------------------
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-      
-      {/* 제목 + 검색 */}
+
       <div style={headerRow}>
         <h2 style={{ margin: 0 }}>📄 {groupName || "시트"}</h2>
         <input
@@ -220,7 +226,6 @@ export default function BoardSheet() {
         />
       </div>
 
-      {/* 툴바 */}
       <div style={toolbarWrapper}>
         <div style={toolbarGroup}>
           <button onClick={handleAddRow} style={toolbarBtn}>＋ 행</button>
@@ -229,11 +234,14 @@ export default function BoardSheet() {
 
         <div style={toolbarGroup}>
           {[
-            "#ffffff","#fff176","#eeeeee","#d0f8ce","#fff9c4",
-            "#ffe0b2","#ffb74d","#ff8a80","#333333"
+            "#ffffff", "#fff176", "#eeeeee", "#d0f8ce", "#fff9c4",
+            "#ffe0b2", "#ffb74d", "#ff8a80", "#333333"
           ].map((c) => (
-            <div key={c} onClick={() => applyBgColor(c)}
-              style={{ ...colorDot, background: c }} />
+            <div
+              key={c}
+              onClick={() => applyBgColor(c)}
+              style={{ ...colorDot, background: c }}
+            ></div>
           ))}
         </div>
 
@@ -242,7 +250,7 @@ export default function BoardSheet() {
 
           <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
             <option value="">크기</option>
-            {[12,14,16,18,20,24,28,36,48].map((n) => (
+            {[12, 14, 16, 18, 20, 24, 28, 36, 48].map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
@@ -263,6 +271,8 @@ export default function BoardSheet() {
     </div>
   );
 }
+
+/* 스타일 생략 (너의 기존 코드 동일) */
 
 /* 스타일 */
 
