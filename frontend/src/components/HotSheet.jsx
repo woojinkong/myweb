@@ -1,4 +1,3 @@
-// src/components/HotSheet.jsx
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
@@ -15,7 +14,9 @@ export default function HotSheet() {
 
   const hotRef = useRef(null);
 
-  // 1) 데이터 로드
+  // -----------------------------------
+  // 🔹 시트 로딩
+  // -----------------------------------
   useEffect(() => {
     const load = async () => {
       try {
@@ -25,7 +26,7 @@ export default function HotSheet() {
         const res = await axiosInstance.get(`/sheet/${groupId}`);
         const json = res.data.sheetData ? JSON.parse(res.data.sheetData) : [];
 
-        if (json.length === 0) {
+        if (!json || json.length === 0) {
           const empty = Array(30)
             .fill(null)
             .map(() => Array(10).fill(""));
@@ -40,11 +41,12 @@ export default function HotSheet() {
     load();
   }, [groupId]);
 
-
-  // 2) 저장 기능
+  // -----------------------------------
+  // 🔹 저장
+  // -----------------------------------
   const saveSheet = async () => {
     const hot = hotRef.current.hotInstance;
-    const data = hot.getData();
+    const data = hot.getData(); // 안전한 전체 데이터 가져오기
 
     try {
       await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(data), {
@@ -57,46 +59,60 @@ export default function HotSheet() {
     }
   };
 
-
-  // 3) 행 추가
+  // -----------------------------------
+  // 🔹 행 추가
+  // -----------------------------------
   const addRow = () => {
     const hot = hotRef.current.hotInstance;
-    hot.alter("insert_row", hot.countRows()); // 마지막에 추가
+    const data = hot.getData();
+
+    const newRow = Array(hot.countCols()).fill("");
+    const updated = [...data, newRow];
+
+    hot.loadData(updated);
   };
 
-
-  // 4) 열 추가
+  // -----------------------------------
+  // 🔹 열 추가
+  // -----------------------------------
   const addCol = () => {
     const hot = hotRef.current.hotInstance;
-    hot.alter("insert_col", hot.countCols());
+    const data = hot.getData();
+
+    const updated = data.map((row) => [...row, ""]);
+    const newColCount = hot.countCols() + 1;
+
+    hot.updateSettings({
+      data: updated,
+      colHeaders: Array.from({ length: newColCount }, (_, i) => `COL ${i + 1}`)
+    });
   };
 
-
-  // 5) 검색 기능 적용
+  // -----------------------------------
+  // 🔹 검색
+  // -----------------------------------
   const handleSearch = (value) => {
     setSearchText(value);
 
     const hot = hotRef.current.hotInstance;
     const searchPlugin = hot.getPlugin("search");
 
-    searchPlugin.query(value);  // 검색어 적용
-    hot.render();               // 테이블 새로 렌더링
+    searchPlugin.query(value);
+    hot.render();
   };
 
-
   if (!sheetData.length) return <p style={{ padding: 20 }}>시트 로딩 중...</p>;
-
 
   return (
     <div style={{ padding: "20px", maxWidth: "1300px", margin: "auto" }}>
       <h2>{groupName}</h2>
 
-      {/* 버튼 / 툴바 */}
+      {/* 버튼 + 검색 */}
       <div
         style={{
           display: "flex",
-          gap: "10px",
           alignItems: "center",
+          gap: "10px",
           marginBottom: "12px"
         }}
       >
@@ -104,7 +120,6 @@ export default function HotSheet() {
         <button onClick={addRow} style={btnBlue}>행 추가</button>
         <button onClick={addCol} style={btnBlue}>열 추가</button>
 
-        {/* 검색 */}
         <input
           type="text"
           placeholder="검색..."
@@ -119,25 +134,25 @@ export default function HotSheet() {
         />
       </div>
 
-      {/* 시트 */}
       <HotTable
         ref={hotRef}
         data={sheetData}
         rowHeaders={true}
         colHeaders={true}
         contextMenu={true}
+        search={true}
         licenseKey="non-commercial-and-evaluation"
         width="100%"
         height="650px"
         stretchH="all"
-        search={true}  // 검색 플러그인 활성화
       />
     </div>
   );
 }
 
-
-/* 버튼 스타일 */
+// -----------------------------------
+// 🔵 버튼 스타일
+// -----------------------------------
 const btnBlue = {
   padding: "6px 12px",
   background: "#2196f3",
