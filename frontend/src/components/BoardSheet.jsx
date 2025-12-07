@@ -88,31 +88,33 @@ export default function BoardSheet() {
           rowResize: true,
           editable: true,
           textInput: true,
+          onload: (instance) => {
+            instance.el.addEventListener("keydown", (event) => {
+                const editing = instance.edition;
 
-          // --------------------------
-          // F2 / 더블클릭에서만 편집 허용
-          // --------------------------
-          onkeydown: (instance, event) => {
-            const editing = instance.edition;
+                // 편집 중이면 입력 허용
+                if (editing) return;
 
-            if (editing) return;
+                // 편집 모드 진입 허용 키 목록
+                const allowed = [
+                "F2",
+                "Enter",
+                "Tab",
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight"
+                ];
 
-            const allowed = [
-              "F2",
-              "Enter",
-              "Tab",
-              "ArrowUp",
-              "ArrowDown",
-              "ArrowLeft",
-              "ArrowRight"
-            ];
+                // 그 외 키 전체 차단
+                if (!allowed.includes(event.key)) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return false;
+                }
+            });
+            },
 
-            if (!allowed.includes(event.key)) {
-              event.preventDefault();
-              event.stopPropagation();
-              return false;
-            }
-          },
 
           // --------------------------
           // 편집 시작 시 한국어 IME 적용
