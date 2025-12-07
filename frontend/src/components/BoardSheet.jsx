@@ -90,25 +90,44 @@ export default function BoardSheet() {
           textInput: true,
 
           // --------------------------
+          // F2 / 더블클릭에서만 편집 허용
+          // --------------------------
+          onkeydown: (instance, event) => {
+            const editing = instance.edition;
+
+            if (editing) return;
+
+            const allowed = [
+              "F2",
+              "Enter",
+              "Tab",
+              "ArrowUp",
+              "ArrowDown",
+              "ArrowLeft",
+              "ArrowRight"
+            ];
+
+            if (!allowed.includes(event.key)) {
+              event.preventDefault();
+              event.stopPropagation();
+              return false;
+            }
+          },
+
+          // --------------------------
           // 편집 시작 시 한국어 IME 적용
           // --------------------------
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
 
           // --------------------------
-          // 셀 선택 (자동 편집 진입 제거)
+          // 선택만 (편집 진입 없음)
           // --------------------------
-          onselection: (instance, x1, y1, x2, y2) => {
-            const selected = [];
-            for (let r = y1; r <= y2; r++) {
-              for (let c = x1; c <= x2; c++) {
-                selected.push([r, c]);
-              }
-            }
-            selectionRef.current = selected;
-
+          onselection: (instance, x1, y1) => {
             const cellName = toCellName(x1, y1);
             setSelectedText(jss.current.getValue(cellName) ?? "");
+
+            selectionRef.current = [[y1, x1]];
           },
 
           // --------------------------
