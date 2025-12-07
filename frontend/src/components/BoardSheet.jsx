@@ -143,12 +143,38 @@ export default function BoardSheet() {
   // ---------------------------------------
   // 글씨 크기 변경
   // ---------------------------------------
-  const applyFontSize = (size) => {
-    selectionRef.current.forEach(([r, c]) => {
-      const cell = toCellName(c, r);
-      jss.current.setStyle(cell, "font-size", size + "px");
-    });
-  };
+  // ---------------------------------------
+// 글씨 크기 변경 + 행 높이 자동 조정
+// ---------------------------------------
+const applyFontSize = (size) => {
+  const fontSize = Number(size);
+  if (!fontSize) return;
+
+  const rowsToResize = new Set();
+
+  selectionRef.current.forEach(([r, c]) => {
+    const cell = toCellName(c, r);
+
+    // 글씨 크기 적용
+    jss.current.setStyle(cell, "font-size", fontSize + "px");
+
+    // 행 번호 저장
+    rowsToResize.add(r);
+  });
+
+  // ⭐ 행 높이 자동 증가 (선택된 모든 행)
+  rowsToResize.forEach((row) => {
+    const currentHeight = jss.current.getHeight(row);
+
+    // 추천 규칙: rowHeight ≈ fontSize + 8~12px
+    const expectedHeight = fontSize + 10;
+
+    if (!currentHeight || currentHeight < expectedHeight) {
+      jss.current.setRowHeight(row, expectedHeight);
+    }
+  });
+};
+
 
   // ---------------------------------------
   // 행/열 추가
@@ -183,7 +209,7 @@ export default function BoardSheet() {
             <div style={toolbarGroup}>
                 {/* 색상 팔레트 (더 세련됨) */}
                 {[
-                "#fff176", "#eeeeee", "#d0f8ce", "#fff9c4", "#ffe0b2",
+                "#ffffff","#fff176", "#eeeeee", "#d0f8ce", "#fff9c4", "#ffe0b2",
                 "#ffb74d", "#ff8a80"
                 ].map((c) => (
                 <div
@@ -205,6 +231,11 @@ export default function BoardSheet() {
             <option value="14">14</option>
             <option value="16">16</option>
             <option value="18">18</option>
+            <option value="20">20</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="36">36</option>
+            <option value="48">48</option>
             </select>
 
             <button onClick={() => jss.current?.download()} style={toolbarBtn}>⤵</button>
