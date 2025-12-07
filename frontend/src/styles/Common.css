@@ -113,7 +113,7 @@
 .jss-container * {
   font-family: inherit !important;
   max-width: none !important;
-  box-sizing: border-box !important;
+  /* box-sizing: border-box !important; */
 }
 .jss-container table {
   max-width: none !important;
@@ -128,7 +128,7 @@
 .jss-container td {
   vertical-align: middle !important;
   overflow: visible !important;
-  background-color: inherit !important;
+  /* background-color: inherit !important; */
 }
 
 
