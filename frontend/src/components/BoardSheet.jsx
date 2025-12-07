@@ -61,10 +61,12 @@ export default function BoardSheet() {
           tableHeight: "620px",
           tableOverflow: true,
           filters: true,
-          search: true,
+          search: false,
           columnSorting: true,
           rowResize: true,
           toolbar: true,
+          transition: "0.15s",
+
 
           // ⭐ 드래그된 영역을 selectionRef에 저장
           onselection: (instance, x1, y1, x2, y2) => {
@@ -156,39 +158,59 @@ export default function BoardSheet() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-      <h2>📄 {groupName || "시트"}</h2>
+      {/* 제목 + 검색 */}
+        <div style={headerRow}>
+        <h2 style={{ margin: 0 }}>📄 {groupName || "시트"}</h2>
 
-      {/* ⭐ 커스텀 툴바 */}
-      <div style={toolbarStyle}>
-        <button onClick={handleAddRow} style={blueBtn}>행 추가</button>
-        <button onClick={handleAddCol} style={blueBtn}>열 추가</button>
+        <input
+            type="text"
+            placeholder="검색어 입력"
+            onChange={(e) => jss.current?.search(e.target.value)}
+            style={searchInputStyle}
+        />
+        </div>
 
-        {/* 색상 */}
-        <button onClick={() => applyBgColor("#fff176")} style={colorBtn("#fff176")}>노랑</button>
-        <button onClick={() => applyBgColor("#eeeeee")} style={colorBtn("#eeeeee")}>연회색</button>
-        <button onClick={() => applyBgColor("#d0f8ce")} style={colorBtn("#d0f8ce")}>연초록</button>
-        <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>연노랑</button>
-        <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>연주황</button>
 
-        {/* 추가 요청 색상 */}
-        <button onClick={() => applyBgColor("#ffb74d")} style={colorBtn("#ffb74d")}>주황</button>
-        <button onClick={() => applyBgColor("#ff8a80")} style={colorBtn("#ff8a80")}>빨강</button>
+      {/* ⭐ 새 툴바 */}
+        <div style={toolbarWrapper}>
+        {/* 왼쪽: 구조 편집 */}
+        <div style={toolbarGroup}>
+            <button onClick={handleAddRow} style={toolbarBtn}>＋ 행</button>
+            <button onClick={handleAddCol} style={toolbarBtn}>＋ 열</button>
+        </div>
 
-        {/* 글자 스타일 */}
-        <button onClick={toggleBold} style={blueBtn}>Bold</button>
+         {/* 가운데: 색상 팔레트 */}
+            <div style={toolbarGroup}>
+                {/* 색상 팔레트 (더 세련됨) */}
+                {[
+                "#fff176", "#eeeeee", "#d0f8ce", "#fff9c4", "#ffe0b2",
+                "#ffb74d", "#ff8a80"
+                ].map((c) => (
+                <div
+                    key={c}
+                    onClick={() => applyBgColor(c)}
+                    style={{ ...colorDot, background: c }}
+                ></div>
+                ))}
+            </div>
+    
 
-        <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelectStyle}>
-          <option value="">글씨 크기</option>
-          <option value="12">12px</option>
-          <option value="14">14px</option>
-          <option value="16">16px</option>
-          <option value="18">18px</option>
-        </select>
+        {/* 오른쪽: 폰트 옵션 */}
+        <div style={toolbarGroup}>
+            <button onClick={toggleBold} style={toolbarBtn}>B</button>
 
-        {/* 다운로드 & 저장 */}
-        <button onClick={() => jss.current?.download()} style={blueBtn}>엑셀</button>
-        <button onClick={handleSave} style={greenBtn}>저장</button>
-      </div>
+            <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
+            <option value="">크기</option>
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            </select>
+
+            <button onClick={() => jss.current?.download()} style={toolbarBtn}>⤵</button>
+            <button onClick={handleSave} style={saveBtn}>저장</button>
+        </div>
+    </div>
 
       {/* 선택된 셀 내용 */}
       <div style={selectedBoxStyle}>
@@ -219,47 +241,82 @@ const selectedBoxStyle = {
   lineHeight: "1.5",
 };
 
-const toolbarStyle = {
+
+// ▣ 툴바 최상위 컨테이너 (전체 라인 디자인)
+const toolbarWrapper = {
+  position: "sticky",
+  top: "0",
+  zIndex: 20,
   display: "flex",
   alignItems: "center",
-  gap: "10px",
-  marginBottom: "12px",
-  background: "#f5f5f5",
-  padding: "10px",
+  justifyContent: "space-between",
+  padding: "8px 12px",
+  background: "#ffffff",
   border: "1px solid #ddd",
-  borderRadius: "8px",
-  flexWrap: "wrap",
+  borderRadius: "10px",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+  marginBottom: "14px",
 };
 
-const blueBtn = {
-  padding: "6px 12px",
-  background: "#2196f3",
-  color: "white",
-  border: "none",
+
+// ▣ 툴바 그룹 (좌/중/우 영역)
+const toolbarGroup = {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+};
+
+// ▣ 기본 툴바 버튼
+const toolbarBtn = {
+  padding: "6px 10px",
+  background: "#f3f3f3",
+  border: "1px solid #ccc",
   borderRadius: "6px",
   cursor: "pointer",
+  fontSize: "13px",
+  transition: "0.15s",
 };
 
-const greenBtn = {
-  padding: "6px 12px",
+toolbarBtn[':hover'] = {
+  background: "#e9e9e9"
+};
+
+
+const saveBtn = {
+  ...toolbarBtn,
   background: "#4caf50",
   color: "white",
   border: "none",
-  borderRadius: "6px",
+};
+
+// ▣ 색상 팔레트 Dot (컬러칩)
+const colorDot = {
+  width: "20px",
+  height: "20px",
+  borderRadius: "4px",
+  border: "1px solid #ccc",
   cursor: "pointer",
 };
 
-const colorBtn = (bg) => ({
-  padding: "6px 10px",
-  background: bg,
-  border: "1px solid #ccc",
+// ▣ 폰트 크기 선택
+const fontSelect = {
+  padding: "5px 8px",
   borderRadius: "6px",
-  cursor: "pointer",
-});
+  border: "1px solid #ccc",
+};
 
-const fontSelectStyle = {
-  padding: "6px 10px",
+const headerRow = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: "14px",
+};
+
+const searchInputStyle = {
+  padding: "6px 12px",
   border: "1px solid #ccc",
-  borderRadius: "6px",
-  background: "white",
+  borderRadius: "8px",
+  width: "220px",
+  fontSize: "14px",
+  background: "#fafafa",
 };
