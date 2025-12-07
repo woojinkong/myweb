@@ -67,6 +67,13 @@ export default function BoardSheet() {
           toolbar: true,
           transition: "0.15s",
 
+          // ⭐⭐ 한글 입력 첫 글자 영문 버그 방지 패치
+            oneditstart: (_, cell) => {
+                setTimeout(() => {
+                const input = cell.querySelector("input");
+                if (input) input.focus();
+                }, 50);
+            },
 
           // ⭐ 드래그된 영역을 selectionRef에 저장
           onselection: (instance, x1, y1, x2, y2) => {
