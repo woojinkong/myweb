@@ -57,11 +57,11 @@ export default function BoardSheet() {
           columnSorting: true,
           toolbar: true,
 
-          // ⭐ 셀 선택될 때마다 텍스트 표시
-          onselection: (instance, x1, y1) => {
+          // eslint-disable-next-line no-unused-vars
+          onselection: (instance, x1, y1, x2, y2) => {
             selectionRef.current = [[y1, x1]];
             const cellName = toCellName(x1, y1);
-            const value = instance.getValue(cellName) ?? "";
+             const value = jss.current.getValue(cellName) ?? ""; // ← ⭕ 올바른 방식
             setSelectedText(value);
             },
 
@@ -69,7 +69,7 @@ export default function BoardSheet() {
           // ⭐ 셀 클릭 시에도 텍스트 업데이트
           onclick: (instance, cell, x, y) => {
             const cellName = toCellName(x, y);
-            const value = instance.getValue(cellName) ?? "";
+            const value = jss.current.getValue(cellName) ?? "";  // ⭕ 반드시 이것만 사용
             setSelectedText(value);
           },
         });
