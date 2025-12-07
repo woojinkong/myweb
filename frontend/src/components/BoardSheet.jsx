@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
-// ⭐ jspreadsheet v4.13.2 import
 import jspreadsheet from "jspreadsheet-ce";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
+
+import Modal from "../components/Modal";   // ⭐ 네가 제공한 모달
 
 export default function BoardSheet() {
   const { groupId } = useParams();
@@ -13,12 +14,16 @@ export default function BoardSheet() {
   const jss = useRef(null);
 
   const selectionRef = useRef([]);
-  const editingCell = useRef({ x: null, y: null });
-
-  const popupRef = useRef(null);
   const [groupName, setGroupName] = useState("");
 
-  // ⭐ 숫자 좌표 → A1 형태 변환
+  // ⭐ 모달 관련 상태
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingCell, setEditingCell] = useState({ x: null, y: null });
+  const [editingValue, setEditingValue] = useState("");
+
+  // ---------------------------------------
+  // A1 표기법 변환
+  // ---------------------------------------
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let colName = "";
@@ -55,7 +60,7 @@ export default function BoardSheet() {
           columnSorting: true,
           toolbar: true,
 
-          // 선택된 셀 정보 저장
+          // ⭐ 선택 좌표 저장
           onselection: (instance, x1, y1, x2, y2) => {
             const selected = [];
             for (let r = y1; r <= y2; r++) {
@@ -66,23 +71,16 @@ export default function BoardSheet() {
             selectionRef.current = selected;
           },
 
-          // ⭐ 더블클릭 → 팝업 열기
+          // ⭐ 더블클릭 → 모달 오픈
           oncellDblClick: (instance, cell, x, y) => {
             const cellName = toCellName(x, y);
-            const value = instance.getValue(cellName);
-            const rect = cell.getBoundingClientRect();
+            const value = instance.getValue(cellName) ?? "";
 
-            editingCell.current = { x, y }; // 현재 셀 기억
+            setEditingCell({ x, y });
+            setEditingValue(value);
 
-            const popup = popupRef.current;
-            const textarea = document.getElementById("popupTextarea");
-
-            textarea.value = value ?? "";
-
-            popup.style.left = rect.left + "px";
-            popup.style.top = rect.top + "px";
-            popup.style.display = "block";
-          }
+            setModalOpen(true);
+          },
         });
       } catch (err) {
         console.error("시트 로드 오류:", err);
@@ -93,52 +91,16 @@ export default function BoardSheet() {
   }, [groupId]);
 
   // ---------------------------------------
-  // ⭐ 팝업에서 저장 버튼 클릭 → 셀 수정
+  // ⭐ 팝업(모달)에서 저장
   // ---------------------------------------
-  useEffect(() => {
-    const popup = popupRef.current;
+  const saveEdit = () => {
+    const { x, y } = editingCell;
+    if (x === null || y === null) return;
 
-    const saveBtn = document.getElementById("popupSaveBtn");
-    const textarea = document.getElementById("popupTextarea");
+    const cellName = toCellName(x, y);
+    jss.current.setValue(cellName, editingValue);
 
-    if (!saveBtn) return;
-
-    const handleSave = () => {
-      if (!jss.current) return;
-
-      const { x, y } = editingCell.current;
-      if (x === null || y === null) return;
-
-      const cellName = toCellName(x, y);
-      const newValue = textarea.value;
-
-      jss.current.setValue(cellName, newValue);
-      popup.style.display = "none";
-    };
-
-    saveBtn.addEventListener("click", handleSave);
-
-    return () => saveBtn.removeEventListener("click", handleSave);
-  }, []);
-
-  // ---------------------------------------
-  // ⭐ 저장(data + style)
-  // ---------------------------------------
-  const handleSaveSheet = async () => {
-    const data = jss.current.getJson();
-    const style = jss.current.getStyle();
-
-    const saveObj = { data, style };
-    const jsonData = JSON.stringify(saveObj);
-
-    try {
-      await axiosInstance.post(`/sheet/${groupId}`, jsonData, {
-        headers: { "Content-Type": "application/json" }
-      });
-      alert("저장 완료!");
-    } catch {
-      alert("저장 실패!");
-    }
+    setModalOpen(false);
   };
 
   // ---------------------------------------
@@ -160,9 +122,25 @@ export default function BoardSheet() {
   };
 
   // ---------------------------------------
-  // ⭐ 시트 다운로드
+  // ⭐ 저장(data + style)
   // ---------------------------------------
-  const handleExport = () => jss.current?.download();
+  const saveSheet = async () => {
+    const data = jss.current.getJson();
+    const style = jss.current.getStyle();
+
+    const saveObj = { data, style };
+
+    try {
+      await axiosInstance.post(
+        `/sheet/${groupId}`,
+        JSON.stringify(saveObj),
+        { headers: { "Content-Type": "application/json" } }
+      );
+      alert("저장 완료!");
+    } catch {
+      alert("저장 실패!");
+    }
+  };
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
@@ -178,60 +156,62 @@ export default function BoardSheet() {
         <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>연노랑</button>
         <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>연주황</button>
 
-        <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
-        <button onClick={handleSaveSheet} style={greenBtn}>저장</button>
-      </div>
-
-      {/* ⭐ 셀 팝업 */}
-      <div ref={popupRef} style={popupStyle} onClick={(e) => e.stopPropagation()}>
-        <textarea
-          id="popupTextarea"
-          style={{
-            width: "260px",
-            height: "120px",
-            padding: "8px",
-            resize: "none",
-            borderRadius: "6px",
-            border: "1px solid #bbb",
-            fontSize: "14px"
-          }}
-        ></textarea>
-
-        <button
-          id="popupSaveBtn"
-          style={{
-            marginTop: "8px",
-            padding: "6px 12px",
-            background: "#2196f3",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer"
-          }}
-        >
-          저장
-        </button>
+        <button onClick={() => jss.current?.download()} style={blueBtn}>엑셀 다운로드</button>
+        <button onClick={saveSheet} style={greenBtn}>저장</button>
       </div>
 
       <div className="jss-container">
         <div ref={sheetRef}></div>
       </div>
+
+      {/* ⭐ 셀 내용 수정 모달 */}
+      {modalOpen && (
+        <Modal
+          title="셀 내용 수정"
+          onClose={() => setModalOpen(false)}
+          content={
+            <div>
+              <textarea
+                value={editingValue}
+                onChange={(e) => setEditingValue(e.target.value)}
+                style={{
+                  width: "100%",
+                  height: "150px",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  resize: "vertical",
+                }}
+              />
+
+              <button
+                onClick={saveEdit}
+                style={{
+                  marginTop: "10px",
+                  width: "100%",
+                  padding: "10px",
+                  background: "#28a745",
+                  border: "none",
+                  borderRadius: "6px",
+                  color: "white",
+                  fontSize: "14px",
+                  cursor: "pointer"
+                }}
+              >
+                저장
+              </button>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 }
 
-const popupStyle = {
-  display: "none",
-  position: "fixed",
-  padding: "12px",
-  background: "#fff",
-  border: "1px solid #aaa",
-  borderRadius: "8px",
-  zIndex: 9999,
-  maxWidth: "300px",
-  boxShadow: "0 3px 10px rgba(0,0,0,0.25)"
-};
 
+// -----------------------------------------------------
+// 스타일
+// -----------------------------------------------------
 const toolbarStyle = {
   display: "flex",
   alignItems: "center",
@@ -241,7 +221,7 @@ const toolbarStyle = {
   padding: "10px",
   border: "1px solid #ddd",
   borderRadius: "8px",
-  flexWrap: "wrap"
+  flexWrap: "wrap",
 };
 
 const blueBtn = {
@@ -250,7 +230,7 @@ const blueBtn = {
   color: "#fff",
   border: "none",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const greenBtn = {
@@ -259,7 +239,7 @@ const greenBtn = {
   color: "#fff",
   border: "none",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const colorBtn = (bg) => ({
@@ -267,5 +247,5 @@ const colorBtn = (bg) => ({
   background: bg,
   border: "1px solid #ccc",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
 });
