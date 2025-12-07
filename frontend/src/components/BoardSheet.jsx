@@ -13,11 +13,12 @@ export default function BoardSheet() {
   const jss = useRef(null);
 
   const selectionRef = useRef([]);
+  const editingCell = useRef({ x: null, y: null });
+
+  const popupRef = useRef(null);
   const [groupName, setGroupName] = useState("");
 
-  // ---------------------------------------
-  // ⭐ 숫자 좌표 → A1 형태로 변환 함수
-  // ---------------------------------------
+  // ⭐ 숫자 좌표 → A1 형태 변환
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let colName = "";
@@ -54,7 +55,7 @@ export default function BoardSheet() {
           columnSorting: true,
           toolbar: true,
 
-          // 선택된 셀 좌표 저장
+          // 선택된 셀 정보 저장
           onselection: (instance, x1, y1, x2, y2) => {
             const selected = [];
             for (let r = y1; r <= y2; r++) {
@@ -63,9 +64,26 @@ export default function BoardSheet() {
               }
             }
             selectionRef.current = selected;
+          },
+
+          // ⭐ 더블클릭 → 팝업 열기
+          oncellDblClick: (instance, cell, x, y) => {
+            const cellName = toCellName(x, y);
+            const value = instance.getValue(cellName);
+            const rect = cell.getBoundingClientRect();
+
+            editingCell.current = { x, y }; // 현재 셀 기억
+
+            const popup = popupRef.current;
+            const textarea = document.getElementById("popupTextarea");
+
+            textarea.value = value ?? "";
+
+            popup.style.left = rect.left + "px";
+            popup.style.top = rect.top + "px";
+            popup.style.display = "block";
           }
         });
-
       } catch (err) {
         console.error("시트 로드 오류:", err);
       }
@@ -75,9 +93,38 @@ export default function BoardSheet() {
   }, [groupId]);
 
   // ---------------------------------------
-  // ⭐ 저장 기능(data + style)
+  // ⭐ 팝업에서 저장 버튼 클릭 → 셀 수정
   // ---------------------------------------
-  const handleSave = async () => {
+  useEffect(() => {
+    const popup = popupRef.current;
+
+    const saveBtn = document.getElementById("popupSaveBtn");
+    const textarea = document.getElementById("popupTextarea");
+
+    if (!saveBtn) return;
+
+    const handleSave = () => {
+      if (!jss.current) return;
+
+      const { x, y } = editingCell.current;
+      if (x === null || y === null) return;
+
+      const cellName = toCellName(x, y);
+      const newValue = textarea.value;
+
+      jss.current.setValue(cellName, newValue);
+      popup.style.display = "none";
+    };
+
+    saveBtn.addEventListener("click", handleSave);
+
+    return () => saveBtn.removeEventListener("click", handleSave);
+  }, []);
+
+  // ---------------------------------------
+  // ⭐ 저장(data + style)
+  // ---------------------------------------
+  const handleSaveSheet = async () => {
     const data = jss.current.getJson();
     const style = jss.current.getStyle();
 
@@ -95,49 +142,75 @@ export default function BoardSheet() {
   };
 
   // ---------------------------------------
-  // ⭐ 엑셀 다운로드
-  // ---------------------------------------
-  const handleExport = () => {
-    if (jss.current) jss.current.download();
-  };
-
-  // ---------------------------------------
   // ⭐ 행/열 추가
   // ---------------------------------------
   const handleAddRow = () => jss.current?.insertRow();
   const handleAddCol = () => jss.current?.insertColumn();
 
   // ---------------------------------------
-  // ⭐ 배경색 공통 적용 함수 (A1 주소 기반)
+  // ⭐ 배경색 적용
   // ---------------------------------------
   const applyBgColor = (color) => {
     if (!jss.current) return;
 
     selectionRef.current.forEach(([r, c]) => {
-      const cell = toCellName(c, r); // ← 여기서 "C3" 형태로 변환
+      const cell = toCellName(c, r);
       jss.current.setStyle(cell, "background-color", color);
     });
   };
+
+  // ---------------------------------------
+  // ⭐ 시트 다운로드
+  // ---------------------------------------
+  const handleExport = () => jss.current?.download();
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
       <h2>📄 {groupName || "시트"}</h2>
 
       <div style={toolbarStyle}>
-        {/* 행/열 추가 */}
         <button onClick={handleAddRow} style={blueBtn}>행 추가</button>
         <button onClick={handleAddCol} style={blueBtn}>열 추가</button>
 
-        {/* 배경색 버튼 */}
         <button onClick={() => applyBgColor("#fff176")} style={colorBtn("#fff176")}>노랑</button>
-        <button onClick={() => applyBgColor("#eeeeee")} style={colorBtn("#eeeeee")}>연한 회색</button>
-        <button onClick={() => applyBgColor("#d0f8ce")} style={colorBtn("#d0f8ce")}>연한 초록</button>
-        <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>연한 노랑</button>
-        <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>연한 주황</button>
+        <button onClick={() => applyBgColor("#eeeeee")} style={colorBtn("#eeeeee")}>연회색</button>
+        <button onClick={() => applyBgColor("#d0f8ce")} style={colorBtn("#d0f8ce")}>연초록</button>
+        <button onClick={() => applyBgColor("#fff9c4")} style={colorBtn("#fff9c4")}>연노랑</button>
+        <button onClick={() => applyBgColor("#ffe0b2")} style={colorBtn("#ffe0b2")}>연주황</button>
 
-        {/* 다운로드 + 저장 */}
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
-        <button onClick={handleSave} style={greenBtn}>저장</button>
+        <button onClick={handleSaveSheet} style={greenBtn}>저장</button>
+      </div>
+
+      {/* ⭐ 셀 팝업 */}
+      <div ref={popupRef} style={popupStyle} onClick={(e) => e.stopPropagation()}>
+        <textarea
+          id="popupTextarea"
+          style={{
+            width: "260px",
+            height: "120px",
+            padding: "8px",
+            resize: "none",
+            borderRadius: "6px",
+            border: "1px solid #bbb",
+            fontSize: "14px"
+          }}
+        ></textarea>
+
+        <button
+          id="popupSaveBtn"
+          style={{
+            marginTop: "8px",
+            padding: "6px 12px",
+            background: "#2196f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer"
+          }}
+        >
+          저장
+        </button>
       </div>
 
       <div className="jss-container">
@@ -146,6 +219,18 @@ export default function BoardSheet() {
     </div>
   );
 }
+
+const popupStyle = {
+  display: "none",
+  position: "fixed",
+  padding: "12px",
+  background: "#fff",
+  border: "1px solid #aaa",
+  borderRadius: "8px",
+  zIndex: 9999,
+  maxWidth: "300px",
+  boxShadow: "0 3px 10px rgba(0,0,0,0.25)"
+};
 
 const toolbarStyle = {
   display: "flex",
