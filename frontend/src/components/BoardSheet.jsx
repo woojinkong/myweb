@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
-// v4는 jspreadsheet가 아니라 jexcel로 import
-import jexcel from "jexcel";
-import "jexcel/dist/jexcel.css";
+// ⭐ jspreadsheet v4.13.2 import
+import jspreadsheet from "jspreadsheet-ce";
+import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
 
 export default function BoardSheet() {
@@ -12,11 +12,10 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jss = useRef(null);
 
-  // 선택된 셀 좌표 저장
   const selectionRef = useRef([]);
 
   const [groupName, setGroupName] = useState("");
-//   const [fontSize, setFontSize] = useState("14");
+  const [fontSize, setFontSize] = useState("14");
 
   useEffect(() => {
     const loadSheet = async () => {
@@ -29,18 +28,16 @@ export default function BoardSheet() {
 
         if (sheetRef.current) sheetRef.current.innerHTML = "";
 
-        jss.current = jexcel(sheetRef.current, {
+        jss.current = jspreadsheet(sheetRef.current, {
           data: sheetJson,
           minDimensions: [10, 30],
-          defaultColWidth: 120,
-          tableOverflow: true,
           tableHeight: "620px",
+          tableOverflow: true,
           filters: true,
-          columnSorting: true,
           search: true,
+          columnSorting: true,
           toolbar: true,
 
-          // ★ 선택될 때마다 정확한 좌표 저장
           onselection: (instance, x1, y1, x2, y2) => {
             const selected = [];
             for (let r = y1; r <= y2; r++) {
@@ -49,11 +46,9 @@ export default function BoardSheet() {
               }
             }
             selectionRef.current = selected;
-          },
+          }
         });
 
-        console.log("Loaded jexcel:", jexcel);
-        console.log("jss instance:", jss.current);
       } catch (err) {
         console.error("시트 로드 오류:", err);
       }
@@ -62,57 +57,51 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
-  /* ======================================
-     선택된 셀 제공
-  ====================================== */
-//   const getSelectedCells = () => {
-//     return selectionRef.current || [];
-//   };
+  const getSelectedCells = () => {
+    return selectionRef.current || [];
+  };
 
-  /* ======================================
-      스타일 적용 함수들
-  ====================================== */
-//   const setBold = () => {
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "font-weight", "bold");
-//     });
-//   };
+  // ⭐ Bold
+  const setBold = () => {
+    const cells = getSelectedCells();
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "font-weight", "bold");
+    });
+  };
 
-//   const changeTextColor = (color) => {
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "color", color);
-//     });
-//   };
+  // ⭐ 글자색
+  const changeTextColor = (color) => {
+    const cells = getSelectedCells();
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "color", color);
+    });
+  };
 
-//   const changeBgColor = (color) => {
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "background-color", color);
-//     });
-//   };
+  // ⭐ 배경색
+  const changeBgColor = (color) => {
+    const cells = getSelectedCells();
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "background-color", color);
+    });
+  };
 
-//   const changeFontSize = () => {
-//     const px = fontSize.trim();
-//     if (!px) return;
+  // ⭐ 폰트 크기
+  const changeFontSize = () => {
+    const px = fontSize.trim();
+    if (!px) return;
 
-//     const cells = getSelectedCells();
-//     cells.forEach(([r, c]) => {
-//       jss.current.setStyle(r, c, "font-size", `${px}px`);
-//     });
-//   };
+    const cells = getSelectedCells();
+    cells.forEach(([r, c]) => {
+      jss.current.setStyle(r, c, "font-size", `${px}px`);
+    });
+  };
 
-  /* ======================================
-      저장 및 다운로드
-  ====================================== */
+  // ⭐ 저장 기능
   const handleSave = async () => {
-    if (!jss.current) return;
-
     const jsonData = JSON.stringify(jss.current.getJson());
     try {
       await axiosInstance.post(`/sheet/${groupId}`, jsonData, {
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
       alert("저장 완료!");
     } catch {
@@ -120,6 +109,7 @@ export default function BoardSheet() {
     }
   };
 
+  // ⭐ 엑셀 다운로드
   const handleExport = () => {
     if (jss.current) jss.current.download();
   };
@@ -128,35 +118,22 @@ export default function BoardSheet() {
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
       <h2>📄 {groupName || "시트"}</h2>
 
-      {/* 커스텀 툴바 */}
       <div style={toolbarStyle}>
-        {/* <button style={btnStyle} onClick={setBold}>Bold</button>
+        <button style={btnStyle} onClick={setBold}>Bold</button>
 
         <label style={labelStyle}>글자색</label>
-        <input
-          type="color"
-          style={colorPickerStyle}
-          onChange={(e) => changeTextColor(e.target.value)}
-        />
+        <input type="color" style={colorPickerStyle} onChange={(e) => changeTextColor(e.target.value)} />
 
         <label style={labelStyle}>배경색</label>
-        <input
-          type="color"
-          style={colorPickerStyle}
-          onChange={(e) => changeBgColor(e.target.value)}
-        />
+        <input type="color" style={colorPickerStyle} onChange={(e) => changeBgColor(e.target.value)} />
 
         <label style={labelStyle}>폰트(px)</label>
-        <input
-          type="number"
-          min="8"
-          max="40"
-          value={fontSize}
-          style={numberInputStyle}
-          onChange={(e) => setFontSize(e.target.value)}
-        />
+        <input type="number" min="8" max="40" value={fontSize}
+               style={numberInputStyle}
+               onChange={(e) => setFontSize(e.target.value)} />
 
-        <button style={btnStyle} onClick={changeFontSize}>적용</button> */}
+        <button style={btnStyle} onClick={changeFontSize}>적용</button>
+
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
       </div>
@@ -168,9 +145,8 @@ export default function BoardSheet() {
   );
 }
 
-/* ===========================================
-   스타일
-=========================================== */
+/* =========================== 스타일 ====================== */
+
 const toolbarStyle = {
   display: "flex",
   alignItems: "center",
@@ -179,32 +155,32 @@ const toolbarStyle = {
   background: "#f5f5f5",
   padding: "10px",
   border: "1px solid #ddd",
-  borderRadius: "8px",
+  borderRadius: "8px"
 };
 
-// const btnStyle = {
-//   padding: "6px 10px",
-//   background: "#eee",
-//   border: "1px solid #ccc",
-//   borderRadius: "4px",
-//   cursor: "pointer",
-// };
+const btnStyle = {
+  padding: "6px 10px",
+  background: "#eee",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  cursor: "pointer"
+};
 
-// const labelStyle = { fontSize: "14px" };
+const labelStyle = { fontSize: "14px" };
 
-// const colorPickerStyle = {
-//   width: "32px",
-//   height: "32px",
-//   border: "none",
-//   cursor: "pointer",
-// };
+const colorPickerStyle = {
+  width: "32px",
+  height: "32px",
+  border: "none",
+  cursor: "pointer"
+};
 
-// const numberInputStyle = {
-//   width: "60px",
-//   padding: "4px",
-//   border: "1px solid #ccc",
-//   borderRadius: "4px",
-// };
+const numberInputStyle = {
+  width: "60px",
+  padding: "4px",
+  border: "1px solid #ccc",
+  borderRadius: "4px"
+};
 
 const blueBtn = {
   padding: "6px 12px",
@@ -212,7 +188,7 @@ const blueBtn = {
   color: "#fff",
   border: "none",
   borderRadius: "6px",
-  cursor: "pointer",
+  cursor: "pointer"
 };
 
 const greenBtn = {
@@ -221,5 +197,5 @@ const greenBtn = {
   color: "#fff",
   border: "none",
   borderRadius: "6px",
-  cursor: "pointer",
+  cursor: "pointer"
 };
