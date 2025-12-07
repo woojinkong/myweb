@@ -15,9 +15,9 @@ export default function BoardSheet() {
   const [groupName, setGroupName] = useState("");
   const [selectedText, setSelectedText] = useState("");
 
-  // --------------------------
-  // A1 변환
-  // --------------------------
+  /* -----------------------------------------------------
+     A1 좌표 변환
+  ----------------------------------------------------- */
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let colName = "";
@@ -28,9 +28,9 @@ export default function BoardSheet() {
     return colName + (row + 1);
   };
 
-  // --------------------------
-  // IME 강제 한국어
-  // --------------------------
+  /* -----------------------------------------------------
+     IME 한국어 강제 적용
+  ----------------------------------------------------- */
   const forceKoreanIME = (cell) => {
     const apply = () => {
       const input = cell.querySelector("input");
@@ -48,13 +48,12 @@ export default function BoardSheet() {
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
     };
-
     setTimeout(apply, 5);
   };
 
-  // --------------------------
-  // 시트 로딩
-  // --------------------------
+  /* -----------------------------------------------------
+     시트 로딩
+  ----------------------------------------------------- */
   useEffect(() => {
     const loadSheet = async () => {
       try {
@@ -70,7 +69,7 @@ export default function BoardSheet() {
         const rowHeights = json?.rowHeight || [];
 
         jss.current = jspreadsheet(sheetRef.current, {
-          data: json?.data || [],
+          data: json?.data || [[]],                 // <-- 최소 Row 보정
           style: json?.style || {},
 
           columns: colWidths.map((w) => ({ width: w })),
@@ -88,56 +87,64 @@ export default function BoardSheet() {
           rowResize: true,
           editable: true,
           textInput: true,
+
+          /* -----------------------------------------------------
+             로딩후 KeyDown 필터 (편집모드 진입 금지)
+          ----------------------------------------------------- */
           onload: (instance) => {
-            instance.el.addEventListener("keydown", (event) => {
-                const editing = instance.edition;
+            const target = instance.content;
+            if (!target) return;
 
-                // 편집 중이면 입력 허용
-                if (editing) return;
+            target.addEventListener("keydown", (event) => {
+              const editing = instance.edition;
 
-                // 편집 모드 진입 허용 키 목록
+              if (!editing) {
                 const allowed = [
-                "F2",
-                "Enter",
-                "Tab",
-                "ArrowUp",
-                "ArrowDown",
-                "ArrowLeft",
-                "ArrowRight"
+                  "F2",
+                  "Enter",
+                  "Tab",
+                  "ArrowUp",
+                  "ArrowDown",
+                  "ArrowLeft",
+                  "ArrowRight",
                 ];
 
-                // 그 외 키 전체 차단
                 if (!allowed.includes(event.key)) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                return false;
+                  event.preventDefault();
+                  return false;
                 }
+              }
             });
-            },
+          },
 
-
-          // --------------------------
-          // 편집 시작 시 한국어 IME 적용
-          // --------------------------
+          /* -----------------------------------------------------
+             편집 시작 시 IME 적용
+          ----------------------------------------------------- */
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
 
-          // --------------------------
-          // 선택만 (편집 진입 없음)
-          // --------------------------
+          /* -----------------------------------------------------
+             셀 선택 이벤트 (안전장치 추가)
+          ----------------------------------------------------- */
           onselection: (instance, x1, y1) => {
+            if (!jss.current) return;
+            if (x1 == null || y1 == null) return;
+
             const cellName = toCellName(x1, y1);
-            setSelectedText(jss.current.getValue(cellName) ?? "");
+            const v = jss.current.getValue(cellName);
+            setSelectedText(v ?? "");
 
             selectionRef.current = [[y1, x1]];
           },
 
-          // --------------------------
-          // 클릭 시 내용 표시만 (편집모드 진입 금지)
-          // --------------------------
+          /* -----------------------------------------------------
+             클릭 시 내용만 표시 (편집 금지)
+          ----------------------------------------------------- */
           onclick: (instance, cell, x, y) => {
+            if (!jss.current) return;
             const cellName = toCellName(x, y);
-            setSelectedText(jss.current.getValue(cellName) ?? "");
+            const v = jss.current.getValue(cellName);
+            setSelectedText(v ?? "");
           },
         });
       } catch (err) {
@@ -148,10 +155,15 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
-  // --------------------------
-  // 저장
-  // --------------------------
+  /* -----------------------------------------------------
+     저장
+  ----------------------------------------------------- */
   const handleSave = async () => {
+    if (!jss.current) {
+      alert("시트가 아직 로드되지 않았습니다.");
+      return;
+    }
+
     const data = jss.current.getJson();
     const style = jss.current.getStyle();
     const columnWidth = jss.current.getWidth();
@@ -169,19 +181,23 @@ export default function BoardSheet() {
     }
   };
 
-  // --------------------------
-  // 배경색
-  // --------------------------
+  /* -----------------------------------------------------
+     배경색 적용
+  ----------------------------------------------------- */
   const applyBgColor = (color) => {
+    if (!jss.current) return;
+
     selectionRef.current.forEach(([r, c]) => {
       jss.current.setStyle(toCellName(c, r), "background-color", color);
     });
   };
 
-  // --------------------------
-  // 행·열 크기 초기화
-  // --------------------------
+  /* -----------------------------------------------------
+     행·열 크기 초기화
+  ----------------------------------------------------- */
   const resetRowColSize = () => {
+    if (!jss.current) return;
+
     const rows = jss.current.options.data.length;
     const cols = jss.current.options.data[0]?.length || 10;
 
@@ -189,10 +205,12 @@ export default function BoardSheet() {
     for (let c = 0; c < cols; c++) jss.current.setWidth(c, 100);
   };
 
-  // --------------------------
-  // Bold
-  // --------------------------
+  /* -----------------------------------------------------
+     Bold
+  ----------------------------------------------------- */
   const toggleBold = () => {
+    if (!jss.current) return;
+
     selectionRef.current.forEach(([r, c]) => {
       const cell = toCellName(c, r);
       const w = jss.current.getStyle(cell)?.["font-weight"];
@@ -200,10 +218,12 @@ export default function BoardSheet() {
     });
   };
 
-  // --------------------------
-  // 폰트 크기
-  // --------------------------
+  /* -----------------------------------------------------
+     폰트 크기
+  ----------------------------------------------------- */
   const applyFontSize = (size) => {
+    if (!jss.current) return;
+
     const fontSize = Number(size);
     if (!fontSize) return;
 
@@ -217,6 +237,7 @@ export default function BoardSheet() {
     rowsToResize.forEach((row) => {
       const currentHeight = jss.current.getHeight(row);
       const expected = fontSize + 10;
+
       if (!currentHeight || currentHeight < expected) {
         jss.current.setRowHeight(row, expected);
       }
@@ -226,12 +247,11 @@ export default function BoardSheet() {
   const handleAddRow = () => jss.current?.insertRow();
   const handleAddCol = () => jss.current?.insertColumn();
 
-  // --------------------------
-  // UI
-  // --------------------------
+  /* -----------------------------------------------------
+     UI
+  ----------------------------------------------------- */
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-
       <div style={headerRow}>
         <h2 style={{ margin: 0 }}>📄 {groupName || "시트"}</h2>
         <input
@@ -267,7 +287,9 @@ export default function BoardSheet() {
           <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
             <option value="">크기</option>
             {[12, 14, 16, 18, 20, 24, 28, 36, 48].map((n) => (
-              <option key={n} value={n}>{n}</option>
+              <option key={n} value={n}>
+                {n}
+              </option>
             ))}
           </select>
 
@@ -288,8 +310,9 @@ export default function BoardSheet() {
   );
 }
 
-/* --------------------------------------- */
-/* 스타일 */
+/* -----------------------------------------------------
+   스타일 정의
+----------------------------------------------------- */
 const selectedBoxStyle = {
   margin: "10px 0 20px",
   padding: "12px",
