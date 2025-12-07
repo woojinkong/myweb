@@ -66,14 +66,43 @@ export default function BoardSheet() {
           rowResize: true,
           toolbar: true,
           transition: "0.15s",
+          editable: true,
+            textInput: true,
 
-          // ⭐⭐ 한글 입력 첫 글자 영문 버그 방지 패치
+            onbeforechange: (_, cell) => {
+            setTimeout(() => {
+                const input = cell.querySelector("input");
+                if (input) {
+                input.setAttribute("inputmode", "text");
+                input.setAttribute("lang", "ko");
+                input.setAttribute("autocapitalize", "off");
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+                }
+            }, 0);
+            },
+
             oneditstart: (_, cell) => {
-                setTimeout(() => {
+            setTimeout(() => {
                 const input = cell.querySelector("input");
                 if (input) input.focus();
-                }, 50);
+            }, 0);
             },
+
+            oneditionstart: (_, cell) => {
+            setTimeout(() => {
+                const input = cell.querySelector("input");
+                if (input) {
+                input.setAttribute("inputmode", "text");
+                input.setAttribute("lang", "ko");
+                input.setAttribute("autocapitalize", "off");
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+                }
+            }, 0);
+            },
+
+
 
           // ⭐ 드래그된 영역을 selectionRef에 저장
           onselection: (instance, x1, y1, x2, y2) => {
