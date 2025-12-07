@@ -46,30 +46,44 @@ export default function BoardSheet() {
 
         if (sheetRef.current) sheetRef.current.innerHTML = "";
 
+        // 🔥 열 너비/행 높이 복원 준비
+        const colWidths = json?.columnWidth || [];
+        const rowHeights = json?.rowHeight || [];
+
         jss.current = jspreadsheet(sheetRef.current, {
           data: json?.data || [],
           style: json?.style || {},
+
+          // 🔥 열 너비 반영
+          columns: colWidths.map((w) => ({ width: w })),
+
+          // 🔥 행 높이 반영
+          rows: rowHeights.reduce((acc, h, index) => {
+            acc[index] = { height: h };
+            return acc;
+          }, {}),
+
           minDimensions: [10, 30],
           tableHeight: "620px",
           tableOverflow: true,
           filters: true,
           search: true,
           columnSorting: true,
+          rowResize: true, // 🔥 행 높이 조절 허용
           toolbar: true,
 
-          // eslint-disable-next-line no-unused-vars
-          onselection: (instance, x1, y1, x2, y2) => {
+          // ⭐ 셀 선택될 때 텍스트 표시
+          onselection: (instance, x1, y1) => {
             selectionRef.current = [[y1, x1]];
             const cellName = toCellName(x1, y1);
-             const value = jss.current.getValue(cellName) ?? ""; // ← ⭕ 올바른 방식
+            const value = jss.current.getValue(cellName) ?? "";
             setSelectedText(value);
-            },
+          },
 
-
-          // ⭐ 셀 클릭 시에도 텍스트 업데이트
+          // ⭐ 셀 클릭
           onclick: (instance, cell, x, y) => {
             const cellName = toCellName(x, y);
-            const value = jss.current.getValue(cellName) ?? "";  // ⭕ 반드시 이것만 사용
+            const value = jss.current.getValue(cellName) ?? "";
             setSelectedText(value);
           },
         });
@@ -83,21 +97,25 @@ export default function BoardSheet() {
   }, [groupId]);
 
   // ---------------------------------------
-  // ⭐ 저장(data + style)
+  // ⭐ 저장(data + style + width + height)
   // ---------------------------------------
   const handleSave = async () => {
+    if (!jss.current) return;
+
     const data = jss.current.getJson();
     const style = jss.current.getStyle();
+    const columnWidth = jss.current.getWidth(); // 🔥 열 너비 배열
+    const rowHeight = jss.current.getHeight(); // 🔥 행 높이 배열
 
-    const saveObj = { data, style };
+    const saveObj = { data, style, columnWidth, rowHeight };
 
     try {
       await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(saveObj), {
         headers: { "Content-Type": "application/json" },
       });
       alert("저장 완료!");
-    } catch {
-      alert("저장 실패!");
+    } catch (err) {
+      alert("저장 실패!",err);
     }
   };
 
@@ -108,7 +126,7 @@ export default function BoardSheet() {
   const handleAddCol = () => jss.current?.insertColumn();
 
   // ---------------------------------------
-  // ⭐ 배경색
+  // ⭐ 배경색 적용
   // ---------------------------------------
   const applyBgColor = (color) => {
     if (!jss.current) return;
@@ -137,9 +155,9 @@ export default function BoardSheet() {
         <button onClick={handleSave} style={greenBtn}>저장</button>
       </div>
 
-      {/* ⭐ 툴바 아래 셀 내용 표시 박스 */}
+      {/* ⭐ 선택된 셀 내용 표시 */}
       <div style={selectedBoxStyle}>
-        {selectedText ? selectedText : "선택된 셀 내용이 여기에 표시됩니다."}
+        {selectedText || "선택된 셀 내용이 여기에 표시됩니다."}
       </div>
 
       <div className="jss-container">
@@ -159,7 +177,7 @@ const selectedBoxStyle = {
   background: "#fafafa",
   border: "1px solid #ccc",
   borderRadius: "6px",
-  whiteSpace: "pre-wrap", // ⭐ 줄바꿈 유지
+  whiteSpace: "pre-wrap",
   overflowY: "auto",
   maxHeight: "200px",
   fontSize: "14px",
