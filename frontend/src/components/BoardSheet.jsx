@@ -89,13 +89,15 @@ export default function BoardSheet() {
           editable: true,
           textInput: true,
 
-          // ❌ onfocus 제거 (버그 원인)
-
-          // ✔ 편집 시작 시 IME 적용
+          // --------------------------
+          // 편집 시작 시 한국어 IME 적용
+          // --------------------------
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
 
-          // ✔ 선택 시 저장
+          // --------------------------
+          // 셀 선택 (자동 편집 진입 제거)
+          // --------------------------
           onselection: (instance, x1, y1, x2, y2) => {
             const selected = [];
             for (let r = y1; r <= y2; r++) {
@@ -105,23 +107,16 @@ export default function BoardSheet() {
             }
             selectionRef.current = selected;
 
-            const first = toCellName(x1, y1);
-            setSelectedText(jss.current.getValue(first) ?? "");
-
-            const cell = instance.getCell(x1, y1);
-
-            // ⭐ 즉시 편집 진입 + IME 안정화
-            setTimeout(() => instance.openEditor(cell), 0);
-            setTimeout(() => forceKoreanIME(cell), 10);
+            const cellName = toCellName(x1, y1);
+            setSelectedText(jss.current.getValue(cellName) ?? "");
           },
 
-          // ✔ 클릭 시 셀 내용 표시 + 편집모드 강제
+          // --------------------------
+          // 클릭 시 내용 표시만 (편집모드 진입 금지)
+          // --------------------------
           onclick: (instance, cell, x, y) => {
             const cellName = toCellName(x, y);
             setSelectedText(jss.current.getValue(cellName) ?? "");
-
-            setTimeout(() => instance.openEditor(cell), 0);
-            setTimeout(() => forceKoreanIME(cell), 10);
           },
         });
       } catch (err) {
@@ -272,10 +267,8 @@ export default function BoardSheet() {
   );
 }
 
-/* 스타일 생략 (너의 기존 코드 동일) */
-
+/* --------------------------------------- */
 /* 스타일 */
-
 const selectedBoxStyle = {
   margin: "10px 0 20px",
   padding: "12px",
