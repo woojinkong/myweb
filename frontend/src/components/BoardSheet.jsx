@@ -128,6 +128,31 @@ export default function BoardSheet() {
     });
   };
 
+    // ---------------------------------------
+    // 전체 행·열 간격 초기화
+    // ---------------------------------------
+    const resetRowColSize = () => {
+    if (!jss.current) return;
+
+    const rows = jss.current.options.data.length;
+    const cols = jss.current.options.data[0]?.length || 10;
+
+    // 기본값
+    const defaultRowHeight = 30;
+    const defaultColWidth = 100;
+
+    // 행 높이 초기화
+    for (let r = 0; r < rows; r++) {
+        jss.current.setHeight(r, defaultRowHeight);
+    }
+
+    // 열 너비 초기화
+    for (let c = 0; c < cols; c++) {
+        jss.current.setWidth(c, defaultColWidth);
+    }
+    };
+
+
   // ---------------------------------------
   // Bold 토글
   // ---------------------------------------
@@ -210,7 +235,7 @@ const applyFontSize = (size) => {
                 {/* 색상 팔레트 (더 세련됨) */}
                 {[
                 "#ffffff","#fff176", "#eeeeee", "#d0f8ce", "#fff9c4", "#ffe0b2",
-                "#ffb74d", "#ff8a80"
+                "#ffb74d", "#ff8a80","#333333"
                 ].map((c) => (
                 <div
                     key={c}
@@ -237,7 +262,7 @@ const applyFontSize = (size) => {
             <option value="36">36</option>
             <option value="48">48</option>
             </select>
-
+            <button onClick={resetRowColSize} style={toolbarBtn}>간격초기화</button>
             <button onClick={() => jss.current?.download()} style={toolbarBtn}>⤵</button>
             <button onClick={handleSave} style={saveBtn}>저장</button>
         </div>
