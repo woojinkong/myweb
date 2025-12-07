@@ -16,7 +16,6 @@ export default function BoardSheet() {
 
   const [groupName, setGroupName] = useState("");
 
-
   useEffect(() => {
     const loadSheet = async () => {
       try {
@@ -57,8 +56,9 @@ export default function BoardSheet() {
     loadSheet();
   }, [groupId]);
 
-
+  // -----------------------------------
   // ⭐ 저장 기능
+  // -----------------------------------
   const handleSave = async () => {
     const jsonData = JSON.stringify(jss.current.getJson());
     try {
@@ -71,9 +71,27 @@ export default function BoardSheet() {
     }
   };
 
+  // -----------------------------------
   // ⭐ 엑셀 다운로드
+  // -----------------------------------
   const handleExport = () => {
     if (jss.current) jss.current.download();
+  };
+
+  // -----------------------------------
+  // ⭐ 행 추가 기능
+  // -----------------------------------
+  const handleAddRow = () => {
+    if (!jss.current) return;
+    jss.current.insertRow();
+  };
+
+  // -----------------------------------
+  // ⭐ 열 추가 기능
+  // -----------------------------------
+  const handleAddCol = () => {
+    if (!jss.current) return;
+    jss.current.insertColumn();
   };
 
   return (
@@ -81,6 +99,9 @@ export default function BoardSheet() {
       <h2>📄 {groupName || "시트"}</h2>
 
       <div style={toolbarStyle}>
+
+        <button onClick={handleAddRow} style={blueBtn}>행 추가</button>
+        <button onClick={handleAddCol} style={blueBtn}>열 추가</button>
 
         <button onClick={handleExport} style={blueBtn}>엑셀 다운로드</button>
         <button onClick={handleSave} style={greenBtn}>저장</button>
@@ -93,7 +114,6 @@ export default function BoardSheet() {
   );
 }
 
-
 const toolbarStyle = {
   display: "flex",
   alignItems: "center",
@@ -104,8 +124,6 @@ const toolbarStyle = {
   border: "1px solid #ddd",
   borderRadius: "8px"
 };
-
-
 
 const blueBtn = {
   padding: "6px 12px",
