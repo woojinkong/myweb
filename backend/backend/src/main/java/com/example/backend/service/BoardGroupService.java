@@ -111,7 +111,7 @@ public class BoardGroupService {
     public List<BoardGroupResponse> getGroupListWithNewFlag() {
         List<BoardGroup> groups = boardGroupRepository.findAllByOrderByOrderIndexAsc();
 
-        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        LocalDateTime todayStart = LocalDateTime.now().minusDays(3);
 
         return groups.stream()
                 .map(g -> BoardGroupResponse.builder()
