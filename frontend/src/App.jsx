@@ -29,6 +29,7 @@ import AdminAdSetting from "./pages/AdminAdSetting";
 import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
 import BoardSheet from "./components/BoardSheet";
+import AdminVisitLogs from "./pages/AdminVisitLogs";
 
 //라우터만담당
 function App() {
@@ -198,7 +199,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+              <Route
+                path="/admin/visit-logs"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminVisitLogs />
+                  </ProtectedRoute>
+                }
+              />
           </Routes>
         </AppLayout>
       </AuthProvider>

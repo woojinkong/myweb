@@ -2,11 +2,14 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.PointRequest;
 import com.example.backend.dto.UserDTO;
+import com.example.backend.dto.VisitLogAdminRow;
 import com.example.backend.entity.BlockedIp;
 import com.example.backend.entity.Board;
 import com.example.backend.entity.User;
+import com.example.backend.entity.VisitLog;
 import com.example.backend.repository.BoardRepository;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.VisitLogRepository;
 import com.example.backend.service.*;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,7 @@ public class AdminController {
     private final EmailService emailService;
     private final NotificationService notificationService;
     private final BlockedIpService blockedIpService;
+    private final VisitLogRepository visitLogRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -287,6 +291,52 @@ public class AdminController {
         return ResponseEntity.ok("차단이 해제되었습니다.");
     }
 
+
+
+    // ================================
+// 📊 관리자 → 방문자 유입 로그 조회
+// ================================
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/visit-logs")
+    public ResponseEntity<?> getVisitLogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+
+        PageRequest pageable = PageRequest.of(
+                page,
+                size,
+                org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC,
+                        "visitDate"
+                )
+        );
+
+        Page<VisitLog> result =
+                visitLogRepository.findAllByOrderByVisitDateDesc(pageable);
+
+        List<VisitLogAdminRow> rows = result.getContent().stream()
+                .map(v -> VisitLogAdminRow.builder()
+                        .visitId(v.getVisitId())
+                        .visitDate(v.getVisitDate())
+                        .sourceType(v.getSourceType())
+                        .visitPath(v.getVisitPath())
+                        .referrer(v.getReferrer())
+                        .ipAddress(v.getIpAddress())
+                        .userId(v.getUser() != null ? v.getUser().getUserId() : null)
+                        .nickname(v.getUser() != null ? v.getUser().getNickName() : null)
+                        .build()
+                )
+                .toList();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("logs", rows);
+        response.put("currentPage", result.getNumber());
+        response.put("totalPages", result.getTotalPages());
+        response.put("totalItems", result.getTotalElements());
+
+        return ResponseEntity.ok(response);
+    }
 
 
 

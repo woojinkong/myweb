@@ -1,6 +1,8 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.VisitLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -52,6 +54,9 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     ORDER BY YEAR(v.visitDate), MONTH(v.visitDate)
     """)
     List<Object[]> countMonthly();
+
+    Page<VisitLog> findAllByOrderByVisitDateDesc(Pageable pageable);
+
 
 
 }

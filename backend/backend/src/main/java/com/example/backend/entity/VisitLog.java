@@ -22,4 +22,22 @@ public class VisitLog {
 
     @Column(nullable = false)
     private LocalDateTime visitDate; // 방문 시간
+
+    // ✅ 유입/기기 정보
+    @Column(length = 1000)
+    private String referrer;
+
+    @Column(length = 20)
+    private String sourceType; // NAVER/GOOGLE/SNS/DIRECT/ETC
+
+    @Column(length = 255)
+    private String visitPath;
+
+    @Column(length = 500)
+    private String userAgent;
+
+    // ✅ 로그인 유저면 연결 (선택)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_no")
+    private User user;
 }
