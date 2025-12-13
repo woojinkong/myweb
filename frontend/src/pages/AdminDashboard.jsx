@@ -154,6 +154,13 @@ export default function AdminDashboard() {
     action: () => navigate("/admin/ip-block"),
     color: "#d9534f",
     },
+    {
+    title: "방문 유입 로그",
+    icon: "📊",
+    action: () => navigate("/admin/visit-logs"),
+    color: "#20c997",
+     },
+
 
     {
       title: "전체 게시글 삭제",

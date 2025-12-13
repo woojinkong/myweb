@@ -16,6 +16,17 @@ public class VisitService {
 
     private final VisitLogRepository visitLogRepository;
 
+    private String detectSource(String referrer) {
+        if (referrer == null || referrer.isBlank()) return "DIRECT";
+        String r = referrer.toLowerCase();
+        if (r.contains("search.naver.com") || r.contains("naver.com")) return "NAVER";
+        if (r.contains("google.com")) return "GOOGLE";
+        if (r.contains("daum.net")) return "DAUM";
+        if (r.contains("instagram.com") || r.contains("facebook.com") || r.contains("t.co") || r.contains("twitter.com")) return "SNS";
+        return "ETC";
+    }
+
+
     // ✅ IP별 하루 한 번만 기록
     public void recordVisit(HttpServletRequest request) {
         String ip = getClientIp(request);
@@ -27,9 +38,19 @@ public class VisitService {
 
 
         if (!alreadyVisited) {
+
+            String referrer = request.getHeader("Referer");
+            String ua = request.getHeader("User-Agent");
+            String path = request.getRequestURI();
+            String sourceType = detectSource(referrer);
+
             VisitLog log = VisitLog.builder()
                     .ipAddress(ip)
                     .visitDate(LocalDateTime.now())
+                    .referrer(referrer)
+                    .userAgent(ua)
+                    .visitPath(path)
+                    .sourceType(sourceType)
                     .build();
             visitLogRepository.save(log);
         }
@@ -50,4 +71,6 @@ public class VisitService {
         }
         return ip;
     }
+
+
 }
