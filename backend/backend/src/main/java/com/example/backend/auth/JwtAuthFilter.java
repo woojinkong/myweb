@@ -35,10 +35,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
+        String method = request.getMethod();
+        // 🔓 공개 리소스
+        if (path.startsWith("/uploads/")) return true;
 
-        // JWT 검사를 건너뛰어야 하는 경로들
-        return path.startsWith("/uploads/") ||
-                path.startsWith("/api/auth/login") ||
+        if ("OPTIONS".equals(method)) return true;
+
+
+        // 🔓 게시판 / 댓글 "조회(GET)"만 JWT 스킵
+        if (method.equals("GET") && (
+                path.startsWith("/api/board") ||
+                        path.startsWith("/api/board-group") ||
+                        path.startsWith("/api/comments")
+        )) {
+            return true;
+        }
+
+        // 🔓 인증 관련
+        return path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/signup") ||
                 path.startsWith("/api/auth/refresh") ||
                 path.startsWith("/api/user/find-password") ||
