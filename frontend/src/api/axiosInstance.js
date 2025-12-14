@@ -13,8 +13,8 @@ const PUBLIC_GET_PREFIX = [
   "/board/search",
   // "/board",
   // "/board/",
-  "/board-group",
-  "/board-group/",
+  // "/board-group",
+  // "/board-group/",
   "/comments",      // 댓글 조회(GET)만 공개
   "/site/name",
   "/user/check-nickName",
