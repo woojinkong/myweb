@@ -47,6 +47,12 @@ export default function Home() {
       const result = {};
 
       for (const g of groups) {
+
+        // 🔥 로그인 전용 / 관리자 전용은 Home에서 제외
+      if (g.loginOnly || g.adminOnly) {
+        result[g.id] = [];
+        continue;
+      }
         try {
           const res = await axiosInstance.get(`/board?groupId=${g.id}&page=0&size=4`);
 
@@ -131,16 +137,13 @@ export default function Home() {
                 >
                   {/* 썸네일 */}
                   <div className="board-thumb-box" style={styles.thumbBox}>
-                    {thumbSrc ? (
+                    {thumbSrc && (
                       <img
-                        className="board-thumb"
                         src={thumbSrc}
-                        alt="썸네일"
+                        alt=""
                         style={styles.thumbnail}
                         onError={(e) => (e.currentTarget.style.display = "none")}
                       />
-                    ) : (
-                      <div style={styles.noThumb}>No Image</div>
                     )}
                   </div>
 

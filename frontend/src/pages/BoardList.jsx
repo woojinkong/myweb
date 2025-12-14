@@ -232,15 +232,14 @@ function BoardRow({ board, navigate, BASE_URL }) {
       onClick={() => navigate(`/board/${board.boardNo}`)}
     >
       {/* 썸네일 */}
-      {thumbnailSrc ? (
-        <img
-          src={thumbnailSrc}
-          style={styles.rowThumbnail}
-          onError={(e) => (e.currentTarget.style.display = "none")}
-        />
-      ) : (
-        <div style={styles.noRowThumb}>No</div>
-      )}
+      {thumbnailSrc && (
+      <img
+        src={thumbnailSrc}
+        style={styles.rowThumbnail}
+        onError={(e) => (e.currentTarget.style.display = "none")}
+      />
+    )}
+
 
       {/* 제목 + 정보 */}
       <div style={styles.rowContent}>
