@@ -50,13 +50,19 @@ axiosInstance.interceptors.request.use((config) => {
   }
 
   // 🎯 GET이고 공개 API면 토큰 제거 (비로그인 허용)
+  // 🎯 GET이고 공개 API면 토큰 제거
   if (
     method === "GET" &&
     PUBLIC_GET_PREFIX.some((prefix) => cleanUrl.startsWith(prefix))
   ) {
-    delete config.headers.Authorization;
+    // ❌ 무조건 제거 X
+    const token = Cookies.get("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   }
+
 
   // 🎯 나머지는 토큰 자동 첨부
   const token = Cookies.get("accessToken");
