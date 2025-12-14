@@ -53,12 +53,10 @@ export default function Privacy() {
         <p>
           <strong>제5조 (개인정보 처리 위탁)</strong><br />
           회사는 서비스 제공을 위해 다음 업무를 위탁할 수 있습니다.<br /><br />
-
           - 서버 및 데이터 보관: AWS (Amazon Web Services)<br />
           - 트래픽 처리 및 보안: Cloudflare (사용하는 경우)<br />
           - 검색엔진 노출 처리: Prerender.io (사용하는 경우)<br />
           - 기타 기술적 환경 제공 업체<br /><br />
-
           모든 위탁 업체는 개인정보보호법을 준수하도록 관리·감독합니다.
         </p>
 
@@ -96,8 +94,28 @@ export default function Privacy() {
 
         <p>
           <strong>제9조 (쿠키 사용 안내)</strong><br />
-          회사는 로그인 상태 유지, 사용자 경험 개선, 분석 목적 등으로 쿠키를 사용할 수 있습니다.<br />
+          회사는 로그인 상태 유지, 사용자 경험 개선, 분석 목적 등을 위해 쿠키를 사용할 수 있습니다.<br />
           이용자는 브라우저 설정을 통해 쿠키 저장을 거부할 수 있습니다.
+        </p>
+
+        {/* ⭐ 애드센스 필수 조항 */}
+        <p>
+          <strong>제9조의2 (광고 서비스 이용 및 맞춤 광고)</strong><br />
+          본 사이트는 Google을 포함한 제3자 광고 사업자가 제공하는 광고를 게재할 수 있으며,
+          이 과정에서 쿠키(Cookie)를 사용할 수 있습니다.<br /><br />
+
+          Google은 DoubleClick 쿠키를 사용하여 사용자가 본 사이트 또는 다른 웹사이트를 방문한
+          기록을 기반으로 맞춤형 광고를 제공합니다.<br /><br />
+
+          이용자는 Google 광고 설정 페이지(
+          <a href="https://adssettings.google.com" target="_blank" rel="noreferrer">
+            https://adssettings.google.com
+          </a>
+          )를 통해 맞춤 광고를 거부할 수 있으며,
+          <a href="https://www.aboutads.info" target="_blank" rel="noreferrer">
+            https://www.aboutads.info
+          </a>
+          를 통해 제3자 광고 사업자의 맞춤 광고 제공을 차단할 수 있습니다.
         </p>
 
         <p>
@@ -109,7 +127,8 @@ export default function Privacy() {
 
         <p>
           <strong>제11조 (개정 고지)</strong><br />
-          개인정보처리방침은 개정 시 공지사항을 통해 안내합니다.
+          본 개인정보처리방침은 개정 시 공지사항을 통해 안내합니다.<br />
+          본 방침은 2025년 1월 1일부터 적용됩니다.
         </p>
 
       </div>
