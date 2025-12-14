@@ -6,6 +6,7 @@ import { FiFolder } from "react-icons/fi";
 import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
 import useIsMobile from "../hooks/useIsMobile";
+import useAuth from "../hooks/useAuth";
 //home
 export default function Home() {
   const [groups, setGroups] = useState([]);
@@ -13,6 +14,8 @@ export default function Home() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const BASE_URL = import.meta.env.VITE_API_URL;
+  const { user } = useAuth();
+
     const [siteTitle, setSiteTitle] = useState("KongHome");
   useEffect(() => {
       const loadSiteName = async () => {
@@ -47,12 +50,6 @@ export default function Home() {
       const result = {};
 
       for (const g of groups) {
-
-        // 🔥 로그인 전용 / 관리자 전용은 Home에서 제외
-      if (g.loginOnly || g.adminOnly) {
-        result[g.id] = [];
-        continue;
-      }
         try {
           const res = await axiosInstance.get(`/board?groupId=${g.id}&page=0&size=4`);
 
@@ -208,7 +205,18 @@ export default function Home() {
       <div className="home-grid" style={styles.grid}>
         {groups.length > 0 ? (
           groups
-           .filter((group) => group.type !== "DIVIDER")   // ← ⭐ 추가된 부분
+           .filter((group) => {
+          // 1️⃣ 구분선 제거
+          if (group.type === "DIVIDER") return false;
+
+          // 2️⃣ 관리자 전용 게시판 → 관리자 아니면 Home에서 제거
+          if (group.adminOnly && user?.role !== "ADMIN") return false;
+
+          // 3️⃣ 로그인 전용 게시판 → 비로그인이면 Home에서 제거
+          if (group.loginOnly && !user) return false;
+
+          return true;
+        })
             .map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
