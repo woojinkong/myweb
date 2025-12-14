@@ -25,7 +25,7 @@ public class SitemapController {
     @GetMapping(value = "/sitemap.xml", produces = "application/xml; charset=UTF-8")
     public String sitemap() {
 
-        List<Board> boards = boardRepository.findAll();
+        List<Board> boards = boardRepository.findPublicBoardsForSitemap();
 
         StringBuilder sb = new StringBuilder();
 

@@ -82,4 +82,13 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT COUNT(b) > 0 FROM Board b WHERE b.boardGroup.id = :groupId AND b.createdDate >= :todayStart")
     boolean existsNewBoardsToday(@Param("groupId") Long groupId, @Param("todayStart") LocalDateTime todayStart);
 
+
+    @Query("""
+       SELECT b FROM Board b
+       WHERE b.boardGroup.adminOnly = false
+       AND b.boardGroup.sheetEnabled = false
+       AND b.boardGroup.type = 'BOARD'
+     """)
+    List<Board> findPublicBoardsForSitemap();
+
 }
