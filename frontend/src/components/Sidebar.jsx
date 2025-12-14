@@ -94,7 +94,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 >
                   <span style={styles.number}>{number}.</span>
                   {isOpen && <span>{name}</span>}
-                  {hasNew && <span style={styles.redDot}></span>}
+                  {hasNew && isOpen && <span style={styles.redDot}></span>}
                 </Link>
               </li>
             );
