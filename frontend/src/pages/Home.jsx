@@ -50,7 +50,13 @@ export default function Home() {
       const result = {};
 
       for (const g of groups) {
+              // 🔒 관리자 전용 → 관리자만
+        if (g.adminOnly && user?.role !== "ADMIN") continue;
+
+        // 🔒 로그인 전용 → 로그인만
+        if (g.loginOnly && !user) continue;
         try {
+          
           const res = await axiosInstance.get(`/board?groupId=${g.id}&page=0&size=4`);
 
           const list = res.data.content || [];
@@ -69,7 +75,7 @@ export default function Home() {
     };
 
     fetchGroupBoards();
-  }, [groups]);
+  }, [groups,user]);
 
   // 🔥 공통 섹션 렌더링
   const renderSection = (group) => {
