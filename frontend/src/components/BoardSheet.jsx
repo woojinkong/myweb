@@ -11,68 +11,65 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jss = useRef(null);
 
-  const selectionRef = useRef(null); // { x1, y1, x2, y2 }
+  const selectionRef = useRef(null);
   const [groupName, setGroupName] = useState("");
   const [selectedText, setSelectedText] = useState("");
 
-  /* ---------------------------------------------
-     A1 좌표 → "A1" 문자열 변환
-  --------------------------------------------- */
+  /* --------------------------------------------------
+     A1 좌표 변환
+  -------------------------------------------------- */
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let colName = "";
+    let name = "";
     while (col >= 0) {
-      colName = letters[col % 26] + colName;
+      name = letters[col % 26] + name;
       col = Math.floor(col / 26) - 1;
     }
-    return colName + (row + 1);
+    return name + (row + 1);
   };
 
-  /* ---------------------------------------------
-     IME 한국어 강제 적용
-  --------------------------------------------- */
+  /* --------------------------------------------------
+     IME 강제 한국어
+  -------------------------------------------------- */
   const forceKoreanIME = (cell) => {
-    const apply = () => {
-      const input = cell.querySelector("input");
+    setTimeout(() => {
+      const input = cell?.querySelector("input");
       if (!input) return;
 
-      input.setAttribute("inputmode", "text");
       input.setAttribute("lang", "ko");
-      input.setAttribute("autocapitalize", "off");
-      input.setAttribute("autocomplete", "off");
+      input.setAttribute("inputmode", "text");
       input.setAttribute("autocorrect", "off");
+      input.setAttribute("autocomplete", "off");
       input.setAttribute("spellcheck", "false");
       input.style.imeMode = "active";
 
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
-    };
-    setTimeout(apply, 5);
+    }, 5);
   };
 
-  /* ---------------------------------------------
+  /* --------------------------------------------------
      시트 로딩
-  --------------------------------------------- */
+  -------------------------------------------------- */
   useEffect(() => {
-    const loadSheet = async () => {
+    const load = async () => {
       try {
         const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
         setGroupName(groupRes.data.name);
 
-        const res = await axiosInstance.get(`/sheet/${groupId}`);
-        const json = res.data.sheetData ? JSON.parse(res.data.sheetData) : {};
+        const sheetRes = await axiosInstance.get(`/sheet/${groupId}`);
+        const saved = sheetRes.data?.sheetData
+          ? JSON.parse(sheetRes.data.sheetData)
+          : {};
 
         if (sheetRef.current) sheetRef.current.innerHTML = "";
 
-        const colWidths = json.columnWidth || [];
-        const rowHeights = json.rowHeight || [];
-
         jss.current = jspreadsheet(sheetRef.current, {
-          data: json.data || [[]],
-          style: json.style || {},
+          data: saved.data || [[]],
+          style: saved.style || {},
 
-          columns: colWidths.map((w) => ({ width: w })),
-          rows: rowHeights.reduce((acc, h, i) => {
+          columns: (saved.columnWidth || []).map((w) => ({ width: w })),
+          rows: (saved.rowHeight || []).reduce((acc, h, i) => {
             acc[i] = { height: h };
             return acc;
           }, {}),
@@ -86,18 +83,13 @@ export default function BoardSheet() {
           rowResize: true,
           editable: true,
 
-          /* ---------------------------------------------
-             로딩 후: 선택상태 문자입력 방지 (영문1타 버그 방지)
-          --------------------------------------------- */
           onload: (instance) => {
-            const target = instance.content;
-            if (!target) return;
+            const el = instance.content;
+            if (!el) return;
 
-            target.addEventListener("keydown", (event) => {
-              const editing = instance.edition;
-
-              if (!editing) {
-                const allowed = [
+            el.addEventListener("keydown", (e) => {
+              if (!instance.edition) {
+                const allow = [
                   "F2",
                   "Enter",
                   "Tab",
@@ -106,294 +98,169 @@ export default function BoardSheet() {
                   "ArrowLeft",
                   "ArrowRight",
                 ];
-
-                if (!allowed.includes(event.key)) {
-                  event.preventDefault();
+                if (!allow.includes(e.key)) {
+                  e.preventDefault();
                   return false;
                 }
               }
             });
           },
 
-          /* ---------------------------------------------
-             편집 시작 → IME 적용
-          --------------------------------------------- */
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
 
-          /* ---------------------------------------------
-             드래그 선택 (범위 저장)
-          --------------------------------------------- */
-          onselection: (instance, x1, y1, x2, y2) => {
-            if (!jss.current) return;
+          onselection: (_, x1, y1, x2, y2) => {
             selectionRef.current = { x1, y1, x2, y2 };
-
-            const cellName = toCellName(x1, y1);
-            const v = jss.current.getValue(cellName);
+            const v = jss.current.getValue(toCellName(x1, y1));
             setSelectedText(v ?? "");
           },
 
-          /* ---------------------------------------------
-             클릭 시 텍스트만 표시
-          --------------------------------------------- */
-          onclick: (instance, cell, x, y) => {
-            if (!jss.current) return;
-            const cellName = toCellName(x, y);
-            const v = jss.current.getValue(cellName);
+          onclick: (_, __, x, y) => {
+            const v = jss.current.getValue(toCellName(x, y));
             setSelectedText(v ?? "");
           },
         });
-      } catch (err) {
-        console.error("시트 로드 오류:", err);
+      } catch (e) {
+        console.error("시트 로드 실패", e);
       }
     };
 
-    loadSheet();
+    load();
   }, [groupId]);
 
-  /* ---------------------------------------------
-     저장
-  --------------------------------------------- */
+  /* --------------------------------------------------
+     저장 (🔥 핵심 수정 포인트)
+  -------------------------------------------------- */
   const handleSave = async () => {
-    if (!jss.current) return alert("시트가 아직 로드되지 않았습니다.");
+    if (!jss.current) return;
 
-    const saveObj = {
-      data: jss.current.getJson(),
+    const payload = {
+      data: jss.current.getData(),     // ✅ getJson 제거
       style: jss.current.getStyle(),
       columnWidth: jss.current.getWidth(),
       rowHeight: jss.current.getHeight(),
     };
 
     try {
-      await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(saveObj), {
+      await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(payload), {
         headers: { "Content-Type": "application/json" },
       });
-      alert("저장 완료!");
-    } catch (err) {
-      alert("저장 실패!", err);
+      alert("저장 완료");
+    } catch {
+      alert("저장 실패");
     }
   };
 
-  /* ---------------------------------------------
-     선택범위 전체 적용 유틸
-  --------------------------------------------- */
-  const applyToSelection = (callback) => {
-    const range = selectionRef.current;
-    if (!range || !jss.current) return;
-
-    const { x1, y1, x2, y2 } = range;
-    for (let y = y1; y <= y2; y++) {
-      for (let x = x1; x <= x2; x++) {
-        const cell = toCellName(x, y);
-        callback(cell, x, y);
+  /* --------------------------------------------------
+     선택범위 유틸
+  -------------------------------------------------- */
+  const applyToSelection = (cb) => {
+    const r = selectionRef.current;
+    if (!r || !jss.current) return;
+    for (let y = r.y1; y <= r.y2; y++) {
+      for (let x = r.x1; x <= r.x2; x++) {
+        cb(toCellName(x, y), x, y);
       }
     }
   };
 
-  /* ---------------------------------------------
-     배경색
-  --------------------------------------------- */
-  const applyBgColor = (color) => {
+  /* --------------------------------------------------
+     스타일 기능
+  -------------------------------------------------- */
+  const applyBgColor = (c) =>
     applyToSelection((cell) =>
-      jss.current.setStyle(cell, "background-color", color)
+      jss.current.setStyle(cell, "background-color", c)
     );
-  };
 
-  /* ---------------------------------------------
-     Bold
-  --------------------------------------------- */
-  const toggleBold = () => {
+  const toggleBold = () =>
     applyToSelection((cell) => {
       const cur = jss.current.getStyle(cell)?.["font-weight"];
-      const next = cur === "bold" ? "normal" : "bold";
-      jss.current.setStyle(cell, "font-weight", next);
+      jss.current.setStyle(cell, "font-weight", cur === "bold" ? "normal" : "bold");
     });
-  };
 
-  /* ---------------------------------------------
-     폰트 크기
-  --------------------------------------------- */
   const applyFontSize = (size) => {
     const px = Number(size);
-    if (!px || !jss.current) return;
+    if (!px) return;
 
-    const rowsToResize = new Set();
-
-    applyToSelection((cell, x, y) => {
+    const rows = new Set();
+    applyToSelection((cell, _, y) => {
       jss.current.setStyle(cell, "font-size", px + "px");
-      rowsToResize.add(y);
+      rows.add(y);
     });
 
-    rowsToResize.forEach((row) => {
-      const expected = px + 10;
-      const current = jss.current.getHeight(row);
-      if (!current || current < expected) {
-        jss.current.setRowHeight(row, expected);
+    rows.forEach((r) => {
+      if (jss.current.getHeight(r) < px + 10) {
+        jss.current.setRowHeight(r, px + 10);
       }
     });
   };
 
-  /* ---------------------------------------------
-     행/열 추가
-  --------------------------------------------- */
+  /* --------------------------------------------------
+     행/열
+  -------------------------------------------------- */
   const handleAddRow = () => jss.current?.insertRow();
   const handleAddCol = () => jss.current?.insertColumn();
 
-  /* ---------------------------------------------
-     행·열 크기 초기화
-  --------------------------------------------- */
   const resetRowColSize = () => {
-    const data = jss.current.options.data;
-    const rows = data.length;
-    const cols = data[0]?.length || 10;
-
+    const rows = jss.current.options.data.length;
+    const cols = jss.current.options.data[0]?.length || 10;
     for (let r = 0; r < rows; r++) jss.current.setHeight(r, 30);
     for (let c = 0; c < cols; c++) jss.current.setWidth(c, 100);
   };
 
-  /* ---------------------------------------------
-     UI 렌더링
-  --------------------------------------------- */
+  /* --------------------------------------------------
+     UI
+  -------------------------------------------------- */
   return (
-    <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
+    <div style={{ padding: 20, maxWidth: 1200, margin: "auto" }}>
       <div style={headerRow}>
-        <h2 style={{ margin: 0 }}>📄 {groupName || "시트"}</h2>
+        <h2>📄 {groupName}</h2>
         <input
-          type="text"
-          placeholder="검색어 입력"
+          placeholder="검색"
           onChange={(e) => jss.current?.search(e.target.value)}
           style={searchInputStyle}
         />
       </div>
 
-      {/* ---------------------------- Toolbar ---------------------------- */}
       <div style={toolbarWrapper}>
         <div style={toolbarGroup}>
-          <button onClick={handleAddRow} style={toolbarBtn}>＋ 행</button>
-          <button onClick={handleAddCol} style={toolbarBtn}>＋ 열</button>
+          <button onClick={handleAddRow} style={toolbarBtn}>＋행</button>
+          <button onClick={handleAddCol} style={toolbarBtn}>＋열</button>
         </div>
 
         <div style={toolbarGroup}>
-          {[
-            "#ffffff", "#fff176", "#eeeeee", "#d0f8ce", "#fff9c4",
-            "#ffe0b2", "#ffb74d", "#ff8a80", "#333333"
-          ].map((c) => (
-            <div
-              key={c}
-              onClick={() => applyBgColor(c)}
-              style={{ ...colorDot, background: c }}
-            ></div>
+          {["#fff", "#eee", "#d0f8ce", "#ffe0b2", "#ff8a80", "#333"].map((c) => (
+            <div key={c} onClick={() => applyBgColor(c)} style={{ ...colorDot, background: c }} />
           ))}
         </div>
 
         <div style={toolbarGroup}>
           <button onClick={toggleBold} style={toolbarBtn}>B</button>
-
           <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
             <option value="">크기</option>
-            {[12, 14, 16, 18, 20, 24, 28, 36, 48].map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
+            {[12,14,16,18,20,24,28,36].map(n => <option key={n}>{n}</option>)}
           </select>
-
-          <button onClick={resetRowColSize} style={toolbarBtn}>간격초기화</button>
-          <button onClick={() => jss.current?.download()} style={toolbarBtn}>⤵</button>
+          <button onClick={resetRowColSize} style={toolbarBtn}>초기화</button>
           <button onClick={handleSave} style={saveBtn}>저장</button>
         </div>
       </div>
 
-      {/* 선택된 셀 내용 표시 */}
       <div style={selectedBoxStyle}>
-        {selectedText || "선택된 셀 내용이 여기에 표시됩니다."}
+        {selectedText || "선택된 셀 내용"}
       </div>
 
-      {/* 시트 */}
-      <div className="jss-container">
-        <div ref={sheetRef}></div>
-      </div>
+      <div ref={sheetRef}></div>
     </div>
   );
 }
 
-/* ---------------------------------------------
-   스타일
---------------------------------------------- */
-const selectedBoxStyle = {
-  margin: "10px 0 20px",
-  padding: "12px",
-  minHeight: "70px",
-  background: "#fafafa",
-  border: "1px solid #ccc",
-  borderRadius: "6px",
-  whiteSpace: "pre-wrap",
-  overflowY: "auto",
-  maxHeight: "200px",
-  fontSize: "14px",
-  lineHeight: "1.5",
-};
-
-const toolbarWrapper = {
-  position: "sticky",
-  top: 0,
-  zIndex: 20,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "8px 12px",
-  background: "#ffffff",
-  border: "1px solid #ddd",
-  borderRadius: "10px",
-  marginBottom: "14px",
-};
-
-const toolbarGroup = {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-};
-
-const toolbarBtn = {
-  padding: "6px 10px",
-  background: "#f3f3f3",
-  border: "1px solid #ccc",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontSize: "13px",
-};
-
-const saveBtn = {
-  ...toolbarBtn,
-  background: "#4caf50",
-  color: "white",
-  border: "none",
-};
-
-const colorDot = {
-  width: "20px",
-  height: "20px",
-  borderRadius: "4px",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-};
-
-const fontSelect = {
-  padding: "5px 8px",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
-};
-
-const headerRow = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  marginBottom: "14px",
-};
-
-const searchInputStyle = {
-  padding: "6px 12px",
-  border: "1px solid #ccc",
-  borderRadius: "8px",
-  width: "220px",
-  fontSize: "14px",
-  background: "#fafafa",
-};
+/* -------------------- styles -------------------- */
+const headerRow = { display: "flex", justifyContent: "space-between", marginBottom: 12 };
+const searchInputStyle = { padding: 6, borderRadius: 6, border: "1px solid #ccc" };
+const toolbarWrapper = { display: "flex", justifyContent: "space-between", marginBottom: 12 };
+const toolbarGroup = { display: "flex", gap: 8 };
+const toolbarBtn = { padding: "6px 10px", cursor: "pointer" };
+const saveBtn = { ...toolbarBtn, background: "#4caf50", color: "#fff" };
+const colorDot = { width: 20, height: 20, border: "1px solid #ccc", cursor: "pointer" };
+const fontSelect = { padding: 6 };
+const selectedBoxStyle = { padding: 10, minHeight: 60, border: "1px solid #ccc" };
