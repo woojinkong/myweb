@@ -259,8 +259,8 @@ function BoardRow({ board, navigate, BASE_URL }) {
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap"
               }}>{board.nickName}</span>
-            <span>·</span>
-            <span style={{
+            <span className="board-date-dot">·</span>
+            <span className="board-date" style={{
               maxWidth: "100px",
               overflow: "hidden",
               textOverflow: "ellipsis",

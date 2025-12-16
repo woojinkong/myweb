@@ -228,6 +228,11 @@
     font-size: 13px !important;
 }
 
+.board-date, .board-date-dot {
+  display: none;
+}
+
+
 
 
 
