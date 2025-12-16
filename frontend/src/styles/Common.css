@@ -228,6 +228,14 @@
     font-size: 13px !important;
     flex: 1;
     min-width: 0;
+     display: -webkit-box;          /* ❗ 반드시 필요 */
+    -webkit-box-orient: vertical;  /* ❗ 반드시 필요 */
+    -webkit-line-clamp: 2;         /* 2줄 제한 */
+    overflow: hidden;        /* ✅ 필수 */
+    text-overflow: ellipsis;
+
+    line-height: 1.35;       /* ✅ 줄 계산 안정화 */
+    word-break: break-word; /* 긴 단어 대응 */
 }
 
 .board-date, .board-date-dot {
