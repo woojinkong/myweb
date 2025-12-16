@@ -226,12 +226,19 @@
 }
 .board-row-title {
     font-size: 13px !important;
+    flex: 1;
+    min-width: 0;
 }
 
 .board-date, .board-date-dot {
   display: none;
 }
 
+.rowInfoInline {
+    flex: 0 0 auto !important;   /* 🔥 필요한 만큼만 */
+    min-width: unset !important; /* ❌ 150px 완전 제거 */
+    margin-left: 6px !important;
+ }
 
 
 
