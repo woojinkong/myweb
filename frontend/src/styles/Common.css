@@ -228,12 +228,33 @@
     font-size: 13px !important;
 }
 
-.board-date, .board-date-dot {
-  display: none;
-}
+  /* 제목 + 정보 → 세로 분리 */
+  .rowLine {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
 
+  /* 제목은 한 줄 + 전체 폭 */
+  .board-row-title {
+    width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.35 !important;
+  }
 
+  /* 정보는 아래 줄, 필요한 것만 */
+  .rowInfoInline {
+    min-width: auto !important;
+    flex-shrink: 1 !important;
+    font-size: 11px !important;
+  }
 
+  .board-date,
+  .board-date-dot {
+    display: none;
+  }
 
 
 }
