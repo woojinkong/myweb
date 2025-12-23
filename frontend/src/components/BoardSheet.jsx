@@ -65,7 +65,6 @@ export default function BoardSheet() {
      시트 로딩
   ================================================== */
   useEffect(() => {
-    let cleanup;
 
     const load = async () => {
       const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
@@ -103,7 +102,16 @@ export default function BoardSheet() {
         },
 
         onload: (instance) => {
-          const root = instance.el;
+          // ✅ 가장 안전한 루트
+          const root =
+            instance.content ||
+            instance.table?.parentNode;
+
+          if (!root) {
+            console.warn("jspreadsheet root not ready");
+            return;
+          }
+
           let lastCell = null;
 
           const onMove = (e) => {
@@ -121,7 +129,6 @@ export default function BoardSheet() {
             const row = td.getAttribute("data-row");
             if (col == null || row == null) return;
 
-            // 셀 내용이 잘릴 때만 툴팁
             if (td.scrollWidth <= td.clientWidth) return;
 
             const value = instance.getValueFromCoords(+col, +row);
@@ -143,12 +150,13 @@ export default function BoardSheet() {
           root.addEventListener("mouseover", onOver);
           root.addEventListener("mouseout", onOut);
 
-          cleanup = () => {
+          instance._tooltipCleanup = () => {
             root.removeEventListener("mousemove", onMove);
             root.removeEventListener("mouseover", onOver);
             root.removeEventListener("mouseout", onOut);
           };
         },
+
       });
 
       jssRef.current = jss;
@@ -157,7 +165,7 @@ export default function BoardSheet() {
     load();
 
     return () => {
-      cleanup?.();
+       jssRef.current?._tooltipCleanup?.();
       jssRef.current?.destroy?.();
     };
   }, [groupId]);
