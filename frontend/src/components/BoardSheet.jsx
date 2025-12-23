@@ -92,7 +92,7 @@ export default function BoardSheet() {
             const el = instance.content;
             if (!el) return;
 
-            /* 마우스 위치 추적 */
+            /* 마우스 위치 */
             el.addEventListener("mousemove", (e) => {
               mousePosRef.current = {
                 x: e.clientX + 12,
@@ -100,7 +100,37 @@ export default function BoardSheet() {
               };
             });
 
-            el.addEventListener("mouseleave", () => {
+            /* ✅ 이벤트 위임 (mouseover) */
+            el.addEventListener("mouseover", (e) => {
+              const td = e.target.closest("td");
+              if (!td || !el.contains(td) || !td.hasAttribute("data-x")) return;
+
+              // td 내부 이동 시 중복 실행 방지
+              if (td.contains(e.relatedTarget)) return;
+
+              const x = td.getAttribute("data-x");
+              const y = td.getAttribute("data-y");
+              if (x === null || y === null) return;
+
+              const value = instance.getValue(
+                toCellName(Number(x), Number(y))
+              );
+              if (!value) return;
+
+              setTooltip({
+                visible: true,
+                text: value,
+              });
+            });
+
+            /* ✅ 이벤트 위임 (mouseout) */
+            el.addEventListener("mouseout", (e) => {
+              const td = e.target.closest("td");
+              if (!td) return;
+
+              // 같은 td 내부 이동이면 무시
+              if (td.contains(e.relatedTarget)) return;
+
               setTooltip({ visible: false, text: "" });
             });
 
@@ -123,30 +153,19 @@ export default function BoardSheet() {
             });
           },
 
+
           oneditstart: (_, cell) => forceKoreanIME(cell),
           oneditionstart: (_, cell) => forceKoreanIME(cell),
 
           onselection: (_, x1, y1, x2, y2) => {
             selectionRef.current = { x1, y1, x2, y2 };
           },
+          
 
-          /* ✅ 셀 hover 시 툴팁 표시 */
-          onmouseover: (_, __, x, y) => {
-            const value = jss.current.getValue(toCellName(x, y));
-            if (!value) {
-              setTooltip({ visible: false, text: "" });
-              return;
-            }
 
-            setTooltip({
-              visible: true,
-              text: value,
-            });
-          },
+          
 
-          onmouseout: () => {
-            setTooltip({ visible: false, text: "" });
-          },
+          
         });
       } catch (e) {
         console.error("시트 로드 실패", e);
