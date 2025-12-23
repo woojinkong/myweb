@@ -102,71 +102,60 @@ export default function BoardSheet() {
         },
 
         onload: (instance) => {
-            let destroyed = false;
+          // ✅ 가장 안전한 루트
+          const root =
+            instance.content ||
+            instance.table?.parentNode;
 
-            const bindEvents = () => {
-              if (destroyed) return;
+          if (!root) {
+            console.warn("jspreadsheet root not ready");
+            return;
+          }
 
-              const root =
-                instance.content ||
-                instance.table?.parentNode;
+          let lastCell = null;
 
-              if (!root) {
-                // 다음 프레임에서 다시 시도
-                requestAnimationFrame(bindEvents);
-                return;
-              }
-
-              let lastCell = null;
-
-              const onMove = (e) => {
-                mousePosRef.current = {
-                  x: e.clientX + 12,
-                  y: e.clientY + 12,
-                };
-              };
-
-              const onOver = (e) => {
-                const td = e.target.closest("td");
-                if (!td || td === lastCell || instance.edition) return;
-
-                const col = td.getAttribute("data-col");
-                const row = td.getAttribute("data-row");
-                if (col == null || row == null) return;
-
-                if (td.scrollWidth <= td.clientWidth) return;
-
-                const value = instance.getValueFromCoords(+col, +row);
-                if (!value) return;
-
-                lastCell = td;
-                setTooltip({ visible: true, text: value });
-              };
-
-              const onOut = (e) => {
-                const td = e.target.closest("td");
-                if (!td || td.contains(e.relatedTarget)) return;
-
-                lastCell = null;
-                setTooltip({ visible: false, text: "" });
-              };
-
-              root.addEventListener("mousemove", onMove);
-              root.addEventListener("mouseover", onOver);
-              root.addEventListener("mouseout", onOut);
-
-              instance._tooltipCleanup = () => {
-                destroyed = true;
-                root.removeEventListener("mousemove", onMove);
-                root.removeEventListener("mouseover", onOver);
-                root.removeEventListener("mouseout", onOut);
-              };
+          const onMove = (e) => {
+            mousePosRef.current = {
+              x: e.clientX + 12,
+              y: e.clientY + 12,
             };
+          };
 
-            // 최초 시도
-            requestAnimationFrame(bindEvents);
-          },
+          const onOver = (e) => {
+            const td = e.target.closest("td");
+            if (!td || td === lastCell || instance.edition) return;
 
+            const col = td.getAttribute("data-col");
+            const row = td.getAttribute("data-row");
+            if (col == null || row == null) return;
+
+            if (td.scrollWidth <= td.clientWidth) return;
+
+            const value = instance.getValueFromCoords(+col, +row);
+            if (!value) return;
+
+            lastCell = td;
+            setTooltip({ visible: true, text: value });
+          };
+
+          const onOut = (e) => {
+            const td = e.target.closest("td");
+            if (!td || td.contains(e.relatedTarget)) return;
+
+            lastCell = null;
+            setTooltip({ visible: false, text: "" });
+          };
+
+          root.addEventListener("mousemove", onMove);
+          root.addEventListener("mouseover", onOver);
+          root.addEventListener("mouseout", onOut);
+
+          instance._tooltipCleanup = () => {
+            root.removeEventListener("mousemove", onMove);
+            root.removeEventListener("mouseover", onOver);
+            root.removeEventListener("mouseout", onOut);
+          };
+        },
 
       });
 
