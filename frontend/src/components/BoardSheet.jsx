@@ -8,21 +8,18 @@ import "jsuites/dist/jsuites.css";
 
 export default function BoardSheet() {
   const { groupId } = useParams();
-  const sheetRef = useRef(null);
-  const jss = useRef(null);
 
+  const sheetRef = useRef(null);
+  const jssRef = useRef(null);
   const selectionRef = useRef(null);
   const mousePosRef = useRef({ x: 0, y: 0 });
 
   const [groupName, setGroupName] = useState("");
-  const [tooltip, setTooltip] = useState({
-    visible: false,
-    text: "",
-  });
+  const [tooltip, setTooltip] = useState({ visible: false, text: "" });
 
-  /* --------------------------------------------------
-     A1 좌표 변환
-  -------------------------------------------------- */
+  /* ==================================================
+     공통 유틸
+  ================================================== */
   const toCellName = (col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let name = "";
@@ -33,9 +30,21 @@ export default function BoardSheet() {
     return name + (row + 1);
   };
 
-  /* --------------------------------------------------
-     IME 강제 한국어
-  -------------------------------------------------- */
+  const applyToSelection = (cb) => {
+    const r = selectionRef.current;
+    const jss = jssRef.current;
+    if (!r || !jss) return;
+
+    for (let y = r.y1; y <= r.y2; y++) {
+      for (let x = r.x1; x <= r.x2; x++) {
+        cb(toCellName(x, y), x, y);
+      }
+    }
+  };
+
+  /* ==================================================
+     IME (한글)
+  ================================================== */
   const forceKoreanIME = (cell) => {
     setTimeout(() => {
       const input = cell?.querySelector("input");
@@ -47,282 +56,182 @@ export default function BoardSheet() {
       input.setAttribute("autocomplete", "off");
       input.setAttribute("spellcheck", "false");
       input.style.imeMode = "active";
-
       input.focus();
       input.setSelectionRange(input.value.length, input.value.length);
     }, 5);
   };
 
-  /* --------------------------------------------------
+  /* ==================================================
      시트 로딩
-  -------------------------------------------------- */
+  ================================================== */
   useEffect(() => {
+    let cleanup;
+
     const load = async () => {
-      try {
-        const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
-        setGroupName(groupRes.data.name);
+      const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
+      setGroupName(groupRes.data.name);
 
-        const sheetRes = await axiosInstance.get(`/sheet/${groupId}`);
-        const saved = sheetRes.data?.sheetData
-          ? JSON.parse(sheetRes.data.sheetData)
-          : {};
+      const sheetRes = await axiosInstance.get(`/sheet/${groupId}`);
+      const saved = sheetRes.data?.sheetData
+        ? JSON.parse(sheetRes.data.sheetData)
+        : {};
 
-        if (sheetRef.current) sheetRef.current.innerHTML = "";
+      if (sheetRef.current) sheetRef.current.innerHTML = "";
 
-        jss.current = jspreadsheet(sheetRef.current, {
-          data: saved.data || [[]],
-          style: saved.style || {},
+      const jss = jspreadsheet(sheetRef.current, {
+        data: saved.data || [[]],
+        style: saved.style || {},
+        columns: (saved.columnWidth || []).map((w) => ({ width: w })),
+        rows: (saved.rowHeight || []).reduce((a, h, i) => {
+          a[i] = { height: h };
+          return a;
+        }, {}),
 
-          columns: (saved.columnWidth || []).map((w) => ({ width: w })),
-          rows: (saved.rowHeight || []).reduce((acc, h, i) => {
-            acc[i] = { height: h };
-            return acc;
-          }, {}),
+        minDimensions: [10, 30],
+        tableHeight: "620px",
+        tableOverflow: true,
+        filters: true,
+        columnSorting: true,
+        rowResize: true,
+        editable: true,
 
-          minDimensions: [10, 30],
-          tableHeight: "620px",
-          tableOverflow: true,
-          filters: true,
-          search: false,
-          columnSorting: true,
-          rowResize: true,
-          editable: true,
+        oneditstart: (_, cell) => forceKoreanIME(cell),
+        oneditionstart: (_, cell) => forceKoreanIME(cell),
 
-          onload: (instance) => {
-            const el = instance.content;
-            if (!el) return;
+        onselection: (_, x1, y1, x2, y2) => {
+          selectionRef.current = { x1, y1, x2, y2 };
+        },
 
-            /* 마우스 위치 */
-            el.addEventListener("mousemove", (e) => {
-              mousePosRef.current = {
-                x: e.clientX + 12,
-                y: e.clientY + 12,
-              };
-            });
+        onload: (instance) => {
+          const root = instance.el;
+          let lastCell = null;
 
-            /* ✅ 이벤트 위임 (mouseover) */
-            el.addEventListener("mouseover", (e) => {
-              const td = e.target.closest("td");
-              if (!td || !el.contains(td) || !td.hasAttribute("data-x")) return;
+          const onMove = (e) => {
+            mousePosRef.current = {
+              x: e.clientX + 12,
+              y: e.clientY + 12,
+            };
+          };
 
-              // td 내부 이동 시 중복 실행 방지
-              if (td.contains(e.relatedTarget)) return;
+          const onOver = (e) => {
+            const td = e.target.closest("td");
+            if (!td || td === lastCell || instance.edition) return;
 
-              const x = td.getAttribute("data-x");
-              const y = td.getAttribute("data-y");
-              if (x === null || y === null) return;
+            const col = td.getAttribute("data-col");
+            const row = td.getAttribute("data-row");
+            if (col == null || row == null) return;
 
-              const value = instance.getValue(
-                toCellName(Number(x), Number(y))
-              );
-              if (!value) return;
+            // 셀 내용이 잘릴 때만 툴팁
+            if (td.scrollWidth <= td.clientWidth) return;
 
-              setTooltip({
-                visible: true,
-                text: value,
-              });
-            });
+            const value = instance.getValueFromCoords(+col, +row);
+            if (!value) return;
 
-            /* ✅ 이벤트 위임 (mouseout) */
-            el.addEventListener("mouseout", (e) => {
-              const td = e.target.closest("td");
-              if (!td) return;
+            lastCell = td;
+            setTooltip({ visible: true, text: value });
+          };
 
-              // 같은 td 내부 이동이면 무시
-              if (td.contains(e.relatedTarget)) return;
+          const onOut = (e) => {
+            const td = e.target.closest("td");
+            if (!td || td.contains(e.relatedTarget)) return;
 
-              setTooltip({ visible: false, text: "" });
-            });
+            lastCell = null;
+            setTooltip({ visible: false, text: "" });
+          };
 
-            /* 키보드 제한 */
-            el.addEventListener("keydown", (e) => {
-              if (!instance.edition) {
-                const allow = [
-                  "F2",
-                  "Enter",
-                  "Tab",
-                  "ArrowUp",
-                  "ArrowDown",
-                  "ArrowLeft",
-                  "ArrowRight",
-                ];
-                if (!allow.includes(e.key)) {
-                  e.preventDefault();
-                }
-              }
-            });
-          },
+          root.addEventListener("mousemove", onMove);
+          root.addEventListener("mouseover", onOver);
+          root.addEventListener("mouseout", onOut);
 
+          cleanup = () => {
+            root.removeEventListener("mousemove", onMove);
+            root.removeEventListener("mouseover", onOver);
+            root.removeEventListener("mouseout", onOut);
+          };
+        },
+      });
 
-          oneditstart: (_, cell) => forceKoreanIME(cell),
-          oneditionstart: (_, cell) => forceKoreanIME(cell),
-
-          onselection: (_, x1, y1, x2, y2) => {
-            selectionRef.current = { x1, y1, x2, y2 };
-          },
-          
-
-
-          
-
-          
-        });
-      } catch (e) {
-        console.error("시트 로드 실패", e);
-      }
+      jssRef.current = jss;
     };
 
     load();
+
+    return () => {
+      cleanup?.();
+      jssRef.current?.destroy?.();
+    };
   }, [groupId]);
 
-  /* --------------------------------------------------
+  /* ==================================================
      저장
-  -------------------------------------------------- */
+  ================================================== */
   const handleSave = async () => {
-    if (!jss.current) return;
+    const jss = jssRef.current;
+    if (!jss) return;
 
     const payload = {
-      data: jss.current.getData(),
-      style: jss.current.getStyle(),
-      columnWidth: jss.current.getWidth(),
-      rowHeight: jss.current.getHeight(),
+      data: jss.getData(),
+      style: jss.getStyle(),
+      columnWidth: jss.getWidth(),
+      rowHeight: jss.getHeight(),
     };
 
-    try {
-      await axiosInstance.post(`/sheet/${groupId}`, JSON.stringify(payload), {
-        headers: { "Content-Type": "application/json" },
-      });
-      alert("저장 완료");
-    } catch {
-      alert("저장 실패");
-    }
+    await axiosInstance.post(`/sheet/${groupId}`, payload);
+    alert("저장 완료");
   };
 
-  /* --------------------------------------------------
-     선택범위 유틸
-  -------------------------------------------------- */
-  const applyToSelection = (cb) => {
-    const r = selectionRef.current;
-    if (!r || !jss.current) return;
-    for (let y = r.y1; y <= r.y2; y++) {
-      for (let x = r.x1; x <= r.x2; x++) {
-        cb(toCellName(x, y), x, y);
-      }
-    }
-  };
-
-  /* --------------------------------------------------
-     스타일
-  -------------------------------------------------- */
-  const applyBgColor = (c) =>
+  /* ==================================================
+     스타일 / 정렬
+  ================================================== */
+  const setAlign = (align) =>
     applyToSelection((cell) =>
-      jss.current.setStyle(cell, "background-color", c)
+      jssRef.current.setStyle(cell, "text-align", align)
     );
 
   const toggleBold = () =>
     applyToSelection((cell) => {
-      const cur = jss.current.getStyle(cell)?.["font-weight"];
-      jss.current.setStyle(
+      const cur = jssRef.current.getStyle(cell)?.["font-weight"];
+      jssRef.current.setStyle(
         cell,
         "font-weight",
         cur === "bold" ? "normal" : "bold"
       );
     });
 
-  const applyFontSize = (size) => {
-    const px = Number(size);
-    if (!px) return;
+  const setBg = (color) =>
+    applyToSelection((cell) =>
+      jssRef.current.setStyle(cell, "background-color", color)
+    );
 
-    const rows = new Set();
-    applyToSelection((cell, _, y) => {
-      jss.current.setStyle(cell, "font-size", px + "px");
-      rows.add(y);
-    });
-
-    rows.forEach((r) => {
-      if (jss.current.getHeight(r) < px + 10) {
-        jss.current.setRowHeight(r, px + 10);
-      }
-    });
-  };
-
-  /* --------------------------------------------------
-     행/열
-  -------------------------------------------------- */
-  const handleAddRow = () => jss.current?.insertRow();
-  const handleAddCol = () => jss.current?.insertColumn();
-
-  const resetRowColSize = () => {
-    const rows = jss.current.options.data.length;
-    const cols = jss.current.options.data[0]?.length || 10;
-    for (let r = 0; r < rows; r++) jss.current.setHeight(r, 30);
-    for (let c = 0; c < cols; c++) jss.current.setWidth(c, 100);
-  };
-
-  /* --------------------------------------------------
+  /* ==================================================
      UI
-  -------------------------------------------------- */
+  ================================================== */
   return (
     <div style={{ padding: 20, maxWidth: 1200, margin: "auto" }}>
-      <div style={headerRow}>
-        <h2>📄 {groupName}</h2>
-        <input
-          placeholder="검색"
-          onChange={(e) => jss.current?.search(e.target.value)}
-          style={searchInputStyle}
-        />
+      <h2>📄 {groupName}</h2>
+
+      <div style={toolbar}>
+        <button onClick={() => setAlign("left")}>⯇</button>
+        <button onClick={() => setAlign("center")}>≡</button>
+        <button onClick={() => setAlign("right")}>⯈</button>
+
+        <button onClick={toggleBold}>B</button>
+
+        {["#fff", "#eee", "#d0f8ce", "#ffe0b2"].map((c) => (
+          <div
+            key={c}
+            onClick={() => setBg(c)}
+            style={{ ...colorDot, background: c }}
+          />
+        ))}
+
+        <button onClick={handleSave}>저장</button>
       </div>
 
-      <div style={toolbarWrapper}>
-        <div style={toolbarGroup}>
-          <button onClick={handleAddRow} style={toolbarBtn}>＋행</button>
-          <button onClick={handleAddCol} style={toolbarBtn}>＋열</button>
-        </div>
+      <div ref={sheetRef} />
 
-        <div style={toolbarGroup}>
-          {["#fff", "#eee", "#d0f8ce", "#ffe0b2", "#ff8a80", "#333"].map((c) => (
-            <div
-              key={c}
-              onClick={() => applyBgColor(c)}
-              style={{ ...colorDot, background: c }}
-            />
-          ))}
-        </div>
-
-        <div style={toolbarGroup}>
-          <button onClick={toggleBold} style={toolbarBtn}>B</button>
-          <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
-            <option value="">크기</option>
-            {[12,14,16,18,20,24,28,36].map(n => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
-          <button onClick={resetRowColSize} style={toolbarBtn}>초기화</button>
-          <button onClick={handleSave} style={saveBtn}>저장</button>
-        </div>
-      </div>
-
-      <div ref={sheetRef}></div>
-
-      {/* ✅ 셀 hover 툴팁 */}
       {tooltip.visible && (
-        <div
-          style={{
-            position: "fixed",
-            left: mousePosRef.current.x,
-            top: mousePosRef.current.y,
-            maxWidth: 320,
-            padding: "8px 10px",
-            background: "#222",
-            color: "#fff",
-            fontSize: 13,
-            borderRadius: 6,
-            zIndex: 9999,
-            whiteSpace: "pre-wrap",
-            pointerEvents: "none",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-          }}
-        >
+        <div style={tooltipStyle(mousePosRef.current)}>
           {tooltip.text}
         </div>
       )}
@@ -330,12 +239,34 @@ export default function BoardSheet() {
   );
 }
 
-/* -------------------- styles -------------------- */
-const headerRow = { display: "flex", justifyContent: "space-between", marginBottom: 12 };
-const searchInputStyle = { padding: 6, borderRadius: 6, border: "1px solid #ccc" };
-const toolbarWrapper = { display: "flex", justifyContent: "space-between", marginBottom: 12 };
-const toolbarGroup = { display: "flex", gap: 8 };
-const toolbarBtn = { padding: "6px 10px", cursor: "pointer" };
-const saveBtn = { ...toolbarBtn, background: "#4caf50", color: "#fff" };
-const colorDot = { width: 20, height: 20, border: "1px solid #ccc", cursor: "pointer" };
-const fontSelect = { padding: 6 };
+/* ==================================================
+   styles
+================================================== */
+const toolbar = {
+  display: "flex",
+  gap: 8,
+  marginBottom: 10,
+  alignItems: "center",
+};
+
+const colorDot = {
+  width: 20,
+  height: 20,
+  border: "1px solid #ccc",
+  cursor: "pointer",
+};
+
+const tooltipStyle = (pos) => ({
+  position: "fixed",
+  left: pos.x,
+  top: pos.y,
+  maxWidth: 320,
+  padding: "8px 10px",
+  background: "#222",
+  color: "#fff",
+  fontSize: 13,
+  borderRadius: 6,
+  pointerEvents: "none",
+  zIndex: 9999,
+  whiteSpace: "pre-wrap",
+});
