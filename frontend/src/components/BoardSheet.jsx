@@ -12,8 +12,13 @@ export default function BoardSheet() {
   const jss = useRef(null);
 
   const selectionRef = useRef(null);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+
   const [groupName, setGroupName] = useState("");
-  const [selectedText, setSelectedText] = useState("");
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    text: "",
+  });
 
   /* --------------------------------------------------
      A1 좌표 변환
@@ -87,6 +92,19 @@ export default function BoardSheet() {
             const el = instance.content;
             if (!el) return;
 
+            /* 마우스 위치 추적 */
+            el.addEventListener("mousemove", (e) => {
+              mousePosRef.current = {
+                x: e.clientX + 12,
+                y: e.clientY + 12,
+              };
+            });
+
+            el.addEventListener("mouseleave", () => {
+              setTooltip({ visible: false, text: "" });
+            });
+
+            /* 키보드 제한 */
             el.addEventListener("keydown", (e) => {
               if (!instance.edition) {
                 const allow = [
@@ -100,7 +118,6 @@ export default function BoardSheet() {
                 ];
                 if (!allow.includes(e.key)) {
                   e.preventDefault();
-                  return false;
                 }
               }
             });
@@ -111,13 +128,24 @@ export default function BoardSheet() {
 
           onselection: (_, x1, y1, x2, y2) => {
             selectionRef.current = { x1, y1, x2, y2 };
-            const v = jss.current.getValue(toCellName(x1, y1));
-            setSelectedText(v ?? "");
           },
 
-          onclick: (_, __, x, y) => {
-            const v = jss.current.getValue(toCellName(x, y));
-            setSelectedText(v ?? "");
+          /* ✅ 셀 hover 시 툴팁 표시 */
+          onmouseover: (_, __, x, y) => {
+            const value = jss.current.getValue(toCellName(x, y));
+            if (!value) {
+              setTooltip({ visible: false, text: "" });
+              return;
+            }
+
+            setTooltip({
+              visible: true,
+              text: value,
+            });
+          },
+
+          onmouseout: () => {
+            setTooltip({ visible: false, text: "" });
           },
         });
       } catch (e) {
@@ -129,13 +157,13 @@ export default function BoardSheet() {
   }, [groupId]);
 
   /* --------------------------------------------------
-     저장 (🔥 핵심 수정 포인트)
+     저장
   -------------------------------------------------- */
   const handleSave = async () => {
     if (!jss.current) return;
 
     const payload = {
-      data: jss.current.getData(),     // ✅ getJson 제거
+      data: jss.current.getData(),
       style: jss.current.getStyle(),
       columnWidth: jss.current.getWidth(),
       rowHeight: jss.current.getHeight(),
@@ -165,7 +193,7 @@ export default function BoardSheet() {
   };
 
   /* --------------------------------------------------
-     스타일 기능
+     스타일
   -------------------------------------------------- */
   const applyBgColor = (c) =>
     applyToSelection((cell) =>
@@ -175,7 +203,11 @@ export default function BoardSheet() {
   const toggleBold = () =>
     applyToSelection((cell) => {
       const cur = jss.current.getStyle(cell)?.["font-weight"];
-      jss.current.setStyle(cell, "font-weight", cur === "bold" ? "normal" : "bold");
+      jss.current.setStyle(
+        cell,
+        "font-weight",
+        cur === "bold" ? "normal" : "bold"
+      );
     });
 
   const applyFontSize = (size) => {
@@ -230,7 +262,11 @@ export default function BoardSheet() {
 
         <div style={toolbarGroup}>
           {["#fff", "#eee", "#d0f8ce", "#ffe0b2", "#ff8a80", "#333"].map((c) => (
-            <div key={c} onClick={() => applyBgColor(c)} style={{ ...colorDot, background: c }} />
+            <div
+              key={c}
+              onClick={() => applyBgColor(c)}
+              style={{ ...colorDot, background: c }}
+            />
           ))}
         </div>
 
@@ -238,18 +274,39 @@ export default function BoardSheet() {
           <button onClick={toggleBold} style={toolbarBtn}>B</button>
           <select onChange={(e) => applyFontSize(e.target.value)} style={fontSelect}>
             <option value="">크기</option>
-            {[12,14,16,18,20,24,28,36].map(n => <option key={n}>{n}</option>)}
+            {[12,14,16,18,20,24,28,36].map(n => (
+              <option key={n}>{n}</option>
+            ))}
           </select>
           <button onClick={resetRowColSize} style={toolbarBtn}>초기화</button>
           <button onClick={handleSave} style={saveBtn}>저장</button>
         </div>
       </div>
 
-      <div style={selectedBoxStyle}>
-        {selectedText || "선택된 셀 내용"}
-      </div>
-
       <div ref={sheetRef}></div>
+
+      {/* ✅ 셀 hover 툴팁 */}
+      {tooltip.visible && (
+        <div
+          style={{
+            position: "fixed",
+            left: mousePosRef.current.x,
+            top: mousePosRef.current.y,
+            maxWidth: 320,
+            padding: "8px 10px",
+            background: "#222",
+            color: "#fff",
+            fontSize: 13,
+            borderRadius: 6,
+            zIndex: 9999,
+            whiteSpace: "pre-wrap",
+            pointerEvents: "none",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+          }}
+        >
+          {tooltip.text}
+        </div>
+      )}
     </div>
   );
 }
@@ -263,4 +320,3 @@ const toolbarBtn = { padding: "6px 10px", cursor: "pointer" };
 const saveBtn = { ...toolbarBtn, background: "#4caf50", color: "#fff" };
 const colorDot = { width: 20, height: 20, border: "1px solid #ccc", cursor: "pointer" };
 const fontSelect = { padding: 6 };
-const selectedBoxStyle = { padding: 10, minHeight: 60, border: "1px solid #ccc" };
