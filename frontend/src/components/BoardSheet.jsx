@@ -99,7 +99,6 @@ export default function BoardSheet() {
         columns: (saved.columnWidth || []).map((w) => ({
           width: w,
         type: "textarea",
-        wordWrap: true
         })),
 
         rows: (saved.rowHeight || []).reduce((a, h, i) => {
