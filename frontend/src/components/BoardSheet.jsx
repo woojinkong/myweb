@@ -215,7 +215,7 @@ export default function BoardSheet() {
      UI
   ================================================== */
   return (
-    <div style={{ padding: 20, maxWidth: 1200, margin: "auto" }}>
+    <div style={{ padding: 20 }}>
       <h2>📄 {groupName}</h2>
 
       <div style={toolbar}>
