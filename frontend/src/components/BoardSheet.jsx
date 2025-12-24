@@ -43,37 +43,59 @@ export default function BoardSheet() {
   /* ==================================================
      IME (한글)
   ================================================== */
-  const forceKoreanIME = (cell) => {
-      setTimeout(() => {
-        const editor =
-          cell?.querySelector("textarea") ||
-          cell?.querySelector("input");
+        const forceKoreanIME = (cell) => {
+        setTimeout(() => {
+          const editor =
+            cell?.querySelector("textarea") ||
+            cell?.querySelector("input");
 
-        if (!editor) return;
+          if (!editor) return;
 
-        editor.setAttribute("lang", "ko");
-        editor.setAttribute("inputmode", "text");
-        editor.setAttribute("autocorrect", "off");
-        editor.setAttribute("autocomplete", "off");
-        editor.setAttribute("spellcheck", "false");
-        editor.style.imeMode = "active";
+          editor.setAttribute("lang", "ko");
+          editor.setAttribute("inputmode", "text");
+          editor.setAttribute("autocorrect", "off");
+          editor.setAttribute("autocomplete", "off");
+          editor.setAttribute("spellcheck", "false");
+          editor.style.imeMode = "active";
 
-        // 편집 중 전체 내용 가시성
-        editor.style.whiteSpace = "pre-wrap";
-        editor.style.minHeight = "80px";
-        editor.style.width = "100%";
-        // editor.style.resize = "vertical"; // 선택
+          // 편집 중 전체 내용 가시성
+          editor.style.whiteSpace = "pre-wrap";
+          editor.style.minHeight = "80px";
+          editor.style.width = "100%";
 
-        editor.focus();
+          // 🔥 기존 핸들러 제거 (중복 방지)
+          editor.onkeydown = (e) => {
+            // ✅ Ctrl + Enter → 줄바꿈
+            if (e.ctrlKey && e.key === "Enter") {
+              e.preventDefault();
+              e.stopPropagation();
 
-        if (typeof editor.setSelectionRange === "function") {
-          editor.setSelectionRange(
-            editor.value.length,
-            editor.value.length
-          );
-        }
-      }, 5);
-    };
+              const start = editor.selectionStart;
+              const end = editor.selectionEnd;
+
+              editor.value =
+                editor.value.slice(0, start) +
+                "\n" +
+                editor.value.slice(end);
+
+              editor.selectionStart = editor.selectionEnd = start + 1;
+              return;
+            }
+
+            // 나머지 키는 jspreadsheet 기본 동작 유지
+          };
+
+          editor.focus();
+
+          if (typeof editor.setSelectionRange === "function") {
+            editor.setSelectionRange(
+              editor.value.length,
+              editor.value.length
+            );
+          }
+        }, 5);
+      };
+
 
 
 
