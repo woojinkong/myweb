@@ -12,10 +12,8 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jssRef = useRef(null);
   const selectionRef = useRef(null);
-  const mousePosRef = useRef({ x: 0, y: 0 });
-
   const [groupName, setGroupName] = useState("");
-  const [tooltip, setTooltip] = useState({ visible: false, text: "" });
+  
 
   /* ==================================================
      공통 유틸
@@ -102,7 +100,6 @@ export default function BoardSheet() {
         },
 
         onload: (instance) => {
-          // ✅ 가장 안전한 루트
           const root =
             instance.content ||
             instance.table?.parentNode;
@@ -112,48 +109,33 @@ export default function BoardSheet() {
             return;
           }
 
-          let lastCell = null;
-
-          const onMove = (e) => {
-            mousePosRef.current = {
-              x: e.clientX + 12,
-              y: e.clientY + 12,
-            };
-          };
-
           const onOver = (e) => {
             const td = e.target.closest("td");
-            if (!td || td === lastCell || instance.edition) return;
+            if (!td || instance.edition) return;
 
             const col = td.getAttribute("data-col");
             const row = td.getAttribute("data-row");
             if (col == null || row == null) return;
 
-            if (td.scrollWidth <= td.clientWidth) return;
-
             const value = instance.getValueFromCoords(+col, +row);
             if (!value) return;
 
-            lastCell = td;
-            setTooltip({ visible: true, text: value });
+            td.setAttribute("title", String(value));
           };
 
-          const onOut = (e) => {
-            const td = e.target.closest("td");
-            if (!td || td.contains(e.relatedTarget)) return;
-
-            lastCell = null;
-            setTooltip({ visible: false, text: "" });
-          };
-
-          root.addEventListener("mousemove", onMove);
           root.addEventListener("mouseover", onOver);
-          root.addEventListener("mouseout", onOut);
 
           instance._tooltipCleanup = () => {
-            root.removeEventListener("mousemove", onMove);
             root.removeEventListener("mouseover", onOver);
-            root.removeEventListener("mouseout", onOut);
+          };
+
+
+
+
+          root.addEventListener("mouseover", onOver);
+
+          instance._tooltipCleanup = () => {
+            root.removeEventListener("mouseover", onOver);
           };
         },
 
@@ -211,6 +193,18 @@ export default function BoardSheet() {
       jssRef.current.setStyle(cell, "background-color", color)
     );
 
+    const COMMON_COLORS = [
+      "#ffffff", // 기본
+      "#f5f5f5", // 연회색
+      "#e0e0e0", // 중간회색
+      "#d0f8ce", // 연초록 (확인)
+      "#fff9c4", // 연노랑 (강조)
+      "#ffe0b2", // 연주황 (주의)
+      "#ffcdd2", // 연빨강 (경고)
+      "#cfd8dc", // 비활성
+    ];
+
+
   /* ==================================================
      UI
   ================================================== */
@@ -224,25 +218,22 @@ export default function BoardSheet() {
         <button onClick={() => setAlign("right")}>⯈</button>
 
         <button onClick={toggleBold}>B</button>
+        
 
-        {["#fff", "#eee", "#d0f8ce", "#ffe0b2"].map((c) => (
-          <div
-            key={c}
-            onClick={() => setBg(c)}
-            style={{ ...colorDot, background: c }}
-          />
-        ))}
+        {COMMON_COLORS.map((c) => (
+        <div
+          key={c}
+          onClick={() => setBg(c)}
+          style={{ ...colorDot, background: c }}
+          title={c}
+        />
+      ))}
+
 
         <button onClick={handleSave}>저장</button>
       </div>
 
       <div ref={sheetRef} />
-
-      {tooltip.visible && (
-        <div style={tooltipStyle(mousePosRef.current)}>
-          {tooltip.text}
-        </div>
-      )}
     </div>
   );
 }
@@ -264,17 +255,4 @@ const colorDot = {
   cursor: "pointer",
 };
 
-const tooltipStyle = (pos) => ({
-  position: "fixed",
-  left: pos.x,
-  top: pos.y,
-  maxWidth: 320,
-  padding: "8px 10px",
-  background: "#222",
-  color: "#fff",
-  fontSize: 13,
-  borderRadius: 6,
-  pointerEvents: "none",
-  zIndex: 9999,
-  whiteSpace: "pre-wrap",
-});
+
