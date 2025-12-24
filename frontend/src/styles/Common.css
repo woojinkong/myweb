@@ -69,6 +69,11 @@
   margin: 14px auto !important;
 }
 
+.board-sheet-wrapper .jexcel_content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 
 

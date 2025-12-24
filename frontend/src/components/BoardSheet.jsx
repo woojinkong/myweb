@@ -214,7 +214,10 @@ export default function BoardSheet() {
         <button onClick={handleSave}>저장</button>
       </div>
 
+    <div className="board-sheet-wrapper">
       <div ref={sheetRef} />
+    </div>
+
     </div>
   );
 }
