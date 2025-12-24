@@ -44,20 +44,38 @@ export default function BoardSheet() {
      IME (한글)
   ================================================== */
   const forceKoreanIME = (cell) => {
-    setTimeout(() => {
-      const input = cell?.querySelector("input");
-      if (!input) return;
+      setTimeout(() => {
+        const editor =
+          cell?.querySelector("textarea") ||
+          cell?.querySelector("input");
 
-      input.setAttribute("lang", "ko");
-      input.setAttribute("inputmode", "text");
-      input.setAttribute("autocorrect", "off");
-      input.setAttribute("autocomplete", "off");
-      input.setAttribute("spellcheck", "false");
-      input.style.imeMode = "active";
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
-    }, 5);
-  };
+        if (!editor) return;
+
+        editor.setAttribute("lang", "ko");
+        editor.setAttribute("inputmode", "text");
+        editor.setAttribute("autocorrect", "off");
+        editor.setAttribute("autocomplete", "off");
+        editor.setAttribute("spellcheck", "false");
+        editor.style.imeMode = "active";
+
+        // 편집 중 전체 내용 가시성
+        editor.style.whiteSpace = "pre-wrap";
+        editor.style.minHeight = "80px";
+        editor.style.width = "100%";
+        // editor.style.resize = "vertical"; // 선택
+
+        editor.focus();
+
+        if (typeof editor.setSelectionRange === "function") {
+          editor.setSelectionRange(
+            editor.value.length,
+            editor.value.length
+          );
+        }
+      }, 5);
+    };
+
+
 
   /* ==================================================
      시트 로딩
@@ -78,7 +96,12 @@ export default function BoardSheet() {
       const jss = jspreadsheet(sheetRef.current, {
         data: saved.data || [[]],
         style: saved.style || {},
-        columns: (saved.columnWidth || []).map((w) => ({ width: w })),
+        columns: (saved.columnWidth || []).map((w) => ({
+          width: w,
+        type: "textarea",
+        wordWrap: true
+        })),
+
         rows: (saved.rowHeight || []).reduce((a, h, i) => {
           a[i] = { height: h };
           return a;
@@ -98,47 +121,6 @@ export default function BoardSheet() {
         onselection: (_, x1, y1, x2, y2) => {
           selectionRef.current = { x1, y1, x2, y2 };
         },
-
-        onload: (instance) => {
-          const root =
-            instance.content ||
-            instance.table?.parentNode;
-
-          if (!root) {
-            console.warn("jspreadsheet root not ready");
-            return;
-          }
-
-          const onOver = (e) => {
-            const td = e.target.closest("td");
-            if (!td || instance.edition) return;
-
-            const col = td.getAttribute("data-col");
-            const row = td.getAttribute("data-row");
-            if (col == null || row == null) return;
-
-            const value = instance.getValueFromCoords(+col, +row);
-            if (!value) return;
-
-            td.setAttribute("title", String(value));
-          };
-
-          root.addEventListener("mouseover", onOver);
-
-          instance._tooltipCleanup = () => {
-            root.removeEventListener("mouseover", onOver);
-          };
-
-
-
-
-          root.addEventListener("mouseover", onOver);
-
-          instance._tooltipCleanup = () => {
-            root.removeEventListener("mouseover", onOver);
-          };
-        },
-
       });
 
       jssRef.current = jss;
