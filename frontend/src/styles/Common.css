@@ -76,6 +76,12 @@
   text-overflow: ellipsis;
 }
 
+
+.board-scroll-container {
+  height: 620px;       /* 시트 높이 기준 */
+  overflow: auto;      /* 세로 + 가로 스크롤 */
+}
+
 /* 🔹 편집 상태: textarea는 정상 줄바꿈 */
 .board-sheet-wrapper .jexcel_content textarea {
   white-space: pre-wrap !important;
@@ -84,6 +90,14 @@
 }
 
 
+
+.board-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
 
 /* ============================================
    📱 Mobile (최대 768px)

@@ -184,10 +184,11 @@ export default function BoardSheet() {
      UI
   ================================================== */
   return (
-    <div style={{ padding: 20 }}>
-      <h2>📄 {groupName}</h2>
+  <div style={{ padding: 20 }}>
+    <h2>📄 {groupName}</h2>
 
-      <div style={toolbar}>
+    <div className="board-scroll-container">
+      <div className="board-toolbar">
         <button onClick={() => setAlign("left")}>⯇</button>
         <button onClick={() => setAlign("center")}>≡</button>
         <button onClick={() => setAlign("right")}>⯈</button>
@@ -210,18 +211,14 @@ export default function BoardSheet() {
         <div ref={sheetRef} />
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 /* ==================================================
    styles
 ================================================== */
-const toolbar = {
-  display: "flex",
-  gap: 8,
-  marginBottom: 10,
-  alignItems: "center",
-};
 
 const colorDot = {
   width: 20,
