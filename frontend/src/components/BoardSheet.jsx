@@ -186,8 +186,6 @@ export default function BoardSheet() {
   <div style={{ padding: 20 }}>
   <h2>📄 {groupName}</h2>
 
-  {/* 세로 스크롤 */}
-  <div className="board-scroll-container">
 
     {/* 가로 스크롤 */}
     <div className="board-sheet-wrapper">
@@ -217,7 +215,6 @@ export default function BoardSheet() {
       <div ref={sheetRef} />
     </div>
   </div>
-</div>
 );
 
 }

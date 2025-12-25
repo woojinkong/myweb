@@ -70,13 +70,10 @@
 }
 
 /* ===== jspreadsheet scroll 통합 ===== */
-.board-scroll-container {
-  height: 620px;
-  overflow-y: auto;
-  overflow-x: hidden; /* ⭐ 반드시 hidden */
-}
+
 .board-sheet-wrapper {
-  overflow-x: auto;
+  height: 620px;
+  overflow: auto;
   position: relative;
 }
 
