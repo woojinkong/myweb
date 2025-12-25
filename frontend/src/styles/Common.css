@@ -111,6 +111,11 @@
   align-items: center;        /* ⭐ 세로 중앙 */
   gap: 6px;                   /* 버튼 간격 */
   white-space: nowrap;        /* 줄바꿈 방지 */
+
+  width: max-content;   /* ⭐ 핵심 */
+  min-width: 100%;      /* ⭐ 테이블 최소폭과 맞춤 */
+
+
 }
 .color-dot {
   width: 18px;
