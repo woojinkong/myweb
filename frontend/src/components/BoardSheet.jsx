@@ -199,8 +199,9 @@ export default function BoardSheet() {
         {COMMON_COLORS.map((c) => (
           <div
             key={c}
+            className="color-dot"
             onClick={() => setBg(c)}
-            style={{ ...colorDot, background: c }}
+            style={{background: c }}
           />
         ))}
 
@@ -215,14 +216,3 @@ export default function BoardSheet() {
 );
 
 }
-
-/* ==================================================
-   styles
-================================================== */
-
-const colorDot = {
-  width: 20,
-  height: 20,
-  border: "1px solid #ccc",
-  cursor: "pointer",
-};

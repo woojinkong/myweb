@@ -69,35 +69,58 @@
   margin: 14px auto !important;
 }
 
-/* 🔹 보기 상태: 한 줄 + ... */
-.board-sheet-wrapper .jexcel_content {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
+/* ===== jspreadsheet scroll 통합 ===== */
 .board-scroll-container {
-  height: 620px;       /* 시트 높이 기준 */
-  overflow: auto;      /* 세로 + 가로 스크롤 */
+  height: 620px;
+  overflow: auto;
 }
 
-/* 🔹 편집 상태: textarea는 정상 줄바꿈 */
+/* 내부 스크롤 제거 */
+.board-sheet-wrapper .jexcel,
+.board-sheet-wrapper .jexcel_content {
+  overflow-x: visible !important;
+}
+
+/* 테이블 가로 확장 */
+.board-sheet-wrapper .jexcel {
+  width: max-content;
+  min-width: 100%;
+}
+
+.board-sheet-wrapper .jexcel table {
+  min-width: max-content;
+}
+
+/* 편집 textarea */
 .board-sheet-wrapper .jexcel_content textarea {
   white-space: pre-wrap !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
 }
 
-
-
+/* sticky toolbar */
 .board-toolbar {
   position: sticky;
   top: 0;
   z-index: 10;
   background: #fff;
   border-bottom: 1px solid #ddd;
+
+  display: flex;              /* ⭐ 핵심 */
+  flex-direction: row;        /* ⭐ 가로 */
+  align-items: center;        /* ⭐ 세로 중앙 */
+  gap: 6px;                   /* 버튼 간격 */
+  white-space: nowrap;        /* 줄바꿈 방지 */
 }
+.color-dot {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #bbb;
+  cursor: pointer;
+  flex-shrink: 0;   /* ⭐ 줄어들지 않게 */
+}
+
+
 
 /* ============================================
    📱 Mobile (최대 768px)
