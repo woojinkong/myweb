@@ -73,10 +73,11 @@
 .board-scroll-container {
   height: 620px;
   overflow-y: auto;
-  overflow-x: visible;   /* ⭐ 핵심 */
+  overflow-x: hidden; /* ⭐ 반드시 hidden */
 }
 .board-sheet-wrapper {
   overflow-x: auto;
+  position: relative;
 }
 
 
