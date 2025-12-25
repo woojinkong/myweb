@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 
@@ -12,13 +12,13 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jssRef = useRef(null);
   const selectionRef = useRef(null);
+
   const [groupName, setGroupName] = useState("");
-  
 
   /* ==================================================
      공통 유틸
   ================================================== */
-  const toCellName = (col, row) => {
+  const toCellName = useCallback((col, row) => {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let name = "";
     while (col >= 0) {
@@ -26,84 +26,79 @@ export default function BoardSheet() {
       col = Math.floor(col / 26) - 1;
     }
     return name + (row + 1);
-  };
+  }, []);
 
-  const applyToSelection = (cb) => {
+  const applyToSelection = useCallback((cb) => {
     const r = selectionRef.current;
     const jss = jssRef.current;
     if (!r || !jss) return;
 
     for (let y = r.y1; y <= r.y2; y++) {
       for (let x = r.x1; x <= r.x2; x++) {
-        cb(toCellName(x, y), x, y);
+        cb(toCellName(x, y));
       }
     }
-  };
-
+  }, [toCellName]);
 
   /* ==================================================
-     IME (한글)
+     IME + CtrlEnter 줄바꿈
   ================================================== */
-   const forceKoreanIME = (cell) => {
-      setTimeout(() => {
-        const editor =
-          cell?.querySelector("textarea") ||
-          cell?.querySelector("input");
+  const forceKoreanIME = useCallback((cell) => {
+    setTimeout(() => {
+      const editor =
+        cell?.querySelector("textarea") ||
+        cell?.querySelector("input");
 
-        if (!editor) return;
-        if (editor.__ctrlEnterBound) return;
-        editor.__ctrlEnterBound = true;
+      if (!editor || editor.__imeBound) return;
+      editor.__imeBound = true;
 
-        editor.style.whiteSpace = "pre-wrap";
-        editor.style.wordBreak = "break-word";
-        editor.style.overflowWrap = "anywhere";
-        editor.style.width = "100%";
-        editor.style.minHeight = "80px";
-        editor.setAttribute("lang", "ko");
+      editor.setAttribute("lang", "ko");
+      editor.style.whiteSpace = "pre-wrap";
+      editor.style.wordBreak = "break-word";
+      editor.style.overflowWrap = "anywhere";
+      editor.style.width = "100%";
+      editor.style.minHeight = "80px";
 
-        const handler = (e) => {
-          if (e.ctrlKey && e.key === "Enter") {
-            e.preventDefault();
+      const onKeyDown = (e) => {
+        if (e.ctrlKey && e.key === "Enter") {
+          e.preventDefault();
 
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
+          const { selectionStart, selectionEnd, value } = editor;
+          editor.value =
+            value.slice(0, selectionStart) +
+            "\n" +
+            value.slice(selectionEnd);
 
-            editor.value =
-              editor.value.slice(0, start) +
-              "\n" +
-              editor.value.slice(end);
+          editor.selectionStart = editor.selectionEnd =
+            selectionStart + 1;
+        }
+      };
 
-            editor.selectionStart = editor.selectionEnd = start + 1;
-          }
-        };
+      editor.addEventListener("keydown", onKeyDown);
 
-        editor.addEventListener("keydown", handler);
+      editor.addEventListener("blur", () => {
+        editor.removeEventListener("keydown", onKeyDown);
+        delete editor.__imeBound;
+      });
 
-        editor.addEventListener("blur", () => {
-          editor.removeEventListener("keydown", handler);
-          delete editor.__ctrlEnterBound;
-        });
-
-        editor.focus();
-      }, 0);
-    };
-
-
-
-
-
-
+      editor.focus();
+    }, 0);
+  }, []);
 
   /* ==================================================
      시트 로딩
   ================================================== */
   useEffect(() => {
+    let destroyed = false;
 
     const load = async () => {
       const groupRes = await axiosInstance.get(`/board-group/${groupId}`);
+      if (destroyed) return;
       setGroupName(groupRes.data.name);
 
       const sheetRes = await axiosInstance.get(`/sheet/${groupId}`);
+      if (destroyed) return;
+
       const saved = sheetRes.data?.sheetData
         ? JSON.parse(sheetRes.data.sheetData)
         : {};
@@ -112,15 +107,23 @@ export default function BoardSheet() {
 
       const jss = jspreadsheet(sheetRef.current, {
         data: saved.data || [[]],
-        style: saved.style || {},
+        style: {
+          "*": {
+            "white-space": "pre-wrap",
+            "word-break": "break-word",
+            "overflow-wrap": "anywhere",
+          },
+          ...(saved.style || {}),
+        },
+
         columns: (saved.columnWidth || []).map((w) => ({
           width: w,
-        type: "textarea",
+          type: "textarea",
         })),
 
-        rows: (saved.rowHeight || []).reduce((a, h, i) => {
-          a[i] = { height: h };
-          return a;
+        rows: (saved.rowHeight || []).reduce((acc, h, i) => {
+          acc[i] = { height: h };
+          return acc;
         }, {}),
 
         minDimensions: [10, 30],
@@ -130,15 +133,6 @@ export default function BoardSheet() {
         columnSorting: true,
         rowResize: true,
         editable: true,
-
-
-        // ✅ 여기서 Ctrl+Enter 차단 (중요)
-      onbeforekeydown: (el, e) => {
-        if (e.ctrlKey && e.key === "Enter") {
-          e.preventDefault();
-          return false;
-        }
-      },
 
         oneditstart: (_, cell) => forceKoreanIME(cell),
         oneditionstart: (_, cell) => forceKoreanIME(cell),
@@ -154,10 +148,11 @@ export default function BoardSheet() {
     load();
 
     return () => {
-       jssRef.current?._tooltipCleanup?.();
+      destroyed = true;
       jssRef.current?.destroy?.();
+      jssRef.current = null;
     };
-  }, [groupId]);
+  }, [groupId, forceKoreanIME]);
 
   /* ==================================================
      저장
@@ -200,17 +195,16 @@ export default function BoardSheet() {
       jssRef.current.setStyle(cell, "background-color", color)
     );
 
-    const COMMON_COLORS = [
-      "#ffffff", // 기본
-      "#f5f5f5", // 연회색
-      "#e0e0e0", // 중간회색
-      "#d0f8ce", // 연초록 (확인)
-      "#fff9c4", // 연노랑 (강조)
-      "#ffe0b2", // 연주황 (주의)
-      "#ffcdd2", // 연빨강 (경고)
-      "#cfd8dc", // 비활성
-    ];
-
+  const COMMON_COLORS = [
+    "#ffffff",
+    "#f5f5f5",
+    "#e0e0e0",
+    "#d0f8ce",
+    "#fff9c4",
+    "#ffe0b2",
+    "#ffcdd2",
+    "#cfd8dc",
+  ];
 
   /* ==================================================
      UI
@@ -225,25 +219,21 @@ export default function BoardSheet() {
         <button onClick={() => setAlign("right")}>⯈</button>
 
         <button onClick={toggleBold}>B</button>
-        
 
         {COMMON_COLORS.map((c) => (
-        <div
-          key={c}
-          onClick={() => setBg(c)}
-          style={{ ...colorDot, background: c }}
-          title={c}
-        />
-      ))}
-
+          <div
+            key={c}
+            onClick={() => setBg(c)}
+            style={{ ...colorDot, background: c }}
+          />
+        ))}
 
         <button onClick={handleSave}>저장</button>
       </div>
 
-    <div className="board-sheet-wrapper">
-      <div ref={sheetRef} />
-    </div>
-
+      <div className="board-sheet-wrapper">
+        <div ref={sheetRef} />
+      </div>
     </div>
   );
 }
@@ -264,5 +254,3 @@ const colorDot = {
   border: "1px solid #ccc",
   cursor: "pointer",
 };
-
-
