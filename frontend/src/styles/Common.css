@@ -72,7 +72,11 @@
 /* ===== jspreadsheet scroll 통합 ===== */
 .board-scroll-container {
   height: 620px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: visible;   /* ⭐ 핵심 */
+}
+.board-sheet-wrapper {
+  overflow-x: auto;
 }
 
 
@@ -97,6 +101,7 @@
 .board-toolbar{
   position: sticky;
   top: 0;
+  left: 0;
   z-index: 10;
   background: #fff;
   border-bottom: 1px solid #ddd;

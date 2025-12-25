@@ -184,9 +184,15 @@ export default function BoardSheet() {
   ================================================== */
   return (
   <div style={{ padding: 20 }}>
-    <h2>📄 {groupName}</h2>
+  <h2>📄 {groupName}</h2>
 
-    <div className="board-scroll-container">
+  {/* 세로 스크롤 */}
+  <div className="board-scroll-container">
+
+    {/* 가로 스크롤 */}
+    <div className="board-sheet-wrapper">
+
+      {/* toolbar는 반드시 여기 */}
       <div className="board-toolbar">
         <button onClick={() => setAlign("left")}>⯇</button>
         <button onClick={() => setAlign("center")}>≡</button>
@@ -200,18 +206,18 @@ export default function BoardSheet() {
             key={c}
             className="color-dot"
             onClick={() => setBg(c)}
-            style={{background: c }}
+            style={{ background: c }}
           />
         ))}
 
         <button onClick={handleSave}>저장</button>
       </div>
 
-      <div className="board-sheet-wrapper">
-        <div ref={sheetRef} />
-      </div>
+      {/* sheet */}
+      <div ref={sheetRef} />
     </div>
   </div>
+</div>
 );
 
 }
