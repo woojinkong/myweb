@@ -28,29 +28,29 @@ export default function BoardSheet() {
     return name + (row + 1);
   }, []);
 
-  const applyToSelection = useCallback((cb) => {
-    const r = selectionRef.current;
-    const jss = jssRef.current;
-    if (!r || !jss) return;
+  const applyToSelection = useCallback(
+    (cb) => {
+      const r = selectionRef.current;
+      const jss = jssRef.current;
+      if (!r || !jss) return;
 
-    for (let y = r.y1; y <= r.y2; y++) {
-      for (let x = r.x1; x <= r.x2; x++) {
-        cb(toCellName(x, y));
+      for (let y = r.y1; y <= r.y2; y++) {
+        for (let x = r.x1; x <= r.x2; x++) {
+          cb(toCellName(x, y));
+        }
       }
-    }
-  }, [toCellName]);
+    },
+    [toCellName]
+  );
 
   /* ==================================================
-     IME + CtrlEnter 줄바꿈
+     IME + Enter 줄바꿈
   ================================================== */
-  const forceKoreanIME = useCallback((cell) => {
+  const bindEditorIME = useCallback((cell) => {
     setTimeout(() => {
-      const editor =
-        cell?.querySelector("textarea") ||
-        cell?.querySelector("input");
-
-      if (!editor || editor.__imeBound) return;
-      editor.__imeBound = true;
+      const editor = cell?.querySelector("textarea");
+      if (!editor || editor.__bound) return;
+      editor.__bound = true;
 
       editor.setAttribute("lang", "ko");
       editor.style.whiteSpace = "pre-wrap";
@@ -60,8 +60,10 @@ export default function BoardSheet() {
       editor.style.minHeight = "80px";
 
       const onKeyDown = (e) => {
-        if (e.ctrlKey && e.key === "Enter") {
+        // Enter → 줄바꿈
+        if (e.key === "Enter" && !e.ctrlKey) {
           e.preventDefault();
+          e.stopPropagation();
 
           const { selectionStart, selectionEnd, value } = editor;
           editor.value =
@@ -72,16 +74,15 @@ export default function BoardSheet() {
           editor.selectionStart = editor.selectionEnd =
             selectionStart + 1;
         }
+        // Ctrl+Enter는 jspreadsheet가 처리 (편집 종료)
       };
 
       editor.addEventListener("keydown", onKeyDown);
 
       editor.addEventListener("blur", () => {
         editor.removeEventListener("keydown", onKeyDown);
-        delete editor.__imeBound;
+        delete editor.__bound;
       });
-
-      editor.focus();
     }, 0);
   }, []);
 
@@ -107,6 +108,7 @@ export default function BoardSheet() {
 
       const jss = jspreadsheet(sheetRef.current, {
         data: saved.data || [[]],
+
         style: {
           "*": {
             "white-space": "pre-wrap",
@@ -134,8 +136,18 @@ export default function BoardSheet() {
         rowResize: true,
         editable: true,
 
-        oneditstart: (_, cell) => forceKoreanIME(cell),
-        oneditionstart: (_, cell) => forceKoreanIME(cell),
+        // 🔥 핵심: jspreadsheet Enter 차단
+        onbeforekeydown: (el, e) => {
+          if (e.key === "Enter" && !e.ctrlKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+          return true;
+        },
+
+        oneditstart: (_, cell) => bindEditorIME(cell),
+        oneditionstart: (_, cell) => bindEditorIME(cell),
 
         onselection: (_, x1, y1, x2, y2) => {
           selectionRef.current = { x1, y1, x2, y2 };
@@ -152,7 +164,7 @@ export default function BoardSheet() {
       jssRef.current?.destroy?.();
       jssRef.current = null;
     };
-  }, [groupId, forceKoreanIME]);
+  }, [groupId, bindEditorIME]);
 
   /* ==================================================
      저장
