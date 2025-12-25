@@ -43,48 +43,6 @@ export default function BoardSheet() {
     [toCellName]
   );
 
-  /* ==================================================
-     IME + Enter 줄바꿈
-  ================================================== */
-  const bindEditorIME = useCallback((cell) => {
-    setTimeout(() => {
-      const editor = cell?.querySelector("textarea");
-      if (!editor || editor.__bound) return;
-      editor.__bound = true;
-
-      editor.setAttribute("lang", "ko");
-      editor.style.whiteSpace = "pre-wrap";
-      editor.style.wordBreak = "break-word";
-      editor.style.overflowWrap = "anywhere";
-      editor.style.width = "100%";
-      editor.style.minHeight = "80px";
-
-      const onKeyDown = (e) => {
-        // Enter → 줄바꿈
-        if (e.key === "Enter" && !e.ctrlKey) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          const { selectionStart, selectionEnd, value } = editor;
-          editor.value =
-            value.slice(0, selectionStart) +
-            "\n" +
-            value.slice(selectionEnd);
-
-          editor.selectionStart = editor.selectionEnd =
-            selectionStart + 1;
-        }
-        // Ctrl+Enter는 jspreadsheet가 처리 (편집 종료)
-      };
-
-      editor.addEventListener("keydown", onKeyDown);
-
-      editor.addEventListener("blur", () => {
-        editor.removeEventListener("keydown", onKeyDown);
-        delete editor.__bound;
-      });
-    }, 0);
-  }, []);
 
   /* ==================================================
      시트 로딩
@@ -136,19 +94,6 @@ export default function BoardSheet() {
         rowResize: true,
         editable: true,
 
-        // 🔥 핵심: jspreadsheet Enter 차단
-        onbeforekeydown: (el, e) => {
-          if (e.key === "Enter" && !e.ctrlKey) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-          }
-          return true;
-        },
-
-        oneditstart: (_, cell) => bindEditorIME(cell),
-        oneditionstart: (_, cell) => bindEditorIME(cell),
-
         onselection: (_, x1, y1, x2, y2) => {
           selectionRef.current = { x1, y1, x2, y2 };
         },
@@ -164,7 +109,7 @@ export default function BoardSheet() {
       jssRef.current?.destroy?.();
       jssRef.current = null;
     };
-  }, [groupId, bindEditorIME]);
+  }, [groupId]);
 
   /* ==================================================
      저장
@@ -218,6 +163,23 @@ export default function BoardSheet() {
     "#cfd8dc",
   ];
 
+  const insertNewLine = () => {
+    const jss = jssRef.current;
+    const r = selectionRef.current;
+    if (!jss || !r) return;
+
+    for (let y = r.y1; y <= r.y2; y++) {
+      for (let x = r.x1; x <= r.x2; x++) {
+        const cell = toCellName(x, y);
+        const cur = jss.getValue(cell) ?? "";
+
+        // 커서 위치 개념이 없으므로 "끝에 줄바꿈" 삽입
+        jss.setValue(cell, cur + "\n");
+      }
+    }
+};
+
+
   /* ==================================================
      UI
   ================================================== */
@@ -231,6 +193,7 @@ export default function BoardSheet() {
         <button onClick={() => setAlign("right")}>⯈</button>
 
         <button onClick={toggleBold}>B</button>
+        <button onClick={insertNewLine}>↵</button>
 
         {COMMON_COLORS.map((c) => (
           <div
