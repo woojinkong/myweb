@@ -87,8 +87,7 @@ export default function BoardSheet() {
         }, {}),
 
         minDimensions: [10, 30],
-        tableHeight: "620px",
-        tableOverflow: true,
+        tableOverflow: false,
         filters: true,
         columnSorting: true,
         rowResize: true,

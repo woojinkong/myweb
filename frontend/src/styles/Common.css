@@ -75,16 +75,11 @@
   overflow: auto;
 }
 
-/* 내부 스크롤 제거 */
-.board-sheet-wrapper .jexcel,
-.board-sheet-wrapper .jexcel_content {
-  overflow-x: visible !important;
-}
 
-/* 테이블 가로 확장 */
-.board-sheet-wrapper .jexcel {
-  width: max-content;
-  min-width: 100%;
+/* jspreadsheet 내부 스크롤을 제거 */
+.board-sheet-wrapper .jexcel_content{
+  overflow: visible !important;
+  height: auto !important;
 }
 
 .board-sheet-wrapper .jexcel table {
@@ -98,24 +93,21 @@
   overflow-wrap: break-word !important;
 }
 
-/* sticky toolbar */
-.board-toolbar {
+/* toolbar는 sticky + 가로 한 줄 */
+.board-toolbar{
   position: sticky;
   top: 0;
   z-index: 10;
   background: #fff;
   border-bottom: 1px solid #ddd;
 
-  display: flex;              /* ⭐ 핵심 */
-  flex-direction: row;        /* ⭐ 가로 */
-  align-items: center;        /* ⭐ 세로 중앙 */
-  gap: 6px;                   /* 버튼 간격 */
-  white-space: nowrap;        /* 줄바꿈 방지 */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 
   width: max-content;   /* ⭐ 핵심 */
-  min-width: 100%;      /* ⭐ 테이블 최소폭과 맞춤 */
-
-
+  min-width: 100%;      /* ⭐ 핵심 */
 }
 .color-dot {
   width: 18px;
