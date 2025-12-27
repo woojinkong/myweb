@@ -171,7 +171,7 @@ export default function AdminBoardGroups() {
         payload.password = null;
       }
 
-
+      //test
     // ⭐ 비밀번호 입력한 경우만 전송
     if (editForm.passwordEnabled && editForm.password) {
       payload.password = editForm.password;
