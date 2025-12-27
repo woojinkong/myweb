@@ -57,8 +57,13 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         sessionStorage.setItem(`board_pw_${group.groupId}`, pw);
         sessionStorage.setItem("last_board_group", group.groupId);
         navigate(`/board?groupId=${group.groupId}`);
-      } catch {
-        alert("비밀번호가 틀렸습니다.");
+      } catch (err) {
+        if (err.response?.status === 401) {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+        } else {
+          alert("비밀번호가 틀렸습니다.");
+        }
       }
     };
 

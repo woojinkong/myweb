@@ -82,6 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/board-group/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/board-group/*/check-password").permitAll()
                         // 광고 조회(GET)만 허용
                         .requestMatchers(HttpMethod.GET, "/api/ads/**").permitAll()
 
