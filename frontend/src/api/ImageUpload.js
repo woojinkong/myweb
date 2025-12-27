@@ -18,11 +18,17 @@ export const ImageUpload = Extension.create({
           const input = document.createElement("input");
           input.type = "file";
           input.accept = "image/*";
-
+          input.multiple = true; // ⭐ 다중 선택
           input.onchange = async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            await uploadAndInsertImage(file, editor);
+            // const file = e.target.files?.[0];
+            // if (!file) return;
+            // await uploadAndInsertImage(file, editor);
+            const files = Array.from(e.target.files || []);
+              if (!files.length) return;
+
+              for (const file of files) {
+                await uploadAndInsertImage(file, editor);
+              }
           };
 
           input.click();
@@ -38,6 +44,28 @@ export const ImageUpload = Extension.create({
     return [
       new Plugin({
         props: {
+
+                handleDrop(view, event) {
+         const files = Array.from(event.dataTransfer?.files || []);
+         if (!files.length) return false;
+
+         const imageFiles = files.filter(f =>
+           f.type.startsWith("image/")
+         );
+
+         if (!imageFiles.length) return false;
+
+          event.preventDefault();
+
+         (async () => {
+           for (const file of imageFiles) {
+             await uploadAndInsertImage(file, editor);
+           }
+         })();
+
+         return true;
+       },
+
           handlePaste(view, event) {
             // clipboardData 없으면 기본 동작
             if (!event.clipboardData) {
