@@ -45,7 +45,8 @@ export const ImageUpload = Extension.create({
       new Plugin({
         props: {
 
-                handleDrop(view, event) {
+
+        handleDrop(view, event) {
          const files = Array.from(event.dataTransfer?.files || []);
          if (!files.length) return false;
 
@@ -65,6 +66,11 @@ export const ImageUpload = Extension.create({
 
          return true;
        },
+        handleDragOver(view, event) {
+          event.preventDefault();
+          return true;
+        },
+
 
           handlePaste(view, event) {
             // clipboardData 없으면 기본 동작
@@ -158,7 +164,10 @@ async function uploadAndInsertImage(file, editor) {
     editor
       .chain()
       .focus()
-      .setImage({ src: fullUrl })
+      .insertContent([
+      { type: "image", attrs: { src: fullUrl } },
+     { type: "paragraph" } // ⭐ 다음 이미지가 덮어쓰지 않게
+   ])
       .run();
 
   } catch (err) {
