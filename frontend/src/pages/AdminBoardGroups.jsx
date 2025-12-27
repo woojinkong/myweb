@@ -18,6 +18,10 @@ export default function AdminBoardGroups() {
     writePoint: 0,
     adminOnly:false,
     sheetEnabled: false,     // ⭐ 추가
+
+    passwordEnabled: false,   // ⭐ 추가
+    password: "",             // ⭐ 추가
+    passwordConfirm: "",      // ⭐ 추가
   });
 
   const [editForm, setEditForm] = useState({
@@ -27,6 +31,10 @@ export default function AdminBoardGroups() {
     writePoint: 0,
     adminOnly: false,
     sheetEnabled: false,     // ⭐ 추가
+
+    passwordEnabled: false,   // ⭐ 추가
+    password: "",             // ⭐ 추가
+    passwordConfirm: "",      // ⭐ 추가
   });
 
   /* ===============================
@@ -60,13 +68,31 @@ export default function AdminBoardGroups() {
   =============================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.passwordEnabled) {
+    if (!form.password || form.password !== form.passwordConfirm) {
+      alert("비밀번호가 비어있거나 일치하지 않습니다.");
+      return;
+    }
+  }
+
+      const payload = {
+      name: form.name,
+      adminOnlyWrite: form.adminOnlyWrite,
+      allowComment: form.allowComment,
+      writePoint: form.writePoint,
+      adminOnly: form.adminOnly,
+      sheetEnabled: form.sheetEnabled,
+      passwordEnabled: form.passwordEnabled,
+      password: form.passwordEnabled ? form.password : null,
+      type: "BOARD",
+    };
 
     try {
-      await axiosInstance.post("/board-group", { ...form, type: "BOARD",
-        sheetEnabled: form.sheetEnabled
-       });
+      await axiosInstance.post("/board-group", payload);
       alert("게시판이 생성되었습니다!");
-      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0, adminOnly: false, sheetEnabled: false, });
+      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0, adminOnly: false, sheetEnabled: false,  passwordEnabled: false,
+      password: "",
+      passwordConfirm: "",});
       loadGroups();
     } catch (err) {
       alert("게시판 생성 실패",err);
@@ -122,12 +148,45 @@ export default function AdminBoardGroups() {
       writePoint: g.writePoint,
       adminOnly: g.adminOnly,
       sheetEnabled: g.sheetEnabled,
+      passwordEnabled: g.passwordEnabled,
+      password: "",
+      passwordConfirm: "",
     });
   };
 
   const submitEdit = async (id) => {
+
+    const payload = {
+      name: editForm.name,
+      adminOnlyWrite: editForm.adminOnlyWrite,
+      allowComment: editForm.allowComment,
+      writePoint: editForm.writePoint,
+      adminOnly: editForm.adminOnly,
+      sheetEnabled: editForm.sheetEnabled,
+      passwordEnabled: editForm.passwordEnabled,
+    };
+
+    // ⭐ 비밀번호 사용 해제 시 명확히 null 전달
+      if (!editForm.passwordEnabled) {
+        payload.password = null;
+      }
+
+
+    // ⭐ 비밀번호 입력한 경우만 전송
+    if (editForm.passwordEnabled && editForm.password) {
+      payload.password = editForm.password;
+    }
+
     try {
-      await axiosInstance.put(`/board-group/${id}`, editForm);
+          if (editForm.passwordEnabled) {
+          if (!editForm.password || editForm.password !== editForm.passwordConfirm) {
+            alert("비밀번호가 비어있거나 일치하지 않습니다.");
+            return;
+          }
+        }
+
+
+      await axiosInstance.put(`/board-group/${id}`, payload);
       alert("수정 완료");
       setEditingId(null);
       loadGroups();
@@ -208,6 +267,40 @@ export default function AdminBoardGroups() {
             style={{ ...styles.inputSmall, marginLeft: "10px" }}
           />
         </label>
+
+        <label style={styles.label}>
+          <input
+            type="checkbox"
+            checked={form.passwordEnabled}
+            onChange={(e) =>
+              setForm({ ...form, passwordEnabled: e.target.checked })
+            }
+          />
+          게시판 비밀번호 사용
+        </label>
+
+        {form.passwordEnabled && (
+  <>
+          <input
+            type="password"
+            placeholder="게시판 비밀번호"
+            value={form.password}
+            onChange={(e) =>
+              setForm({ ...form, password: e.target.value })
+            }
+            style={styles.inputSmall}
+          />
+          <input
+            type="password"
+            placeholder="비밀번호 확인"
+            value={form.passwordConfirm}
+            onChange={(e) =>
+              setForm({ ...form, passwordConfirm: e.target.value })
+            }
+            style={styles.inputSmall}
+          />
+        </>
+      )}
 
 
 
@@ -301,6 +394,40 @@ export default function AdminBoardGroups() {
                       />
                       시트 게시판
                     </label>
+                    <label style={styles.label}>
+                    <input
+                      type="checkbox"
+                      checked={editForm.passwordEnabled}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, passwordEnabled: e.target.checked })
+                      }
+                    />
+                    게시판 비밀번호 사용
+                  </label>
+
+                  {editForm.passwordEnabled && (
+                    <>
+                      <input
+                        type="password"
+                        placeholder="새 비밀번호"
+                        value={editForm.password}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, password: e.target.value })
+                        }
+                        style={styles.inputSmall}
+                      />
+                      <input
+                        type="password"
+                        placeholder="비밀번호 확인"
+                        value={editForm.passwordConfirm}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, passwordConfirm: e.target.value })
+                        }
+                        style={styles.inputSmall}
+                      />
+                    </>
+                  )}
+
 
                   </>
                 )}

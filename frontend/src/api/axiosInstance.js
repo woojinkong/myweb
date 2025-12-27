@@ -34,7 +34,24 @@ const refreshAxios = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   const cleanUrl = config.url.split("?")[0];
   const method = config.method.toUpperCase();
+    /* ===============================
+      🔐 게시판 비밀번호 헤더
+      (🔥 가장 위에!)
+    =============================== */
+    const params = new URLSearchParams(window.location.search);
+    let groupId = params.get("groupId");
 
+    // 🔥 게시글 상세(/board/{id})에서도 이전 groupId 사용
+    if (!groupId) {
+      groupId = sessionStorage.getItem("last_board_group");
+    }
+
+    if (groupId) {
+      const pw = sessionStorage.getItem(`board_pw_${groupId}`);
+      if (pw) {
+        config.headers["X-Board-Password"] = pw;
+      }
+    }
   
 
     // ⭐ 관리자 API는 항상 토큰 유지 (맨 위에 있어야 함!)

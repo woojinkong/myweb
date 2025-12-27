@@ -6,9 +6,11 @@ import com.example.backend.service.BoardGroupService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,6 +18,7 @@ import java.util.List;
 public class BoardGroupController {
 
     private final BoardGroupService service;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     // ✅ 게시판 그룹 전체 조회
     @GetMapping
@@ -75,6 +78,31 @@ public class BoardGroupController {
     public ResponseEntity<List<BoardGroupResponse>> getGroupsWithNewFlag() {
         return ResponseEntity.ok(service.getGroupListWithNewFlag());
     }
+
+    @PostMapping("/{id}/check-password")
+    public ResponseEntity<?> checkPassword(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body
+    ) {
+        BoardGroup g = service.findById(id);
+
+        if (!g.isPasswordEnabled()) {
+            return ResponseEntity.ok().build();
+        }
+
+        String pw = body.get("password");
+        if (pw == null) {
+            return ResponseEntity.status(400).body("PASSWORD_REQUIRED");
+        }
+
+
+        if (!passwordEncoder.matches(pw, g.getPasswordHash())) {
+            return ResponseEntity.status(403).body("PASSWORD_INVALID");
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
 
 
 

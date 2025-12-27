@@ -21,6 +21,7 @@ import org.springframework.data.querydsl.QSort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,16 +32,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
-
+import org.springframework.web.server.ResponseStatusException;
 
 
 @RestController
 @RequestMapping("/api/board")
 @RequiredArgsConstructor
+
 public class BoardController {
 
     private final BoardService boardService;
     private final BoardGroupService boardGroupService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -54,6 +57,7 @@ public class BoardController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "new") String sort,
+            @RequestHeader(value = "X-Board-Password", required = false) String boardPassword,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
 
@@ -74,6 +78,10 @@ public class BoardController {
         if (group.isAdminOnly() && !"ADMIN".equalsIgnoreCase(role)) {
             return ResponseEntity.status(403).body(null);
         }
+
+        // 🔐 게시판 비밀번호 체크
+        checkBoardPassword(group, boardPassword);
+
 
         // 🔥 Sort 옵션 매핑
         Sort sortOption = switch (sort) {
@@ -96,6 +104,7 @@ public class BoardController {
     @GetMapping("/{id}")
     public ResponseEntity<BoardDetailResponse> getBoard(@PathVariable Long id,
                                                         @RequestHeader(value = "X-View-Key", required = false) String viewKey ,
+                                                        @RequestHeader(value = "X-Board-Password", required = false) String boardPassword,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         // 1) 게시글 원본 가져오기
         Board board = boardService.findByIdRaw(id);
@@ -114,6 +123,9 @@ public class BoardController {
             return ResponseEntity.status(403).build();
         }
 
+        // 🔐 반드시 추가
+        checkBoardPassword(group, boardPassword);
+
         BoardDetailResponse response = boardService.findByIdForRead(id, viewKey);
         return response != null
                 ? ResponseEntity.ok(response)
@@ -124,11 +136,14 @@ public class BoardController {
      *  📌 (3) 게시글 작성 — 이미지 업로드는 TipTap(upload-image)에서 처리
      * =========================================================== */
     @PostMapping(consumes = "multipart/form-data")
+
     public ResponseEntity<?> createBoard(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
-            @RequestParam("groupId") Long groupId
+            @RequestParam("groupId") Long groupId,
+            @RequestHeader(value = "X-Board-Password", required = false) String boardPassword
+
     ) {
 
         if (userDetails == null)
@@ -141,6 +156,9 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("관리자 전용 게시판입니다.");
         }
+
+        // 🔐 게시판 비밀번호 체크 (여기!)
+        checkBoardPassword(group, boardPassword);
 
         Board board = Board.builder()
                 .title(title)
@@ -172,7 +190,8 @@ public class BoardController {
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam("groupId") Long groupId,
-            @RequestParam(value = "remainImageIds", required = false) String remainIdsJson
+            @RequestParam(value = "remainImageIds", required = false) String remainIdsJson,
+            @RequestHeader(value = "X-Board-Password", required = false) String boardPassword
     ) {
 
         if (userDetails == null)
@@ -182,6 +201,8 @@ public class BoardController {
         if (existing == null)
             return ResponseEntity.notFound().build();
 
+        BoardGroup originGroup  = existing.getBoardGroup();
+        checkBoardPassword(originGroup , boardPassword);
         boolean isAdmin = "ADMIN".equalsIgnoreCase(userDetails.getUser().getRole());
         boolean isWriter = existing.getUserId().equals(userDetails.getUser().getUserId());
 
@@ -434,6 +455,29 @@ public class BoardController {
         boardService.saveWithoutCooldown(board);
 
         return ResponseEntity.ok("게시판 이동 완료");
+    }
+
+    private void checkBoardPassword(
+            BoardGroup group,
+            String passwordHeader
+    ) {
+        if (!group.isPasswordEnabled()) {
+            return; // 통과
+        }
+
+        if (passwordHeader == null || passwordHeader.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "BOARD_PASSWORD_REQUIRED"
+            );
+        }
+
+        if (!passwordEncoder.matches(passwordHeader, group.getPasswordHash())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "BOARD_PASSWORD_INVALID"
+            );
+        }
     }
 
 

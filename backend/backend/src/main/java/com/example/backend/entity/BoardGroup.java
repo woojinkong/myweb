@@ -54,5 +54,16 @@ public class BoardGroup {
     @Column(nullable = false)
     private boolean sheetEnabled = false;
 
+    @Column(nullable = false)
+    private boolean passwordEnabled = false;
+
+    @Column
+    private String passwordHash; // BCrypt
+
+    @Transient
+    private String password; // 평문 입력용
+
+
+
 
 }

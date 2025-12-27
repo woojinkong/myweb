@@ -8,6 +8,7 @@ import com.example.backend.repository.BoardRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,12 +21,23 @@ public class BoardGroupService {
 
     private final BoardGroupRepository boardGroupRepository;
     private final BoardRepository boardRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+
 
     // ✅ 게시판 생성
     public BoardGroup create(BoardGroup group) {
 
         int maxOrder = boardGroupRepository.findMaxOrderIndex();
         group.setOrderIndex(maxOrder + 1);
+        if (group.isPasswordEnabled()) {
+            if (group.getPassword() == null || group.getPassword().isBlank()) {
+                throw new IllegalArgumentException("게시판 비밀번호가 필요합니다.");
+            }
+            group.setPasswordHash(passwordEncoder.encode(group.getPassword()));
+        } else {
+            group.setPasswordHash(null);
+        }
+
         return boardGroupRepository.save(group);
     }
 
@@ -57,7 +69,20 @@ public class BoardGroupService {
         existing.setWritePoint(updatedGroup.getWritePoint());
         existing.setAdminOnly(updatedGroup.isAdminOnly());
         existing.setSheetEnabled(updatedGroup.isSheetEnabled());
+        existing.setPasswordEnabled(updatedGroup.isPasswordEnabled());
 
+
+
+        // 🔐 비밀번호 ON
+        if (updatedGroup.isPasswordEnabled()) {
+            if (updatedGroup.getPassword() != null && !updatedGroup.getPassword().isBlank()) {
+                existing.setPasswordHash(
+                        passwordEncoder.encode(updatedGroup.getPassword())
+                );
+            }
+        } else {
+            existing.setPasswordHash(null);
+        }
 
 
         return boardGroupRepository.save(existing);
@@ -120,9 +145,11 @@ public class BoardGroupService {
                         .type(g.getType())
                         .hasNew(boardRepository.existsNewBoardsToday(g.getId(), todayStart))
                         .adminOnly(g.isAdminOnly())
+                        .passwordEnabled(g.isPasswordEnabled())
                         .build()
                 ).toList();
     }
+
 
 
 
