@@ -87,6 +87,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
        SELECT b FROM Board b
        WHERE b.boardGroup.adminOnly = false
        AND b.boardGroup.sheetEnabled = false
+       AND b.boardGroup.passwordEnabled = false
        AND b.boardGroup.type = 'BOARD'
      """)
     List<Board> findPublicBoardsForSitemap();
