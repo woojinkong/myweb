@@ -217,6 +217,9 @@ export default function Home() {
           // 3️⃣ 로그인 전용 게시판 → 비로그인이면 Home에서 제거
           if (group.loginOnly && !user) return false;
 
+            // 4️⃣ 🔒 비밀번호 게시판 → HOME에서 숨김
+         if (group.passwordEnabled) return false;
+
           return true;
         })
             .map((group) => renderSection(group))
