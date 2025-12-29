@@ -23,6 +23,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+
 @Service
 @RequiredArgsConstructor
 public class BoardService {
@@ -169,24 +173,66 @@ public class BoardService {
 
     //     return boards.map(this::toListDto);
     // }
-        public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
+        private boolean isAdmin() {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        Page<Board> boards = switch (type) {
-            case "title" ->
-                    boardRepository.searchPublicByTitle(keyword, pageable);
+            if (auth == null || !auth.isAuthenticated()) {
+                return false;
+            }
 
-            case "content", "plain" ->
-                    boardRepository.searchPublicByContent(keyword, pageable);
+            return auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+        }
 
-            case "userId" ->
-                    boardRepository.searchPublicByUserNickName(keyword, pageable);
 
-            default ->
-                    Page.empty(pageable);
-        };
 
-        return boards.map(this::toListDto);
-    }
+    //     public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
+
+    //     Page<Board> boards = switch (type) {
+    //         case "title" ->
+    //                 boardRepository.searchPublicByTitle(keyword, pageable);
+
+    //         case "content", "plain" ->
+    //                 boardRepository.searchPublicByContent(keyword, pageable);
+
+    //         case "userId" ->
+    //                 boardRepository.searchPublicByUserNickName(keyword, pageable);
+
+    //         default ->
+    //                 Page.empty(pageable);
+    //     };
+
+    //     return boards.map(this::toListDto);
+    // }
+            public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
+
+            boolean admin = isAdmin();
+
+            Page<Board> boards = admin
+                ? switch (type) {
+                    case "title" ->
+                            boardRepository.searchAllByTitle(keyword, pageable);
+                    case "content", "plain" ->
+                            boardRepository.searchAllByContent(keyword, pageable);
+                    case "userId" ->
+                            boardRepository.searchAllByUserNickName(keyword, pageable);
+                    default ->
+                            Page.empty(pageable);
+                }
+                : switch (type) {
+                    case "title" ->
+                            boardRepository.searchPublicByTitle(keyword, pageable);
+                    case "content", "plain" ->
+                            boardRepository.searchPublicByContent(keyword, pageable);
+                    case "userId" ->
+                            boardRepository.searchPublicByUserNickName(keyword, pageable);
+                    default ->
+                            Page.empty(pageable);
+                };
+
+            return boards.map(this::toListDto);
+        }
+
 
 
     // ===============================================================
