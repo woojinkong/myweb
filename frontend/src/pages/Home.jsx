@@ -43,39 +43,35 @@ export default function Home() {
   }, []);
 
   // 🔥 각 그룹별 최근 5개의 게시글 로딩
-  useEffect(() => {
-    if (groups.length === 0) return;
+ useEffect(() => {
+  if (groups.length === 0) return;
 
-    const fetchGroupBoards = async () => {
-      const result = {};
+  const fetchGroupBoards = async () => {
+    const entries = await Promise.all(
+      groups
+        .filter((g) => {
+          if (g.adminOnly && user?.role !== "ADMIN") return false;
+          if (g.loginOnly && !user) return false;
+          return true;
+        })
+        .map(async (g) => {
+          try {
+            const res = await axiosInstance.get(
+              `/board?groupId=${g.id}&page=0&size=4`
+            );
+            return [g.id, res.data.content || []];
+          } catch {
+            return [g.id, []];
+          }
+        })
+    );
 
-      for (const g of groups) {
-              // 🔒 관리자 전용 → 관리자만
-        if (g.adminOnly && user?.role !== "ADMIN") continue;
+    setBoardsByGroup(Object.fromEntries(entries));
+  };
 
-        // 🔒 로그인 전용 → 로그인만
-        if (g.loginOnly && !user) continue;
-        try {
-          
-          const res = await axiosInstance.get(`/board?groupId=${g.id}&page=0&size=4`);
+  fetchGroupBoards();
+}, [groups, user]);
 
-          const list = res.data.content || [];
-
-            result[g.id] = list
-              .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-              .slice(0, 4);
-
-        } catch (err) {
-          console.error(`그룹(${g.name}) 게시글 불러오기 실패:`, err);
-          result[g.id] = [];
-        }
-      }
-
-      setBoardsByGroup(result);
-    };
-
-    fetchGroupBoards();
-  }, [groups,user]);
 
   // 🔥 공통 섹션 렌더링
   const renderSection = (group) => {
