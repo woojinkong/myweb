@@ -154,21 +154,40 @@ public class BoardService {
     // ===============================================================
     //   📌 검색 기능
     // ===============================================================
-    public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
+    // public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
+
+    //     Page<Board> boards = switch (type) {
+    //         case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+    //         case "content", "plain" -> boardRepository.findByPlainContentContainingIgnoreCase(keyword,pageable);
+    //         //case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword,pageable);
+    //         //기존 아이디기준검색에서 닉네임기준검색으로 변경
+    //         case "userId" -> boardRepository.findByUserNickNameContainingIgnoreCase(keyword, pageable);
+
+
+    //         default -> Page.empty();
+    //     };
+
+    //     return boards.map(this::toListDto);
+    // }
+        public Page<BoardListResponse> searchBoards(String keyword, String type, Pageable pageable) {
 
         Page<Board> boards = switch (type) {
-            case "title" -> boardRepository.findByTitleContainingIgnoreCase(keyword, pageable);
-            case "content", "plain" -> boardRepository.findByPlainContentContainingIgnoreCase(keyword,pageable);
-            //case "userId" -> boardRepository.findByUserIdContainingIgnoreCase(keyword,pageable);
-            //기존 아이디기준검색에서 닉네임기준검색으로 변경
-            case "userId" -> boardRepository.findByUserNickNameContainingIgnoreCase(keyword, pageable);
+            case "title" ->
+                    boardRepository.searchPublicByTitle(keyword, pageable);
 
+            case "content", "plain" ->
+                    boardRepository.searchPublicByContent(keyword, pageable);
 
-            default -> Page.empty();
+            case "userId" ->
+                    boardRepository.searchPublicByUserNickName(keyword, pageable);
+
+            default ->
+                    Page.empty(pageable);
         };
 
         return boards.map(this::toListDto);
     }
+
 
     // ===============================================================
     //   📌 Board → BoardListResponse 변환 (공통 변환 메서드)

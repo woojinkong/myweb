@@ -92,4 +92,96 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      """)
     List<Board> findPublicBoardsForSitemap();
 
+
+
+
+    //검색수정
+
+    @Query("""
+        SELECT b
+        FROM Board b
+        WHERE b.boardGroup.passwordEnabled = false
+        AND LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        """)
+        Page<Board> searchPublicByTitle(
+            @Param("keyword") String keyword,
+            Pageable pageable
+        );
+
+    @Query("""
+        SELECT b
+        FROM Board b
+        WHERE b.boardGroup.passwordEnabled = false
+        AND LOWER(b.plainContent) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        """)
+        Page<Board> searchPublicByContent(
+            @Param("keyword") String keyword,
+            Pageable pageable
+        );
+
+    @Query("""
+        SELECT b
+        FROM Board b
+        WHERE b.boardGroup.passwordEnabled = false
+        AND LOWER(b.userId) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        """)
+        Page<Board> searchPublicByUserId(
+            @Param("keyword") String keyword,
+            Pageable pageable
+        );
+
+    
+    @Query("""
+        SELECT b FROM Board b
+        JOIN User u ON b.userId = u.userId
+        WHERE b.boardGroup.passwordEnabled = false
+        AND LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        """)
+        Page<Board> searchPublicByUserNickName(
+            @Param("keyword") String keyword,
+            Pageable pageable
+        );
+
+
+    //관리자는 모두검색되게끔 하기 아직 기능 미구현
+    
+    @Query("""
+    SELECT b
+    FROM Board b
+    WHERE LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    Page<Board> searchAllByTitle(
+        @Param("keyword") String keyword,
+        Pageable pageable
+    );
+
+    @Query("""
+    SELECT b
+    FROM Board b
+    WHERE LOWER(b.plainContent) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    Page<Board> searchAllByContent(
+        @Param("keyword") String keyword,
+        Pageable pageable
+    );
+
+
+    @Query("""
+    SELECT b FROM Board b
+    JOIN User u ON b.userId = u.userId
+    WHERE LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    Page<Board> searchAllByUserNickName(
+        @Param("keyword") String keyword,
+        Pageable pageable
+    );
+
+
+
+
+
+
+
+
+
 }
