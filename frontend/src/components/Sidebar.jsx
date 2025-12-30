@@ -268,6 +268,7 @@ const styles = {
 
   toolIcon: {
     fontSize: "14px",
+    marginLeft: "3px", 
   },
 
 };

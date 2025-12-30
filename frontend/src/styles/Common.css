@@ -120,10 +120,24 @@
   flex-shrink: 0;   /* ⭐ 줄어들지 않게 */
 }
 
+.sidebar-container button {
+  background: none;
+  border: none;
+}
+
+/* 마우스 클릭 */
+.sidebar-container button:focus,
+.sidebar-container button:active {
+  outline: none;
+  box-shadow: none;
+}
+
+/* 키보드 접근 */
 .sidebar-container button:focus-visible {
   outline: none;
   box-shadow: none;
 }
+
 
 
 /* ============================================
