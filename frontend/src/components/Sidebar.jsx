@@ -93,13 +93,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         )}
       </div>
 
-      {/* 🔢 임대료 계산기 버튼 */}
-      <div style={styles.toolSection}>
-        <Link to="/rentcalculator" style={styles.toolLink}>
-          <span style={styles.toolIcon}>📐</span>
-          {isOpen && <span>임대료 계산기</span>}
-        </Link>
-      </div>
+      
+
 
       <ul style={styles.list}>
         {groups
@@ -150,6 +145,22 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             );
           })}
       </ul>
+
+      {/* 🔢 임대료 계산기 버튼 */}
+      <button
+          type="button"
+          onClick={() =>
+            window.open(
+              "https://www.renthome.go.kr/webportal/minwon/common/rncrgAtmcCalc/rncrgAtmcCalcPopup.open",
+              "_blank",
+              "noopener,noreferrer"
+            )
+          }
+          style={styles.toolLink}
+        >
+          <span style={styles.toolIcon}>🔢</span>
+          {isOpen && <span>임대료계산기</span>}
+        </button>
     </div>
   );
 }
