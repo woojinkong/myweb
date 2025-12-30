@@ -156,11 +156,21 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               "noopener,noreferrer"
             )
           }
-          style={styles.toolLink}
+          style={{
+            ...styles.link,
+            background: "none",
+            border: "none",
+            width: "100%",
+            textAlign: "left",
+            cursor: "pointer",
+            outline: "none",
+          }}
         >
+          <span style={styles.number}>-</span>
           <span style={styles.toolIcon}>🔢</span>
           {isOpen && <span>임대료계산기</span>}
         </button>
+
     </div>
   );
 }
@@ -253,7 +263,6 @@ const styles = {
     gap: "6px",
     padding: "6px 8px",
     fontSize: "13px",
-    color: "#333",
     textDecoration: "none",
     borderRadius: "6px",
     transition: "background 0.2s",
