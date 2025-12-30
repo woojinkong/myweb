@@ -93,6 +93,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         )}
       </div>
 
+      {/* 🔢 임대료 계산기 버튼 */}
+      <div style={styles.toolSection}>
+        <Link to="/rentcalculator" style={styles.toolLink}>
+          <span style={styles.toolIcon}>📐</span>
+          {isOpen && <span>임대료 계산기</span>}
+        </Link>
+      </div>
+
       <ul style={styles.list}>
         {groups
           .filter((group) => {
@@ -222,4 +230,26 @@ const styles = {
     borderRadius: "50%",
     marginLeft: "auto",
   },
+  toolSection: {
+  padding: "0 8px 8px",
+  marginBottom: "6px",
+  borderBottom: "1px solid #eee",
+},
+
+  toolLink: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "6px 8px",
+    fontSize: "13px",
+    color: "#333",
+    textDecoration: "none",
+    borderRadius: "6px",
+    transition: "background 0.2s",
+  },
+
+  toolIcon: {
+    fontSize: "14px",
+  },
+
 };

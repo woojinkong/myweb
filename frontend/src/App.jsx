@@ -30,6 +30,7 @@ import AdminIpBlock from "./pages/AdminIpBlock";
 import UserCommentList from "./pages/UserCommentList";
 import BoardSheet from "./components/BoardSheet";
 import AdminVisitLogs from "./pages/AdminVisitLogs";
+import RenthomeStyleCalculator from "./pages/RenthomeStyleCalculator";
 
 //라우터만담당
 function App() {
@@ -96,6 +97,13 @@ function App() {
                 path="/contact"
                 element={
                     <Contact />
+                }
+              />
+              {/* 임대료계산기 */}
+              <Route
+                path="/rentcalculator"
+                element={
+                    <RenthomeStyleCalculator />
                 }
               />
 
