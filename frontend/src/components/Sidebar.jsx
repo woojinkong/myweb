@@ -163,12 +163,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             width: "100%",
             textAlign: "left",
             cursor: "pointer",
-            outline: "none",
           }}
         >
-          <span style={styles.number}>-</span>
           <span style={styles.toolIcon}>🔢</span>
-          {isOpen && <span>임대료계산기</span>}
+          {isOpen && <span>임대료계산</span>}
         </button>
 
     </div>
