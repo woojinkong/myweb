@@ -9,16 +9,18 @@ import { cardBase, buttons } from "../styles/common";
 =============================== */
 const defaultForm = {
   name: "",
+  type: "BOARD",          // BOARD | LINK | DIVIDER
+  linkUrl: "",
+
+  adminOnly: false,
   adminOnlyWrite: false,
   allowComment: true,
-  writePoint: 0,
-  adminOnly: false,
   sheetEnabled: false,
+  writePoint: 0,
+
   passwordEnabled: false,
   password: "",
   passwordConfirm: "",
-  type: "BOARD",
-  linkUrl: "",
 };
 
 export default function AdminBoardGroups() {
@@ -28,7 +30,8 @@ export default function AdminBoardGroups() {
   const [groups, setGroups] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(defaultForm);
-  const [editForm, setEditForm] = useState(defaultForm);
+
+  const isEditMode = editingId !== null;
 
   /* ===============================
       관리자 체크
@@ -64,33 +67,29 @@ export default function AdminBoardGroups() {
     return true;
   };
 
-
   /* ===============================
-   구분선 생성
+      구분선 생성
   =============================== */
   const createDivider = async () => {
+    if (isEditMode) return;
+
     const title = prompt("구분선 제목을 입력하세요:");
     if (!title) return;
 
-    try {
-      await axiosInstance.post("/board-group", {
-        name: title,
-        type: "DIVIDER",
-        adminOnlyWrite: false,
-        allowComment: false,
-      });
-      loadGroups();
-    } catch (err) {
-      alert("구분선 생성 실패");
-    }
+    await axiosInstance.post("/board-group", {
+      name: title,
+      type: "DIVIDER",
+    });
+
+    loadGroups();
   };
 
-
   /* ===============================
-      생성
+      생성 / 수정
   =============================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validatePassword(form)) return;
 
     if (form.type === "LINK" && !form.linkUrl) {
@@ -98,14 +97,21 @@ export default function AdminBoardGroups() {
       return;
     }
 
-
-    await axiosInstance.post("/board-group", {
+    const payload = {
       ...form,
       password: form.passwordEnabled ? form.password : null,
       linkUrl: form.type === "LINK" ? form.linkUrl : null,
-    });
+    };
 
-    alert("게시판 생성 완료");
+    if (editingId) {
+      await axiosInstance.put(`/board-group/${editingId}`, payload);
+      alert("게시판 수정 완료");
+      setEditingId(null);
+    } else {
+      await axiosInstance.post("/board-group", payload);
+      alert("게시판 생성 완료");
+    }
+
     setForm(defaultForm);
     loadGroups();
   };
@@ -115,7 +121,7 @@ export default function AdminBoardGroups() {
   =============================== */
   const startEdit = (g) => {
     setEditingId(g.id);
-    setEditForm({
+    setForm({
       ...defaultForm,
       ...g,
       password: "",
@@ -123,43 +129,11 @@ export default function AdminBoardGroups() {
     });
   };
 
-      /* ===============================
-          수정 저장
-      =============================== */
-      const submitEdit = async (id) => {
-      if (editForm.type !== "DIVIDER") {
-        if (!validatePassword(editForm)) return;
-
-        if (editForm.type === "LINK" && !editForm.linkUrl) {
-          alert("외부 링크 주소를 입력하세요.");
-          return;
-        }
-      }
-
-      const payload = {
-        ...editForm,
-        linkUrl: editForm.type === "LINK" ? editForm.linkUrl : null,
-      };
-
-      if (editForm.type !== "DIVIDER") {
-        if (!editForm.passwordEnabled) {
-          payload.password = null;
-        } else if (!editForm.password) {
-          delete payload.password;
-        }
-      }
-
-      await axiosInstance.put(`/board-group/${id}`, payload);
-      alert("수정 완료");
-      setEditingId(null);
-      loadGroups();
-    };
-
-
   /* ===============================
       순서 / 삭제
   =============================== */
   const move = async (id, up) => {
+    if (isEditMode) return;
     await axiosInstance.post(
       `/board-group/${id}/${up ? "move-up" : "move-down"}`
     );
@@ -179,7 +153,7 @@ export default function AdminBoardGroups() {
     <div style={{ ...cardBase, maxWidth: 900, margin: "50px auto", padding: 40 }}>
       <h2 style={styles.title}>📋 게시판 관리</h2>
 
-      {/* 생성 */}
+      {/* 생성 / 수정 폼 */}
       <form onSubmit={handleSubmit}>
         <input
           style={styles.input}
@@ -195,13 +169,8 @@ export default function AdminBoardGroups() {
             checked={form.type === "LINK"}
             onChange={(e) =>
               setForm({
-                ...form,
+                ...defaultForm,
                 type: e.target.checked ? "LINK" : "BOARD",
-                sheetEnabled: false,
-                allowComment: false,
-                passwordEnabled: false,
-                writePoint: 0,
-                linkUrl: "",
               })
             }
           />
@@ -286,11 +255,6 @@ export default function AdminBoardGroups() {
               게시판 비밀번호
             </label>
 
-            
-
-
-
-
             {form.passwordEnabled && (
               <>
                 <input
@@ -314,12 +278,21 @@ export default function AdminBoardGroups() {
           </>
         )}
 
-       
-
-
         <button type="submit" style={buttons.primary}>
-          게시판 생성
+          {editingId ? "게시판 수정" : "게시판 생성"}
         </button>
+
+        {editingId && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingId(null);
+              setForm(defaultForm);
+            }}
+          >
+            수정 취소
+          </button>
+        )}
       </form>
 
       <hr style={{ margin: "24px 0" }} />
@@ -327,6 +300,7 @@ export default function AdminBoardGroups() {
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button
           type="button"
+          disabled={isEditMode}
           onClick={createDivider}
           style={{
             background: "#f1f3f5",
@@ -342,102 +316,32 @@ export default function AdminBoardGroups() {
         </button>
       </div>
 
-        
-
       {/* 목록 */}
-      {/* 목록 */}
-        <ul style={styles.list}>
-          {groups.map((g, i) => (
-            <li key={g.id} style={styles.listItem}>
-              {editingId === g.id ? (
-                /* =========================
-                  수정 모드
-                ========================= */
-                g.type === "DIVIDER" ? (
-                  <>
-                    {/* 구분선 수정 */}
-                    <input
-                      style={styles.inputSmall}
-                      value={editForm.name}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, name: e.target.value })
-                      }
-                    />
-                    <button
-                      onClick={() => submitEdit(g.id)}
-                      style={styles.saveBtn}
-                    >
-                      저장
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      style={styles.cancelBtn}
-                    >
-                      취소
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {/* 일반 게시판 수정 (기존 그대로) */}
-                    <input
-                      style={styles.inputSmall}
-                      value={editForm.name}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, name: e.target.value })
-                      }
-                    />
-                    <button
-                      onClick={() => submitEdit(g.id)}
-                      style={styles.saveBtn}
-                    >
-                      저장
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      style={styles.cancelBtn}
-                    >
-                      취소
-                    </button>
-                  </>
-                )
-              ) : (
-                /* =========================
-                  일반 표시 모드
-                ========================= */
-                g.type === "DIVIDER" ? (
-                  <>
-                    {/* 구분선 표시 */}
-                    <strong style={{ color: "#777" }}>
-                      ── {g.name} ──
-                    </strong>
-                    <div style={styles.btnGroup}>
-                      <button onClick={() => startEdit(g)}>수정</button>
-                      <button onClick={() => remove(g.id)}>삭제</button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* 일반 게시판 표시 */}
-                    <strong>{g.name}</strong>
-                    <div style={styles.btnGroup}>
-                      <button onClick={() => move(g.id, true)} disabled={i === 0}>
-                        ⬆
-                      </button>
-                      <button
-                        onClick={() => move(g.id, false)}
-                        disabled={i === groups.length - 1}
-                      >
-                        ⬇
-                      </button>
-                      <button onClick={() => startEdit(g)}>수정</button>
-                      <button onClick={() => remove(g.id)}>삭제</button>
-                    </div>
-                  </>
-                )
-              )}
-            </li>
-          ))}
-        </ul>
+      <ul style={styles.list}>
+        {groups.map((g, i) => (
+          <li key={g.id} style={styles.listItem}>
+            {g.type === "DIVIDER" ? (
+              <>
+                <strong style={{ color: "#777" }}>── {g.name} ──</strong>
+                <div style={styles.btnGroup}>
+                  <button onClick={() => startEdit(g)}>수정</button>
+                  <button onClick={() => remove(g.id)}>삭제</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <strong>{g.name}</strong>
+                <div style={styles.btnGroup}>
+                  <button onClick={() => move(g.id, true)} disabled={i === 0 || isEditMode}>⬆</button>
+                  <button onClick={() => move(g.id, false)} disabled={i === groups.length - 1 || isEditMode}>⬇</button>
+                  <button onClick={() => startEdit(g)}>수정</button>
+                  <button onClick={() => remove(g.id)}>삭제</button>
+                </div>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -460,6 +364,4 @@ const styles = {
     alignItems: "center",
   },
   btnGroup: { display: "flex", gap: "6px" },
-  saveBtn: { background: "#51cf66", color: "#fff" },
-  cancelBtn: { background: "#adb5bd", color: "#fff" },
 };
