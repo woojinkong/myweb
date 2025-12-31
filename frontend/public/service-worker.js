@@ -1,4 +1,4 @@
-const CACHE_NAME = "konghome-static-v2";
+const CACHE_NAME = "konghome-static-v4";
 const STATIC_FILES = [
   "/manifest.json"
 ];
