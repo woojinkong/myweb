@@ -18,8 +18,8 @@ public class CacheConfig {
     @Bean
     public Caffeine<Object, Object> caffeineConfig() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(6, TimeUnit.HOURS)   // TTL 6시간
-                .maximumSize(100);
+                .expireAfterWrite(1, TimeUnit.HOURS)   // TTL 6시간
+                .maximumSize(1);
     }
 
     @Bean

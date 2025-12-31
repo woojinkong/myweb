@@ -36,13 +36,14 @@ public class VisitService {
         boolean alreadyVisited =
                 !visitLogRepository.findByIpAddressAndVisitDateBetween(ip, startOfDay, endOfDay).isEmpty();
 
-
+        
         if (!alreadyVisited) {
 
             String referrer = request.getHeader("Referer");
             String ua = request.getHeader("User-Agent");
             String path = request.getRequestURI();
             String sourceType = detectSource(referrer);
+            if (ua != null && ua.toLowerCase().contains("bot")) return;
 
             VisitLog log = VisitLog.builder()
                     .ipAddress(ip)
