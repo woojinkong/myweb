@@ -63,6 +63,12 @@ public class BoardGroup {
     @Transient
     private String password; // 평문 입력용
 
+    //link
+
+    @Column(length = 500)
+    private String linkUrl;   // ⭐ LINK 타입일 때 이동할 주소
+
+
 
 
 

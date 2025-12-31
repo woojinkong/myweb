@@ -16,12 +16,15 @@ export default function AdminBoardGroups() {
     adminOnlyWrite: false,
     allowComment: true,
     writePoint: 0,
-    adminOnly:false,
-    sheetEnabled: false,     // ⭐ 추가
+    adminOnly: false,
+    sheetEnabled: false,
 
-    passwordEnabled: false,   // ⭐ 추가
-    password: "",             // ⭐ 추가
-    passwordConfirm: "",      // ⭐ 추가
+    passwordEnabled: false,
+    password: "",
+    passwordConfirm: "",
+
+    type: "BOARD",
+    linkUrl: "",
   });
 
   const [editForm, setEditForm] = useState({
@@ -30,11 +33,14 @@ export default function AdminBoardGroups() {
     allowComment: true,
     writePoint: 0,
     adminOnly: false,
-    sheetEnabled: false,     // ⭐ 추가
+    sheetEnabled: false,
 
-    passwordEnabled: false,   // ⭐ 추가
-    password: "",             // ⭐ 추가
-    passwordConfirm: "",      // ⭐ 추가
+    passwordEnabled: false,
+    password: "",
+    passwordConfirm: "",
+
+    type: "BOARD",
+    linkUrl: "",
   });
 
   /* ===============================
@@ -68,14 +74,20 @@ export default function AdminBoardGroups() {
   =============================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (form.passwordEnabled) {
-    if (!form.password || form.password !== form.passwordConfirm) {
-      alert("비밀번호가 비어있거나 일치하지 않습니다.");
+      if (!form.password || form.password !== form.passwordConfirm) {
+        alert("비밀번호가 비어있거나 일치하지 않습니다.");
+        return;
+      }
+    }
+
+    if (form.type === "LINK" && !form.linkUrl) {
+      alert("외부 링크 주소를 입력하세요.");
       return;
     }
-  }
 
-      const payload = {
+    const payload = {
       name: form.name,
       adminOnlyWrite: form.adminOnlyWrite,
       allowComment: form.allowComment,
@@ -84,15 +96,27 @@ export default function AdminBoardGroups() {
       sheetEnabled: form.sheetEnabled,
       passwordEnabled: form.passwordEnabled,
       password: form.passwordEnabled ? form.password : null,
-      type: "BOARD",
+
+      type: form.type,
+      linkUrl: form.type === "LINK" ? form.linkUrl : null,
     };
 
     try {
       await axiosInstance.post("/board-group", payload);
       alert("게시판이 생성되었습니다!");
-      setForm({ name: "", adminOnlyWrite: false, allowComment: true, writePoint: 0, adminOnly: false, sheetEnabled: false,  passwordEnabled: false,
-      password: "",
-      passwordConfirm: "",});
+      setForm({
+        name: "",
+        adminOnlyWrite: false,
+        allowComment: true,
+        writePoint: 0,
+        adminOnly: false,
+        sheetEnabled: false,
+        passwordEnabled: false,
+        password: "",
+        passwordConfirm: "",
+        type: "BOARD",
+        linkUrl: "",
+      });
       loadGroups();
     } catch (err) {
       alert("게시판 생성 실패",err);
@@ -100,7 +124,7 @@ export default function AdminBoardGroups() {
   };
 
   /* ===============================
-      구분선(DIVIDER) 생성
+      구분선 생성
   =============================== */
   const createDivider = async () => {
     const title = prompt("구분선 제목을 입력하세요:");
@@ -113,26 +137,9 @@ export default function AdminBoardGroups() {
         adminOnlyWrite: false,
         allowComment: false,
       });
-
-      alert("구분선이 생성되었습니다!");
       loadGroups();
-    } catch (err) {
-      console.error("구분선 생성 실패:", err);
+    } catch {
       alert("구분선 생성 실패");
-    }
-  };
-
-  /* ===============================
-      게시판 삭제
-  =============================== */
-  const handleDelete = async (id) => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
-
-    try {
-      await axiosInstance.delete(`/board-group/${id}`);
-      loadGroups();
-    } catch (err) {
-      alert("삭제 실패",err);
     }
   };
 
@@ -151,49 +158,79 @@ export default function AdminBoardGroups() {
       passwordEnabled: g.passwordEnabled,
       password: "",
       passwordConfirm: "",
+      type: g.type || "BOARD",
+      linkUrl: g.linkUrl || "",
     });
   };
 
   const submitEdit = async (id) => {
 
-    const payload = {
-      name: editForm.name,
-      adminOnlyWrite: editForm.adminOnlyWrite,
-      allowComment: editForm.allowComment,
-      writePoint: editForm.writePoint,
-      adminOnly: editForm.adminOnly,
-      sheetEnabled: editForm.sheetEnabled,
-      passwordEnabled: editForm.passwordEnabled,
-    };
-
-    // ⭐ 비밀번호 사용 해제 시 명확히 null 전달
-      if (!editForm.passwordEnabled) {
-        payload.password = null;
+  /* =========================
+     1. 비밀번호 검증 (먼저)
+  ========================= */
+  if (editForm.passwordEnabled) {
+    // 비밀번호 변경을 시도한 경우만 검증
+    if (editForm.password || editForm.passwordConfirm) {
+      if (
+        !editForm.password ||
+        editForm.password !== editForm.passwordConfirm
+      ) {
+        alert("비밀번호가 비어있거나 일치하지 않습니다.");
+        return;
       }
-
-      //test
-    // ⭐ 비밀번호 입력한 경우만 전송
-    if (editForm.passwordEnabled && editForm.password) {
-      payload.password = editForm.password;
     }
+  }
 
-    try {
-          if (editForm.passwordEnabled) {
-          if (!editForm.password || editForm.password !== editForm.passwordConfirm) {
-            alert("비밀번호가 비어있거나 일치하지 않습니다.");
-            return;
-          }
-        }
+    // 🔗 LINK 게시판 검증
+  if (editForm.type === "LINK" && !editForm.linkUrl) {
+    alert("외부 링크 주소를 입력하세요.");
+    return;
+  }
 
 
-      await axiosInstance.put(`/board-group/${id}`, payload);
-      alert("수정 완료");
-      setEditingId(null);
-      loadGroups();
-    } catch (err) {
-      alert("수정 실패",err);
-    }
+  /* =========================
+     2. 기본 payload
+  ========================= */
+  const payload = {
+    name: editForm.name,
+    adminOnlyWrite: editForm.adminOnlyWrite,
+    allowComment: editForm.allowComment,
+    writePoint: editForm.writePoint,
+    adminOnly: editForm.adminOnly,
+    sheetEnabled: editForm.sheetEnabled,
+    passwordEnabled: editForm.passwordEnabled,
+
+    type: editForm.type,
+   linkUrl: editForm.type === "LINK" ? editForm.linkUrl : null,
   };
+
+  /* =========================
+     3. 비밀번호 정책 반영
+  ========================= */
+  if (!editForm.passwordEnabled) {
+    // 비밀번호 사용 OFF → 제거
+    payload.password = null;
+  } else if (editForm.password) {
+    // 비밀번호 변경
+    payload.password = editForm.password;
+  }
+  // else:
+  // passwordEnabled = true && password 없음
+  // → 기존 비밀번호 유지 (아무것도 보내지 않음)
+
+  /* =========================
+     4. 전송
+  ========================= */
+  try {
+    await axiosInstance.put(`/board-group/${id}`, payload);
+    alert("수정 완료");
+    setEditingId(null);
+    loadGroups();
+  } catch (err) {
+    alert("수정 실패",err);
+  }
+};
+
 
   /* ===============================
       순서 변경
@@ -208,16 +245,22 @@ export default function AdminBoardGroups() {
     loadGroups();
   };
 
+  /* ===============================
+      삭제
+  =============================== */
+  const handleDelete = async (id) => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    await axiosInstance.delete(`/board-group/${id}`);
+    loadGroups();
+  };
+
   return (
     <div style={{ ...cardBase, maxWidth: "900px", margin: "50px auto", padding: "40px" }}>
       <h2 style={styles.title}>📋 게시판 관리</h2>
 
-      {/* ====================== */}
-      {/* 새 게시판 생성 폼 */}
-      {/* ====================== */}
-      <form onSubmit={handleSubmit} style={{ marginBottom: "30px" }}>
+      {/* 생성 */}
+      <form onSubmit={handleSubmit}>
         <input
-          type="text"
           placeholder="게시판 이름"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -228,107 +271,43 @@ export default function AdminBoardGroups() {
         <label style={styles.label}>
           <input
             type="checkbox"
-            checked={form.adminOnlyWrite}
-            onChange={(e) => setForm({ ...form, adminOnlyWrite: e.target.checked })}
-          />
-          관리자만 글쓰기
-        </label>
-        <label style={styles.label}>
-        <input
-          type="checkbox"
-          checked={form.adminOnly}
-          onChange={(e) => setForm({ ...form, adminOnly: e.target.checked })}
-        />
-        관리자만 보기 (Admin Only)
-      </label>
-        <label style={styles.label}>
-          <input
-            type="checkbox"
-            checked={form.allowComment}
-            onChange={(e) => setForm({ ...form, allowComment: e.target.checked })}
-          />
-          댓글 허용
-        </label>
-        <label style={styles.label}>
-          <input
-            type="checkbox"
-            checked={form.sheetEnabled}
-            onChange={(e) => setForm({ ...form, sheetEnabled: e.target.checked })}
-          />
-          시트 게시판 활성화
-        </label>
-
-        <label style={styles.label}>
-          필요 포인트
-          <input
-            type="number"
-            value={form.writePoint}
-            onChange={(e) => setForm({ ...form, writePoint: Number(e.target.value) })}
-            style={{ ...styles.inputSmall, marginLeft: "10px" }}
-          />
-        </label>
-
-        <label style={styles.label}>
-          <input
-            type="checkbox"
-            checked={form.passwordEnabled}
+            checked={form.type === "LINK"}
             onChange={(e) =>
-              setForm({ ...form, passwordEnabled: e.target.checked })
+              setForm({
+                ...form,
+                type: e.target.checked ? "LINK" : "BOARD",
+                linkUrl: "",
+                passwordEnabled: false,
+                sheetEnabled: false,
+              })
             }
+
           />
-          게시판 비밀번호 사용
+          외부 링크 게시판
         </label>
 
-        {form.passwordEnabled && (
-  <>
+        {form.type === "LINK" && (
           <input
-            type="password"
-            placeholder="게시판 비밀번호"
-            value={form.password}
-            onChange={(e) =>
-              setForm({ ...form, password: e.target.value })
-            }
-            style={styles.inputSmall}
+            type="url"
+            placeholder="https://example.com"
+            value={form.linkUrl}
+            onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
+            required
+            style={styles.input}
           />
-          <input
-            type="password"
-            placeholder="비밀번호 확인"
-            value={form.passwordConfirm}
-            onChange={(e) =>
-              setForm({ ...form, passwordConfirm: e.target.value })
-            }
-            style={styles.inputSmall}
-          />
-        </>
-      )}
+        )}
 
+        <button type="submit" style={buttons.primary}>게시판 생성</button>
 
-
-        <button type="submit" style={{ ...buttons.primary, marginTop: "8px" }}>
-          게시판 생성
-        </button>
-
-        {/* ⭐ 구분선 추가 */}
-        <label
-          style={{ ...styles.label, cursor: "pointer", color: "#555", marginTop: "10px" }}
-          onClick={createDivider}
-        >
+        <div style={{ marginTop: "10px", cursor: "pointer" }} onClick={createDivider}>
           ➕ 구분선 추가
-        </label>
+        </div>
       </form>
 
-      {/* ====================== */}
-      {/* 게시판 목록 */}
-      {/* ====================== */}
-      <h3 style={styles.listTitle}>📚 생성된 항목 목록</h3>
-
+      {/* 목록 */}
       <ul style={styles.list}>
         {groups.map((g, index) => (
           <li key={g.id} style={styles.listItem}>
-
-            {/* ====================== */}
-            {/* 수정 모드 */}
-            {/* ====================== */}
             {editingId === g.id ? (
               <>
                 <input
@@ -337,99 +316,30 @@ export default function AdminBoardGroups() {
                   style={styles.inputSmall}
                 />
 
-                {g.type !== "DIVIDER" && (
-                  <>
+                <label style={styles.label}>
+                  <input
+                    type="checkbox"
+                    checked={editForm.type === "LINK"}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        type: e.target.checked ? "LINK" : "BOARD",
+                        linkUrl: "",
+                      })
+                    }
+                  />
+                  외부 링크 게시판
+                </label>
 
-                    <label style={styles.label}>
-                      필요 포인트
-                      <input
-                        type="number"
-                        value={editForm.writePoint}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, writePoint: Number(e.target.value) })
-                        }
-                        style={{ ...styles.inputSmall, marginLeft: "10px" }}
-                      />
-                    </label>
-
-                    
-                    <label style={styles.label}>
-                      <input
-                        type="checkbox"
-                        checked={editForm.adminOnlyWrite}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, adminOnlyWrite: e.target.checked })
-                        }
-                      />
-                      관리자만 글쓰기
-                    </label>
-                    <label style={styles.label}>
-                    <input
-                      type="checkbox"
-                      checked={editForm.adminOnly}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, adminOnly: e.target.checked })
-                      }
-                    />
-                    관리자만 보기 (Admin Only)
-                  </label>
-
-                    <label style={styles.label}>
-                      <input
-                        type="checkbox"
-                        checked={editForm.allowComment}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, allowComment: e.target.checked })
-                        }
-                      />
-                      댓글 허용
-                    </label>
-                    <label style={styles.label}>
-                      <input
-                        type="checkbox"
-                        checked={editForm.sheetEnabled}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, sheetEnabled: e.target.checked })
-                        }
-                      />
-                      시트 게시판
-                    </label>
-                    <label style={styles.label}>
-                    <input
-                      type="checkbox"
-                      checked={editForm.passwordEnabled}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, passwordEnabled: e.target.checked })
-                      }
-                    />
-                    게시판 비밀번호 사용
-                  </label>
-
-                  {editForm.passwordEnabled && (
-                    <>
-                      <input
-                        type="password"
-                        placeholder="새 비밀번호"
-                        value={editForm.password}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, password: e.target.value })
-                        }
-                        style={styles.inputSmall}
-                      />
-                      <input
-                        type="password"
-                        placeholder="비밀번호 확인"
-                        value={editForm.passwordConfirm}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, passwordConfirm: e.target.value })
-                        }
-                        style={styles.inputSmall}
-                      />
-                    </>
-                  )}
-
-
-                  </>
+                {editForm.type === "LINK" && (
+                  <input
+                    type="url"
+                    value={editForm.linkUrl}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, linkUrl: e.target.value })
+                    }
+                    style={styles.inputSmall}
+                  />
                 )}
 
                 <button onClick={() => submitEdit(g.id)} style={styles.saveBtn}>저장</button>
@@ -437,49 +347,16 @@ export default function AdminBoardGroups() {
               </>
             ) : (
               <>
-                {/* ======================
-                    일반 표시 (DIVIDER 포함)
-                ====================== */}
-
-                {g.type === "DIVIDER" ? (
-                  <div style={styles.dividerBox}>
-                    ── {g.name} ──
-                  </div>
-                ) : (
-                  <div>
-                    <strong>{g.name}</strong>{" "}
-                    {g.adminOnly && "🔒"}  {/* ⭐ 관리자 전용 표시 */}
-                    {g.adminOnlyWrite && "👑"}
-                    {!g.allowComment && " 🚫"}
-                    <span style={{ color: "#555", marginLeft: "10px" }}>
-                      ({g.boardCount}개 글)
-                    </span>
-                  </div>
-                )}
-
+                <strong>{g.name}</strong>
+                {g.type === "LINK" && " 🔗"}
                 <div style={styles.btnGroup}>
-                  <button
-                    onClick={() => moveUp(g.id)}
-                    disabled={index === 0}
-                    style={styles.moveBtn}
-                  >
-                    ⬆
-                  </button>
-
-                  <button
-                    onClick={() => moveDown(g.id)}
-                    disabled={index === groups.length - 1}
-                    style={styles.moveBtn}
-                  >
-                    ⬇
-                  </button>
-
-                  <button onClick={() => startEdit(g)} style={styles.editBtn}>수정</button>
-                  <button onClick={() => handleDelete(g.id)} style={styles.deleteBtn}>삭제</button>
+                  <button onClick={() => moveUp(g.id)} disabled={index === 0}>⬆</button>
+                  <button onClick={() => moveDown(g.id)} disabled={index === groups.length - 1}>⬇</button>
+                  <button onClick={() => startEdit(g)}>수정</button>
+                  <button onClick={() => handleDelete(g.id)}>삭제</button>
                 </div>
               </>
             )}
-
           </li>
         ))}
       </ul>
@@ -488,95 +365,22 @@ export default function AdminBoardGroups() {
 }
 
 /* ===============================
-      스타일
+    스타일
 =============================== */
 const styles = {
-  title: {
-    fontSize: "22px",
-    fontWeight: "700",
-    marginBottom: "20px",
-  },
-  input: {
-    padding: "10px",
-    width: "300px",
-    marginBottom: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    display: "block",
-  },
-  inputSmall: {
-    padding: "8px",
-    width: "180px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    marginRight: "10px",
-  },
-  label: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    marginBottom: "8px",
-  },
-  listTitle: {
-    marginBottom: "15px",
-    fontSize: "18px",
-    fontWeight: "600",
-  },
-  list: {
-    listStyle: "none",
-    padding: 0,
-  },
+  title: { fontSize: "22px", marginBottom: "20px" },
+  input: { padding: "10px", width: "300px", marginBottom: "10px" },
+  inputSmall: { padding: "8px", width: "220px" },
+  label: { display: "flex", gap: "6px", marginBottom: "8px" },
+  list: { listStyle: "none", padding: 0 },
   listItem: {
-    marginBottom: "10px",
-    padding: "12px 10px",
     border: "1px solid #ddd",
-    borderRadius: "6px",
+    padding: "12px",
+    marginBottom: "8px",
     display: "flex",
-    alignItems: "center",
     justifyContent: "space-between",
   },
-  btnGroup: {
-    display: "flex",
-    gap: "8px",
-  },
-  dividerBox: {
-    fontWeight: "700",
-    color: "#777",
-    padding: "5px 0",
-  },
-  moveBtn: {
-    padding: "5px 8px",
-    background: "#ededed",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-  },
-  editBtn: {
-    padding: "5px 10px",
-    background: "#4dabf7",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-  },
-  deleteBtn: {
-    padding: "5px 10px",
-    background: "#e03131",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-  },
-  saveBtn: {
-    padding: "5px 10px",
-    background: "#51cf66",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-  },
-  cancelBtn: {
-    padding: "5px 10px",
-    background: "#adb5bd",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-  },
+  btnGroup: { display: "flex", gap: "6px" },
+  saveBtn: { background: "#51cf66", color: "#fff" },
+  cancelBtn: { background: "#adb5bd", color: "#fff" },
 };

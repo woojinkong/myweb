@@ -39,33 +39,41 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
 
       const enterBoard = async (group) => {
-      if (!group.passwordEnabled) {
-        navigate(`/board?groupId=${group.groupId}`);
-        return;
+
+    // 🔗 외부 링크 게시판
+    if (group.type === "LINK" && group.linkUrl) {
+      window.open(group.linkUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // 📘 일반 게시판
+    if (!group.passwordEnabled) {
+      navigate(`/board?groupId=${group.groupId}`);
+      return;
+    }
+
+    const pw = prompt("🔒 게시판 비밀번호를 입력하세요");
+    if (!pw) return;
+
+    try {
+      await axiosInstance.post(
+        `/board-group/${group.groupId}/check-password`,
+        { password: pw }
+      );
+
+      sessionStorage.setItem(`board_pw_${group.groupId}`, pw);
+      sessionStorage.setItem("last_board_group", group.groupId);
+      navigate(`/board?groupId=${group.groupId}`);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+      } else {
+        alert("비밀번호가 틀렸습니다.");
       }
+    }
+  };
 
-      const pw = prompt("🔒 게시판 비밀번호를 입력하세요");
-      if (!pw) return;
-
-      try {
-        await axiosInstance.post(
-          `/board-group/${group.groupId}/check-password`,
-          { password: pw }
-        );
-
-        // Sidebar enterBoard()
-        sessionStorage.setItem(`board_pw_${group.groupId}`, pw);
-        sessionStorage.setItem("last_board_group", group.groupId);
-        navigate(`/board?groupId=${group.groupId}`);
-      } catch (err) {
-        if (err.response?.status === 401) {
-          alert("로그인이 필요합니다.");
-          navigate("/login");
-        } else {
-          alert("비밀번호가 틀렸습니다.");
-        }
-      }
-    };
 
 
   // 🚨 user 정보가 아직 로딩 중이면 사이드바를 렌더하지 않음
@@ -145,29 +153,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             );
           })}
       </ul>
-
-      {/* 🔢 임대료 계산기 버튼 */}
-      <button
-          type="button"
-          onClick={() =>
-            window.open(
-              "https://www.renthome.go.kr/webportal/minwon/common/rncrgAtmcCalc/rncrgAtmcCalcPopup.open",
-              "_blank",
-              "noopener,noreferrer"
-            )
-          }
-          style={{
-            ...styles.link,
-            background: "none",
-            border: "none",
-            width: "100%",
-            textAlign: "left",
-            cursor: "pointer",
-          }}
-        >
-          <span style={styles.toolIcon}>🔢</span>
-          {isOpen && <span>임대료계산</span>}
-        </button>
 
     </div>
   );

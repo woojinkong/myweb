@@ -29,14 +29,33 @@ public class BoardGroupService {
 
         int maxOrder = boardGroupRepository.findMaxOrderIndex();
         group.setOrderIndex(maxOrder + 1);
-        if (group.isPasswordEnabled()) {
-            if (group.getPassword() == null || group.getPassword().isBlank()) {
-                throw new IllegalArgumentException("게시판 비밀번호가 필요합니다.");
-            }
-            group.setPasswordHash(passwordEncoder.encode(group.getPassword()));
-        } else {
-            group.setPasswordHash(null);
+        if ("LINK".equals(group.getType()) &&
+            (group.getLinkUrl() == null || group.getLinkUrl().isBlank())) {
+            throw new IllegalArgumentException("LINK 게시판은 linkUrl이 필요합니다.");
         }
+
+        // if (group.isPasswordEnabled()) {
+        //     if (group.getPassword() == null || group.getPassword().isBlank()) {
+        //         throw new IllegalArgumentException("게시판 비밀번호가 필요합니다.");
+        //     }
+        //     group.setPasswordHash(passwordEncoder.encode(group.getPassword()));
+        // } else {
+        //     group.setPasswordHash(null);
+        // }
+        if ("LINK".equals(group.getType())) {
+            group.setPasswordEnabled(false);
+            group.setPasswordHash(null);
+        } else {
+            if (group.isPasswordEnabled()) {
+                if (group.getPassword() == null || group.getPassword().isBlank()) {
+                    throw new IllegalArgumentException("게시판 비밀번호가 필요합니다.");
+                }
+                group.setPasswordHash(passwordEncoder.encode(group.getPassword()));
+            } else {
+                group.setPasswordHash(null);
+            }
+}
+
 
         return boardGroupRepository.save(group);
     }
@@ -69,20 +88,44 @@ public class BoardGroupService {
         existing.setWritePoint(updatedGroup.getWritePoint());
         existing.setAdminOnly(updatedGroup.isAdminOnly());
         existing.setSheetEnabled(updatedGroup.isSheetEnabled());
-        existing.setPasswordEnabled(updatedGroup.isPasswordEnabled());
+        //existing.setPasswordEnabled(updatedGroup.isPasswordEnabled());
+        existing.setType(updatedGroup.getType());
+        existing.setLinkUrl(updatedGroup.getLinkUrl());
 
+        if ("LINK".equals(updatedGroup.getType()) &&
+            (updatedGroup.getLinkUrl() == null || updatedGroup.getLinkUrl().isBlank())) {
+            throw new IllegalArgumentException("LINK 게시판은 linkUrl이 필요합니다.");
+        }
 
 
         // 🔐 비밀번호 ON
-        if (updatedGroup.isPasswordEnabled()) {
-            if (updatedGroup.getPassword() != null && !updatedGroup.getPassword().isBlank()) {
-                existing.setPasswordHash(
-                        passwordEncoder.encode(updatedGroup.getPassword())
-                );
+        // if (updatedGroup.isPasswordEnabled()) {
+        //     if (updatedGroup.getPassword() != null && !updatedGroup.getPassword().isBlank()) {
+        //         existing.setPasswordHash(
+        //                 passwordEncoder.encode(updatedGroup.getPassword())
+        //         );
+        //     }
+        // } else {
+        //     existing.setPasswordHash(null);
+        // }
+        // 🔗 LINK 게시판 보호
+            if ("LINK".equals(updatedGroup.getType())) {
+                existing.setPasswordEnabled(false);
+                existing.setPasswordHash(null);
+            } else {
+                existing.setPasswordEnabled(updatedGroup.isPasswordEnabled());
+
+                if (updatedGroup.isPasswordEnabled()) {
+                    if (updatedGroup.getPassword() != null && !updatedGroup.getPassword().isBlank()) {
+                        existing.setPasswordHash(
+                                passwordEncoder.encode(updatedGroup.getPassword())
+                        );
+                    }
+                } else {
+                    existing.setPasswordHash(null);
+                }
             }
-        } else {
-            existing.setPasswordHash(null);
-        }
+
 
 
         return boardGroupRepository.save(existing);
@@ -143,7 +186,10 @@ public class BoardGroupService {
                         .groupId(g.getId())
                         .name(g.getName())
                         .type(g.getType())
-                        .hasNew(boardRepository.existsNewBoardsToday(g.getId(), todayStart))
+                        .linkUrl(g.getLinkUrl())   
+                        .hasNew(
+                            "BOARD".equals(g.getType()) &&
+                            boardRepository.existsNewBoardsToday(g.getId(), todayStart))
                         .adminOnly(g.isAdminOnly())
                         .passwordEnabled(g.isPasswordEnabled())
                         .build()
