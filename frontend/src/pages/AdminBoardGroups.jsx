@@ -314,15 +314,33 @@ export default function AdminBoardGroups() {
           </>
         )}
 
-       <button type="button" onClick={createDivider}>
-          ➕ 구분선 추가
-        </button>
+       
 
 
         <button type="submit" style={buttons.primary}>
           게시판 생성
         </button>
       </form>
+
+      <hr style={{ margin: "24px 0" }} />
+
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          onClick={createDivider}
+          style={{
+            background: "#f1f3f5",
+            border: "1px dashed #adb5bd",
+            padding: "8px 14px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            color: "#495057",
+            fontSize: "13px",
+          }}
+        >
+          ➕ 구분선 추가
+        </button>
+      </div>
 
         
 
