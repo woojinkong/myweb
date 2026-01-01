@@ -141,7 +141,7 @@ const getThumbnailSrc = (board) => {
         {/* 목록 */}
         {list.length > 0 ? (
           <ul style={styles.list}>
-            {list.map((board) => {
+            {list.slice(0,5).map((board) => {
               const thumbSrc = getThumbnailSrc(board);
 
 
