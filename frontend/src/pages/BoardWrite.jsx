@@ -82,6 +82,9 @@ const CustomImage = Image.extend({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
+        orderedList: false,
+        bulletList: false,
+        listItem: false,
         link: false,
         underline: false,  
       }),

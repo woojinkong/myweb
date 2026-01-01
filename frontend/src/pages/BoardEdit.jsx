@@ -64,8 +64,11 @@ export default function BoardEdit() {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        link: false,  // StarterKit 내 중복 제거
-        underline:false,           // ⭐ 이것만 underline 기능 제공
+        orderedList: false,
+        bulletList: false,
+        listItem: false,
+        link: false,
+        underline: false,  
       }),
       Underline,
       Link.configure({
