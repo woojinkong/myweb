@@ -60,6 +60,8 @@ const CustomImage = Image.extend({
     };
   },
 
+  
+
   renderHTML({ HTMLAttributes }) {
     return [
       "figure",
@@ -72,9 +74,29 @@ const CustomImage = Image.extend({
   },
 });
 
+const extractTitleFromContent = (html) => {
+  if (!html) return "";
 
+  // 1️⃣ HTML 태그 제거
+  const text = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .trim();
 
+  // 2️⃣ 줄 단위 분리
+  const lines = text
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean);
 
+  if (lines.length === 0) return "";
+
+  // 3️⃣ 제목 길이 제한 (SEO + UI 기준)
+  const title = lines[0];
+  return title.length > 40 ? title.slice(0, 40) + "…" : title;
+};
 
   /* ------------------------------------
      📝 TipTap Editor 초기화
@@ -116,6 +138,7 @@ const CustomImage = Image.extend({
     content: "",
   });
 
+  
 
   /* ------------------------------------
      📤 게시글 등록
@@ -126,11 +149,33 @@ const CustomImage = Image.extend({
     if (submitting) return; // 중복 제출 방지
    setSubmitting(true);
 
-    if (!title.trim()) return alert("제목을 입력하세요!");
-    if (!editor?.getHTML()?.trim()) return alert("내용을 입력하세요!");
+    let finalTitle = title.trim();
+
+    if (!finalTitle) {
+      finalTitle = extractTitleFromContent(editor.getHTML());
+      setTitle(finalTitle); 
+    }
+
+    if (!finalTitle) {
+      alert("제목 또는 본문 내용을 입력하세요!");
+      setSubmitting(false);
+      return;
+    }
+
+    const isEmpty =
+    editor.isEmpty ||
+    editor.getText().trim().length === 0;
+    
+    if (isEmpty) {
+      alert("내용을 입력하세요!");
+      setSubmitting(false);
+      return;
+    }
+
+    
 
     const fd = new FormData();
-    fd.append("title", title);
+    fd.append("title", finalTitle);
     fd.append("content", editor.getHTML());
     fd.append("groupId", groupId);
 
@@ -226,7 +271,7 @@ const CustomImage = Image.extend({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           style={styles.input}
-          required
+          // required
         />
 
         

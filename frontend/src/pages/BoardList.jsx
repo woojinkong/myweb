@@ -45,7 +45,7 @@ export default function BoardList() {
   useEffect(() => {
     const loadData = async () => {
       if (!groupId) return;
-
+      setLoading(true);   // ⭐ 추가
       try {
 
         // 1) 그룹 먼저 가져오기
@@ -209,15 +209,40 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
   const isPinned = board.pinned;
 
-  let thumbnailSrc = board.imagePath
-    ? `${BASE_URL}${board.imagePath}`
-    : null;
+  const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
 
-  if (!thumbnailSrc && board.content) {
-    const match = board.content.match(/<img[^>]+src="([^">]+)"/);
-    if (match) thumbnailSrc = match[1];
+  let thumbnailSrc = null;
+
+  // 1️⃣ imagePath 우선
+  if (board.imagePath) {
+    thumbnailSrc = `${BASE_URL}${board.imagePath}`;
   }
 
+  // 2️⃣ content에서 첫 img fallback
+  if (!thumbnailSrc && board.content) {
+    const match = board.content.match(/<img[^>]+src="([^">]+)"/);
+    if (match) {
+      thumbnailSrc = match[1].startsWith("http")
+        ? match[1]
+        : `${BASE_URL}${match[1]}`;
+    }
+  }
+
+  // 3️⃣ 텍스트 전용 글
+  if (!thumbnailSrc) {
+    thumbnailSrc = DEFAULT_THUMBNAIL;
+  }
+
+  // let thumbnailSrc = board.imagePath
+  //   ? `${BASE_URL}${board.imagePath}`
+  //   : DEFAULT_THUMBNAIL;
+
+
+  // if (!thumbnailSrc && board.content) {
+  //   const match = board.content.match(/<img[^>]+src="([^">]+)"/);
+  //   if (match) thumbnailSrc = match[1];
+  // }
+  
   const profileSrc = board.profileUrl
     ? `${BASE_URL}${board.profileUrl}`
     : "/default-profile.png";
@@ -236,8 +261,11 @@ function BoardRow({ board, navigate, BASE_URL }) {
       <img
         src={thumbnailSrc}
         style={styles.rowThumbnail}
-        onError={(e) => (e.currentTarget.style.display = "none")}
+        onError={(e) => {
+          e.currentTarget.src = DEFAULT_THUMBNAIL;
+        }}
       />
+
     )}
 
 

@@ -58,6 +58,29 @@ export default function BoardEdit() {
 });
 
 
+const extractTitleFromContent = (html) => {
+  if (!html) return "";
+
+  const text = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+
+  const lines = text
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) return "";
+
+  const title = lines[0];
+  return title.length > 40 ? title.slice(0, 40) + "…" : title;
+};
+
+
+
   /* ------------------------------------
      📝 TipTap Editor
   ------------------------------------ */
@@ -143,8 +166,29 @@ export default function BoardEdit() {
     e.preventDefault();
     if (saving) return;
    setSaving(true);
-    if (!title.trim()) return alert("제목을 입력하세요!");
-    if (!editor?.getHTML()?.trim()) return alert("내용을 입력하세요!");
+    let finalTitle = title.trim();
+
+    if (!finalTitle) {
+      finalTitle = extractTitleFromContent(editor.getHTML());
+      setTitle(finalTitle);
+    }
+
+    if (!finalTitle) {
+      alert("제목 또는 본문 내용을 입력하세요!");
+      setSaving(false);
+      return;
+    }
+
+    const isEmpty =
+    editor.isEmpty ||
+    editor.getText().trim().length === 0;
+
+    if (isEmpty) {
+      alert("내용을 입력하세요!");
+      setSaving(false);
+      return;
+    }
+
 
     let html = editor.getHTML();
 
@@ -157,7 +201,7 @@ export default function BoardEdit() {
     // 🔥 src="uploads/xxx" 형태도 보정해줘야 함 (중요!)
     html = html.replace(/src="uploads\//g, 'src="/uploads/');
     const fd = new FormData();
-    fd.append("title", title);
+    fd.append("title", finalTitle);
     fd.append("content", html);
     fd.append("groupId", groupId);
 
