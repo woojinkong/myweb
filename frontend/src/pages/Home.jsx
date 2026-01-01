@@ -244,6 +244,9 @@ const getThumbnailSrc = (board) => {
             // 4️⃣ 🔒 비밀번호 게시판 → HOME에서 숨김
          if (group.passwordEnabled) return false;
 
+         // 0️⃣ 🔗 LINK 게시판 → HOME에서 제거
+        if (group.type === "LINK") return false;
+
           return true;
         })
             .map((group) => renderSection(group))
