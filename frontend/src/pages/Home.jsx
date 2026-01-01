@@ -72,6 +72,29 @@ export default function Home() {
   fetchGroupBoards();
 }, [groups, user]);
 
+const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
+
+const getThumbnailSrc = (board) => {
+  // 1️⃣ imagePath 우선
+  if (board.imagePath) {
+    return `${BASE_URL}${board.imagePath}`;
+  }
+
+  // 2️⃣ content에서 첫 img
+  if (board.content) {
+    const match = board.content.match(/<img[^>]+src="([^">]+)"/);
+    if (match) {
+      return match[1].startsWith("http")
+        ? match[1]
+        : `${BASE_URL}${match[1]}`;
+    }
+  }
+
+  // 3️⃣ 텍스트 전용
+  return DEFAULT_THUMBNAIL;
+};
+
+
 
   // 🔥 공통 섹션 렌더링
   const renderSection = (group) => {
@@ -119,9 +142,8 @@ export default function Home() {
         {list.length > 0 ? (
           <ul style={styles.list}>
             {list.map((board) => {
-              const thumbSrc = board.imagePath
-                ? `${BASE_URL}${board.imagePath}`
-                : null;
+              const thumbSrc = getThumbnailSrc(board);
+
 
               const profileSrc = board.profileUrl
                 ? `${BASE_URL}${board.profileUrl}`
@@ -141,7 +163,9 @@ export default function Home() {
                         src={thumbSrc}
                         alt=""
                         style={styles.thumbnail}
-                        onError={(e) => (e.currentTarget.style.display = "none")}
+                        onError={(e) => {
+                          e.currentTarget.src = "/icons/icon-512.png";
+                        }}
                       />
                     )}
                   </div>
