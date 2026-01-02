@@ -170,7 +170,7 @@ export default function BoardDetail() {
 
 
   const ogImage =
-  board.firstImage
+  board?.firstImage
     ? `${BASE_URL}${board.firstImage}`
     : "https://konghome.kr/default_thumbnail.jpg";
 
