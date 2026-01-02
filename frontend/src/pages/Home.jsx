@@ -42,19 +42,24 @@ export default function Home() {
     loadGroups();
   }, []);
 
+
+  const visibleGroups = groups.filter((g) => {
+  if (g.type === "DIVIDER") return false;
+  if (g.type === "LINK") return false;
+  if (g.passwordEnabled) return false;
+  if (g.adminOnly && user?.role !== "ADMIN") return false;
+  if (g.loginOnly && !user) return false;
+  return true;
+});
+
+
   // 🔥 각 그룹별 최근 5개의 게시글 로딩
  useEffect(() => {
-  if (groups.length === 0) return;
+  if (visibleGroups.length === 0) return;
 
   const fetchGroupBoards = async () => {
     const entries = await Promise.all(
-      groups
-        .filter((g) => {
-          if (g.adminOnly && user?.role !== "ADMIN") return false;
-          if (g.loginOnly && !user) return false;
-          return true;
-        })
-        .map(async (g) => {
+        visibleGroups.map(async (g) => {
           try {
             const res = await axiosInstance.get(
               `/board?groupId=${g.id}&page=0&size=4`
@@ -70,7 +75,7 @@ export default function Home() {
   };
 
   fetchGroupBoards();
-}, [groups, user]);
+}, [visibleGroups]);
 
 const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
 
@@ -229,27 +234,8 @@ const getThumbnailSrc = (board) => {
 
     <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
-        {groups.length > 0 ? (
-          groups
-           .filter((group) => {
-          // 1️⃣ 구분선 제거
-          if (group.type === "DIVIDER") return false;
-
-          // 2️⃣ 관리자 전용 게시판 → 관리자 아니면 Home에서 제거
-          if (group.adminOnly && user?.role !== "ADMIN") return false;
-
-          // 3️⃣ 로그인 전용 게시판 → 비로그인이면 Home에서 제거
-          if (group.loginOnly && !user) return false;
-
-            // 4️⃣ 🔒 비밀번호 게시판 → HOME에서 숨김
-         if (group.passwordEnabled) return false;
-
-         // 0️⃣ 🔗 LINK 게시판 → HOME에서 제거
-        if (group.type === "LINK") return false;
-
-          return true;
-        })
-            .map((group) => renderSection(group))
+        {visibleGroups.length > 0 ? (
+            visibleGroups.map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
             게시판이 없습니다.
