@@ -169,7 +169,11 @@ export default function BoardDetail() {
 
 
 
-  
+  const ogImage =
+  board.firstImage
+    ? `${BASE_URL}${board.firstImage}`
+    : "https://konghome.kr/default_thumbnail.jpg";
+
 
 
   // 삭제
@@ -291,11 +295,10 @@ const handleReport = async () => {
           content={board.content.replace(/<[^>]+>/g, "").slice(0, 150)}
         />
         <meta property="og:url" content={`${window.location.origin}/board/${id}`} />
+
         <meta property="og:type" content="article" />
 
-        {board.firstImage && (
-          <meta property="og:image" content={`${BASE_URL}${board.firstImage}`} />
-        )}
+        <meta property="og:image" content={ogImage} />
       </Helmet>
     
     <div
