@@ -1,14 +1,4 @@
 /* 게시판 본문 공통 스타일 */
-.board-content img {
-  max-width: 70% !important;
-  margin: 0 auto;
-}
-
-/* ⭐ figure 자체를 100%로 강제 */
-.tiptap figure {
-  width: 100% !important;
-  max-width: 100% !important;
-}
 
 .tiptap figure .responsive-youtube {
   width: 100% !important;
@@ -64,10 +54,12 @@
   border: 1px solid #e5e5e5; /* 더 은은한 느낌 */
 }
 
+/* PC 기준: 이미지 과도 확대 방지 */
 .board-detail-page .tiptap figure {
-  max-width: 85% !important;
-  margin: 14px auto !important;
+  max-width: 720px !important;   /* ⭐ 핵심 */
+  margin: 16px auto !important;
 }
+
 
 /* ===== jspreadsheet scroll 통합 ===== */
 
@@ -137,6 +129,15 @@
   outline: none;
   box-shadow: none;
 }
+
+  /* 이미지 자체는 figure 안에서만 커짐 */
+  .board-content img {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
 
 
 
@@ -258,10 +259,14 @@
     justify-content: center !important;
     flex-wrap: wrap !important;
   }
-  .board-content {
+  /* .board-content {
     overflow: visible !important;
     padding: 0px !important;
-  }
+  } */
+
+
+
+
 
   .responsive-youtube {
     display: block !important;
@@ -287,6 +292,12 @@
 .board-detail-page .board-content {
   overflow-x: auto;          /* 본문 영역에서도 가로 스크롤 허용 */
 }
+/* PC 기준 이미지 최대 폭 제한 */
+  .board-detail-page .tiptap figure {
+      max-width: 100% !important;
+      margin: 12px 0 !important;
+    }
+
 
 .ad-banner {
   max-width: 320px;
