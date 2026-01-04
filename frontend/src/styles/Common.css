@@ -1,14 +1,13 @@
 /* 게시판 본문 공통 스타일 */
 .board-content img {
-  max-width: 70% !important;
-  margin: 0 auto;
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  margin: 16px auto;
 }
 
-/* ⭐ figure 자체를 100%로 강제 */
-.tiptap figure {
-  width: 100% !important;
-  max-width: 100% !important;
-}
+
 
 .tiptap figure .responsive-youtube {
   width: 100% !important;
@@ -65,9 +64,10 @@
 }
 
 .board-detail-page .tiptap figure {
-  max-width: 85% !important;
-  margin: 14px auto !important;
+  max-width: 720px !important;
+  margin: 20px auto !important;
 }
+
 
 /* ===== jspreadsheet scroll 통합 ===== */
 
@@ -316,7 +316,10 @@
     margin-left: 6px !important;
  }
 
-
+.board-content img,
+  .board-detail-page .tiptap figure {
+    max-width: 100% !important;
+  }
 
 
 }
