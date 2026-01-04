@@ -139,31 +139,46 @@ const extractTitleFromContent = (html) => {
   });
 
 
-  const removeAllLinks = () => {
-  if (!editor) return;
+    const removeLinkedTextNodes = () => {
+    if (!editor) return;
 
-  const json = editor.getJSON();
+    const json = editor.getJSON();
 
-  const removeLinkMark = (node) => {
-    if (!node) return node;
+    const cleanse = (node) => {
+      if (!node) return null;
 
-    // 텍스트 노드 + link mark 제거
-    if (node.type === "text" && node.marks) {
-      node.marks = node.marks.filter(mark => mark.type !== "link");
-    }
+      // 1️⃣ 링크가 걸린 텍스트 노드는 통째로 제거
+      if (
+        node.type === "text" &&
+        node.marks?.some(mark => mark.type === "link")
+      ) {
+        return null;
+      }
 
-    // 자식 노드 재귀 처리
-    if (node.content) {
-      node.content = node.content.map(removeLinkMark);
-    }
+      // 2️⃣ 자식 노드가 있으면 재귀 처리
+      if (node.content) {
+        const cleanedChildren = node.content
+          .map(cleanse)
+          .filter(Boolean); // ⭐ null 제거
 
-    return node;
+        return {
+          ...node,
+          content: cleanedChildren.length ? cleanedChildren : undefined,
+        };
+      }
+
+      return node;
+    };
+
+    const cleaned = cleanse({ ...json });
+
+    editor.commands.setContent(cleaned, false);
   };
 
-  const cleaned = removeLinkMark({ ...json });
 
-  editor.commands.setContent(cleaned, false);
-};
+
+
+  
 
   
 
@@ -282,7 +297,7 @@ const extractTitleFromContent = (html) => {
         <button
       type="button"
       style={styles.btn}
-      onClick={removeAllLinks}
+      onClick={removeLinkedTextNodes}
       title="링크제거"
     >
       <i className="fa-solid fa-ban"></i>
