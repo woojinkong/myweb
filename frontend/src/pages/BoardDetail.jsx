@@ -391,10 +391,15 @@ const handleReport = async () => {
 
       {/* 본문 */}
       <div
-        className="board-content"
-        style={styles.contentBox}
-        dangerouslySetInnerHTML={{ __html: board.content }}
-      />
+          className="board-content"
+          style={{
+            ...styles.contentBox,
+            padding: isMobile ? "16px" : "24px 28px",
+            maxWidth: "720px",
+            margin: "0 auto",
+          }}
+          dangerouslySetInnerHTML={{ __html: board.content }}
+        />
 
       <AdBanner position="AD_BOTTOM" />
 
@@ -605,7 +610,7 @@ reportSmall: {
   contentBox: {
     backgroundColor: colors.background.page,
     borderRadius: "8px",
-    padding: "20px",
+    // padding: "24px 28px",     
     fontSize: "16px",
     lineHeight: "1.7",
     whiteSpace: "pre-wrap",
