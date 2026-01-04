@@ -307,6 +307,13 @@
   display: none;
 }
 
+.board-content img,
+  .board-content img[style] {
+    width: 100% !important;     /* 🔥 모바일에서는 화면에 맞춤 */
+    max-width: 100% !important; /* 🔥 가로 스크롤 차단 */
+    height: auto !important;
+  }
+
 .rowInfoInline {
     flex: 0 0 auto !important;   /* 🔥 필요한 만큼만 */
     min-width: unset !important; /* ❌ 150px 완전 제거 */
