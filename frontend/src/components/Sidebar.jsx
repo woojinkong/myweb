@@ -89,7 +89,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   return (
     <div
-      className={`sidebar-container ${isOpen ? "open" : ""}`}
+      className={`sidebar-container  ${isOpen ? "open" : ""}` }
+      translate="no"
       style={{
         ...styles.sidebar,
         ...(isMobile ? {} : { width: isOpen ? "150px" : "50px" }),
@@ -97,7 +98,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     >
       <div style={styles.header}>
         {!isMobile && (
-          <button onClick={toggleSidebar} style={styles.hamburger}>☰</button>
+          <button translate="no" onClick={toggleSidebar} style={styles.hamburger}>☰</button>
         )}
       </div>
 
