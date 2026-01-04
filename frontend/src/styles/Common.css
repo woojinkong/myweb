@@ -123,6 +123,13 @@
   cursor: pointer;
   flex-shrink: 0;   /* ⭐ 줄어들지 않게 */
 }
+/* PC 기본: transform 쓰지 않음 */
+.sidebar-container {
+  width: 150px;
+  transition: width 0.25s ease; /* transform ❌ */
+}
+
+
 
 .sidebar-container button {
   background: none;

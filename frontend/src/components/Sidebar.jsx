@@ -167,7 +167,7 @@ const styles = {
     background: "#fdfdfd",
     borderRight: "1px solid #e5e5e5",
     paddingTop: "8px",
-    transition: "all 0.25s ease",
+    transition: "width 0.25s ease",
     zIndex: 2000,
     overflowY: "auto",
   },
