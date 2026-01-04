@@ -138,6 +138,33 @@ const extractTitleFromContent = (html) => {
     content: "",
   });
 
+
+  const removeAllLinks = () => {
+  if (!editor) return;
+
+  const json = editor.getJSON();
+
+  const removeLinkMark = (node) => {
+    if (!node) return node;
+
+    // 텍스트 노드 + link mark 제거
+    if (node.type === "text" && node.marks) {
+      node.marks = node.marks.filter(mark => mark.type !== "link");
+    }
+
+    // 자식 노드 재귀 처리
+    if (node.content) {
+      node.content = node.content.map(removeLinkMark);
+    }
+
+    return node;
+  };
+
+  const cleaned = removeLinkMark({ ...json });
+
+  editor.commands.setContent(cleaned, false);
+};
+
   
 
   /* ------------------------------------
@@ -252,8 +279,23 @@ const extractTitleFromContent = (html) => {
       <i className="fa-solid fa-eraser"></i>
     </button>
 
+        <button
+      type="button"
+      style={styles.btn}
+      onClick={removeAllLinks}
+      title="링크제거"
+    >
+      <i className="fa-solid fa-ban"></i>
+    </button>
+
+
   </div>
 );
+
+
+
+
+
 
 
 

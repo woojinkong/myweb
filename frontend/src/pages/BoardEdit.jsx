@@ -121,6 +121,8 @@ const extractTitleFromContent = (html) => {
     },
   });
 
+
+
   /* ------------------------------------
      📌 게시글 로드
   ------------------------------------ */
@@ -220,12 +222,41 @@ const extractTitleFromContent = (html) => {
 
   if (!editor) return null;
 
+
+  const removeAllLinks = () => {
+  if (!editor) return;
+
+  const json = editor.getJSON();
+
+  const removeLinkMark = (node) => {
+    if (!node) return node;
+
+    // 텍스트 노드 + link mark 제거
+    if (node.type === "text" && node.marks) {
+      node.marks = node.marks.filter(mark => mark.type !== "link");
+    }
+
+    // 자식 노드 재귀 처리
+    if (node.content) {
+      node.content = node.content.map(removeLinkMark);
+    }
+
+    return node;
+  };
+
+  const cleaned = removeLinkMark({ ...json });
+
+  editor.commands.setContent(cleaned, false);
+};
+
+
   /* ------------------------------------
      🎨 Toolbar
   ------------------------------------ */
    /* ------------------------------
       Toolbar UI
   ------------------------------ */
+
  const Toolbar = () => (
   <div style={styles.toolbar}>
 
@@ -274,6 +305,16 @@ const extractTitleFromContent = (html) => {
     <button type="button" style={styles.btn} onClick={() => editor.chain().focus().unsetColor().run()}>
       <i className="fa-solid fa-eraser"></i>
     </button>
+
+    <button
+      type="button"
+      style={styles.btn}
+      onClick={removeAllLinks}
+      title="링크제거"
+    >
+      <i className="fa-solid fa-ban"></i>
+    </button>
+
 
   </div>
 );
