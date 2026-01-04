@@ -608,7 +608,9 @@ reportSmall: {
     padding: "20px",
     fontSize: "16px",
     lineHeight: "1.7",
+    whiteSpace: "pre-wrap",
     wordBreak: "break-word",
+    overflowWrap: "break-word",
      /* ⭐ 추가 */
      //overflowX: "auto",         // 너무 큰 이미지면 가로 스크롤
   },

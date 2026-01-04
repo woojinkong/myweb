@@ -131,8 +131,14 @@ const extractTitleFromContent = (html) => {
 
     editorProps: {
       attributes: {
-        style:
-          "min-height:300px; line-height:1.6; padding:10px; overflow-wrap:break-word;",
+        style: `
+        min-height:300px;
+        line-height:1.6;
+        padding:10px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      `,
       },
     },
     content: "",
