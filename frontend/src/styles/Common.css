@@ -1,11 +1,15 @@
-/* 게시판 본문 공통 스타일 */
-.board-content img {
+
+/* ===== 게시판 본문 이미지 최종 정답 ===== */
+.board-content img,
+.board-content img[style] {
   display: block;
-  width: 100%;
-  max-width: 720px;
-  height: auto;
+  width: auto !important;        /* 🔥 TipTap inline width 제거 */
+  max-width: 720px !important;   /* 🔥 PC 상한 */
+  height: auto !important;
   margin: 16px auto;
 }
+
+
 
 
 
@@ -280,13 +284,6 @@
     flex-wrap: wrap !important;
   }
 
-.board-detail-page {
-  overflow-x: auto;          /* 상세 페이지에서만 가로 스크롤 허용 */
-}
-
-.board-detail-page .board-content {
-  overflow-x: auto;          /* 본문 영역에서도 가로 스크롤 허용 */
-}
 
 .ad-banner {
   max-width: 320px;
@@ -315,11 +312,5 @@
     min-width: unset !important; /* ❌ 150px 완전 제거 */
     margin-left: 6px !important;
  }
-
-.board-content img,
-  .board-detail-page .tiptap figure {
-    max-width: 100% !important;
-  }
-
 
 }
