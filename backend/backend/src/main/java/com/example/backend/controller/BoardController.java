@@ -483,6 +483,12 @@ public class BoardController {
     }
 
 
+    @GetMapping("/popular/week")
+    public List<BoardListResponse> weeklyPopular() {
+        return boardService.findWeeklyPopularBoards();
+    }
+
+
 
 
 

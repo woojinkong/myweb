@@ -404,6 +404,23 @@ public class BoardService {
         return boardRepository.save(board);
     }
 
+    public List<BoardListResponse> findWeeklyPopularBoards() {
+
+    LocalDateTime weekStart =
+        LocalDateTime.now().minusDays(7); // 또는 월요일 기준으로 계산
+
+    List<Board> boards =
+        boardRepository.findWeeklyPopularBoards(
+            weekStart,
+            PageRequest.of(0, 5)
+        );
+
+    return boards.stream()
+            .map(this::toListDto)
+            .toList();
+    }
+
+
 
 
 }

@@ -177,6 +177,23 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     );
 
 
+    @Query("""
+    SELECT b
+    FROM Board b
+    WHERE b.createdDate >= :start
+      AND b.boardGroup.adminOnly = false
+      AND b.boardGroup.sheetEnabled = false
+      AND b.boardGroup.passwordEnabled = false
+      AND b.boardGroup.type = 'BOARD'
+    ORDER BY b.viewCount DESC
+    """)
+    List<Board> findWeeklyPopularBoards(
+        @Param("start") LocalDateTime start,
+        Pageable pageable
+    );
+
+
+
 
 
 
