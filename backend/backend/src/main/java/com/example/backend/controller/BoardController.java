@@ -8,7 +8,7 @@ import com.example.backend.entity.BoardGroup;
 import com.example.backend.entity.BoardImage;
 import com.example.backend.service.BoardGroupService;
 import com.example.backend.service.BoardService;
-
+import org.springframework.cache.annotation.CacheEvict;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
