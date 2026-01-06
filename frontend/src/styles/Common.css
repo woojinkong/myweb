@@ -306,18 +306,23 @@
   height: 50px;
 }
 .board-row-title {
-    font-size: 13px !important;
-    flex: 1;
-    min-width: 0;
-     display: -webkit-box;          /* ❗ 반드시 필요 */
-    -webkit-box-orient: vertical;  /* ❗ 반드시 필요 */
-    -webkit-line-clamp: 2;         /* 2줄 제한 */
-    overflow: hidden;        /* ✅ 필수 */
-    text-overflow: ellipsis;
+   min-width: 0 !important;   /* ⭐ 추가 */
+    display: block !important;
+    width: 100%;
 
-    line-height: 1.35;       /* ✅ 줄 계산 안정화 */
-    word-break: break-word; /* 긴 단어 대응 */
+    white-space: nowrap !important;   /* ⭐ 1줄 고정 */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+
+.board-row-title span {
+  flex-shrink: 0;
+  margin-left: 4px;
 }
+
 
 .board-date, .board-date-dot {
   display: none;
@@ -331,9 +336,23 @@
   }
 
 .rowInfoInline {
-    flex: 0 0 auto !important;   /* 🔥 필요한 만큼만 */
-    min-width: unset !important; /* ❌ 150px 완전 제거 */
-    margin-left: 6px !important;
- }
+    display: flex !important;
+    gap: 6px !important;
+
+    font-size: 11px !important;
+    color: #888 !important;
+
+    white-space: nowrap !important;
+    min-width: unset !important;
+    margin-left: 0 !important;
+  }
+
+ /* 🔥 제목 + 메타를 세로 배치 */
+  .rowLine {
+    min-width: 0 !important;   /* ⭐ 추가 */
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
 
 }
