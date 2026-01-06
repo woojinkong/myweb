@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.time.LocalDateTime;
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -41,7 +41,6 @@ public class SitemapController {
         sb.append("    <priority>1.0</priority>\n");
         sb.append("  </url>\n\n");
 
-
         // ===========================================================
         // 📌 2) 게시글 URL 전체 자동 생성
         // ===========================================================
@@ -50,19 +49,14 @@ public class SitemapController {
             sb.append("    <loc>").append(baseUrl).append("/board/").append(b.getBoardNo()).append("</loc>\n");
 
             // lastmod 설정
-
-
-            LocalDateTime last = b.getUpdatedDate() != null? b.getUpdatedDate() : b.getCreatedDate();
-
-            if (last != null) {
+            if (b.getCreatedDate() != null) {
                 sb.append("    <lastmod>")
-                .append(last.format(FORMAT))
-                .append("</lastmod>\n");
+                        .append(b.getCreatedDate().format(FORMAT))
+                        .append("</lastmod>\n");
             }
 
-
             sb.append("    <changefreq>weekly</changefreq>\n");
-            sb.append("    <priority>0.6</priority>\n");
+            sb.append("    <priority>0.8</priority>\n");
             sb.append("  </url>\n\n");
         }
 
