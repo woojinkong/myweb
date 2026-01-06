@@ -79,25 +79,34 @@ export default function Home() {
 
 const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
 
-const getThumbnailSrc = (board) => {
-  // 1️⃣ imagePath 우선
+// const getThumbnailSrc = (board) => {
+//   // 1️⃣ imagePath 우선
+//   if (board.imagePath) {
+//     return `${BASE_URL}${board.imagePath}`;
+//   }
+
+//   // 2️⃣ content에서 첫 img
+//   if (board.content) {
+//     const match = board.content.match(/<img[^>]+src="([^">]+)"/);
+//     if (match) {
+//       return match[1].startsWith("http")
+//         ? match[1]
+//         : `${BASE_URL}${match[1]}`;
+//     }
+//   }
+//   // 3️⃣ 텍스트 전용
+//   return DEFAULT_THUMBNAIL;
+// };
+
+  const getThumbnailSrc = (board) => {
   if (board.imagePath) {
-    return `${BASE_URL}${board.imagePath}`;
+    return board.imagePath.startsWith("http")
+      ? board.imagePath
+      : `${BASE_URL}${board.imagePath}`;
   }
-
-  // 2️⃣ content에서 첫 img
-  if (board.content) {
-    const match = board.content.match(/<img[^>]+src="([^">]+)"/);
-    if (match) {
-      return match[1].startsWith("http")
-        ? match[1]
-        : `${BASE_URL}${match[1]}`;
-    }
-  }
-
-  // 3️⃣ 텍스트 전용
   return DEFAULT_THUMBNAIL;
 };
+
 
 
 

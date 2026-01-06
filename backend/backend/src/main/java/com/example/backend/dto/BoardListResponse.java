@@ -25,6 +25,7 @@ public class BoardListResponse {
     private String groupName;   // 🔥 추가: 게시판 그룹 이름
     private String profileUrl;
     private int likeCount;
+
     // ⭐ 게시글 고정 여부 추가
     private boolean pinned;
 

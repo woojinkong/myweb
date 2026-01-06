@@ -154,7 +154,7 @@ export default function Navbar({ isSidebarOpen,toggleSidebar }) {
 
       {/* 로고 */}
       <div className="logo" style={styles.logoBox}>
-        <Link to="/" style={styles.logo}>
+        <Link to="/" style={styles.logo} translate="no">
           {siteTitle}
         </Link>
       </div>

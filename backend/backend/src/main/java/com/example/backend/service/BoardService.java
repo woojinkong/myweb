@@ -3,6 +3,7 @@ package com.example.backend.service;
 import com.example.backend.dto.BoardListResponse;
 import com.example.backend.dto.BoardDetailResponse;
 import com.example.backend.entity.Board;
+import com.example.backend.entity.BoardImage;
 import com.example.backend.entity.User;
 import com.example.backend.exception.CustomException;
 import com.example.backend.repository.*;
@@ -399,7 +400,7 @@ public class BoardService {
 
 
     @Transactional
-    public Board saveWithoutCooldown(Board board) {
+        public Board saveWithoutCooldown(Board board) {
         return boardRepository.save(board);
     }
 

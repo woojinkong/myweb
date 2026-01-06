@@ -27,7 +27,7 @@ export default function BoardList() {
   const [sort, setSort] = useState("new"); // new, old, likes
 
 
-      useEffect(() => {
+    useEffect(() => {
       const load = async () => {
         try {
           const title = await fetchSiteName();
@@ -36,8 +36,14 @@ export default function BoardList() {
           console.error("사이트 이름 로드 실패");
         }
       };
-      load();
+     load();
     }, []);
+
+    useEffect(() => {
+      setPage(0);
+    }, [groupId]);
+
+
 
   // ======================================================
   //  📌 게시판 그룹 + 목록 함께 로딩
@@ -45,6 +51,7 @@ export default function BoardList() {
   useEffect(() => {
     const loadData = async () => {
       if (!groupId) return;
+
       setLoading(true);   // ⭐ 추가
       try {
 
