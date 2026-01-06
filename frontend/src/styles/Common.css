@@ -305,17 +305,19 @@
   max-width: 320px;
   height: 50px;
 }
+
 .board-row-title {
-   min-width: 0 !important;   /* ⭐ 추가 */
     display: block !important;
+
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
 
-    white-space: nowrap !important;   /* ⭐ 1줄 고정 */
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    white-space: nowrap;       /* 한 줄 */
+    overflow: hidden;
+    text-overflow: ellipsis;   /* … */
 
-    font-size: 14px !important;
-    line-height: 1.4 !important;
+    font-weight: 600;
   }
 
 .board-row-title span {
@@ -336,23 +338,35 @@
   }
 
 .rowInfoInline {
-    display: flex !important;
-    gap: 6px !important;
-
-    font-size: 11px !important;
-    color: #888 !important;
-
-    white-space: nowrap !important;
-    min-width: unset !important;
-    margin-left: 0 !important;
+    max-width: 100%;
+    overflow: hidden;
   }
 
- /* 🔥 제목 + 메타를 세로 배치 */
   .rowLine {
-    min-width: 0 !important;   /* ⭐ 추가 */
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 2px !important;
+    display: flex;
+    flex-direction: column;   /* ⭐ 핵심 */
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
   }
+
+  .rowContent {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rowInfoInline span {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+    html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
 
 }

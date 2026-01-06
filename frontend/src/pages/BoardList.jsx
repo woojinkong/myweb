@@ -138,7 +138,7 @@ export default function BoardList() {
         ...cardBase,
         maxWidth: "1200px",
         margin: "0px auto",
-        padding: "20px",
+        padding: window.innerWidth <= 768 ? "0px" : "20px",
       }}
     >
       <div style={styles.header}>
