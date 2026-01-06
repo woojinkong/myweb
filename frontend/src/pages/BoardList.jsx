@@ -281,11 +281,12 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
         {/* 제목 + 작성자 정보 한 줄로 붙이기 */}
         <div style={styles.rowLine}>
-          <div style={styles.rowTitle} className="board-row-title">
-            {board.title}
-            <span style={styles.comment}>[{board.commentCount}]</span>
+          <div className="rowTitleWrap">
+              <div style={styles.rowTitle} className="board-row-title">
+                {board.title}
+             </div>
+             <span style={styles.comment}>[{board.commentCount}]</span>
           </div>
-
           <div style={styles.rowInfoInline}>
             <img src={profileSrc} style={styles.rowInfoProfile} />
             <span  style={{
@@ -451,6 +452,15 @@ const styles = {
   justifyContent: "center",
   gap: "2px",
 },
+
+  rowTitleWrap: {
+  display: "flex",
+  alignItems: "center",
+  gap: "4px",
+  width: "100%",
+  minWidth: 0,
+},
+
 
   rowTitle: {
   fontSize: "14px",
