@@ -9,14 +9,7 @@
   margin: 16px auto;
 }
 
-@media (min-width: 769px) {
-  .board-row-title {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-}
+
 
 
 
@@ -312,14 +305,19 @@
   max-width: 320px;
   height: 50px;
 }
-
 .board-row-title {
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
+    font-size: 13px !important;
+    flex: 1;
+    min-width: 0;
+     display: -webkit-box;          /* ❗ 반드시 필요 */
+    -webkit-box-orient: vertical;  /* ❗ 반드시 필요 */
+    -webkit-line-clamp: 2;         /* 2줄 제한 */
+    overflow: hidden;        /* ✅ 필수 */
     text-overflow: ellipsis;
-  }
 
+    line-height: 1.35;       /* ✅ 줄 계산 안정화 */
+    word-break: break-word; /* 긴 단어 대응 */
+}
 
 .board-date, .board-date-dot {
   display: none;
@@ -333,36 +331,9 @@
   }
 
 .rowInfoInline {
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  
-  .rowLine {
-    display: flex;
-    flex-direction: column;   /* ⭐ 핵심 */
-    align-items: flex-start;
-    gap: 4px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .rowContent {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .rowInfoInline span {
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-    html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
+    flex: 0 0 auto !important;   /* 🔥 필요한 만큼만 */
+    min-width: unset !important; /* ❌ 150px 완전 제거 */
+    margin-left: 6px !important;
+ }
 
 }

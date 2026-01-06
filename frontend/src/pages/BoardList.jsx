@@ -27,7 +27,7 @@ export default function BoardList() {
   const [sort, setSort] = useState("new"); // new, old, likes
 
 
-    useEffect(() => {
+      useEffect(() => {
       const load = async () => {
         try {
           const title = await fetchSiteName();
@@ -36,14 +36,8 @@ export default function BoardList() {
           console.error("사이트 이름 로드 실패");
         }
       };
-     load();
+      load();
     }, []);
-
-    useEffect(() => {
-      setPage(0);
-    }, [groupId]);
-
-
 
   // ======================================================
   //  📌 게시판 그룹 + 목록 함께 로딩
@@ -51,7 +45,6 @@ export default function BoardList() {
   useEffect(() => {
     const loadData = async () => {
       if (!groupId) return;
-
       setLoading(true);   // ⭐ 추가
       try {
 
@@ -138,7 +131,7 @@ export default function BoardList() {
         ...cardBase,
         maxWidth: "1200px",
         margin: "0px auto",
-        padding: window.innerWidth <= 768 ? "0px" : "20px",
+        padding: "20px",
       }}
     >
       <div style={styles.header}>
@@ -281,12 +274,11 @@ function BoardRow({ board, navigate, BASE_URL }) {
 
         {/* 제목 + 작성자 정보 한 줄로 붙이기 */}
         <div style={styles.rowLine}>
-          <div className="rowTitleWrap">
-              <div style={styles.rowTitle} className="board-row-title">
-                {board.title}
-             </div>
-             <span style={styles.comment}>[{board.commentCount}]</span>
+          <div style={styles.rowTitle} className="board-row-title">
+            {board.title}
+            <span style={styles.comment}>[{board.commentCount}]</span>
           </div>
+
           <div style={styles.rowInfoInline}>
             <img src={profileSrc} style={styles.rowInfoProfile} />
             <span  style={{
@@ -453,15 +445,6 @@ const styles = {
   gap: "2px",
 },
 
-  rowTitleWrap: {
-  display: "flex",
-  alignItems: "center",
-  gap: "4px",
-  width: "100%",
-  minWidth: 0,
-},
-
-
   rowTitle: {
   fontSize: "14px",
   fontWeight: "600",
@@ -534,6 +517,7 @@ rowLine: {
   gap: "8px",
   width: "100%",
   minWidth: 0,
+  flexWrap: "nowrap",       // ★ 강제 한 줄 배치
 },
 rowInfoInline: {
   display: "flex",
@@ -542,6 +526,8 @@ rowInfoInline: {
   fontSize: "11px",
   color: "#777",
   whiteSpace: "nowrap",
+  flexShrink: 0,     
+  minWidth: "150px", 
 },
 
 rowInfoProfile: {
