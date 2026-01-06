@@ -453,7 +453,7 @@ const styles = {
   textOverflow: "ellipsis",
   //whiteSpace: "nowrap",
   minWidth: 0,              // ★ ellipsis 필수 조건
-  flex: "1 1 auto",         // ★ 제목이 공간 차지하고 줄어들도록 설정
+  flex: "1 1 0%",   // ⭐ 핵심
 },
   comment: {
     color: colors.text.light,
@@ -527,7 +527,9 @@ rowInfoInline: {
   color: "#777",
   whiteSpace: "nowrap",
   flexShrink: 0,     
-  minWidth: "150px", 
+  flex: "0 0 auto",   // ⭐ 필요한 만큼만 차지
+  minWidth: 0,        // ⭐ 절대 공간 선점 금지
+  // minWidth: "150px", 
 },
 
 rowInfoProfile: {
