@@ -136,7 +136,7 @@ public class BoardController {
      *  📌 (3) 게시글 작성 — 이미지 업로드는 TipTap(upload-image)에서 처리
      * =========================================================== */
     @PostMapping(consumes = "multipart/form-data")
-
+    @CacheEvict(value = "sitemap", allEntries = true)
     public ResponseEntity<?> createBoard(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam("title") String title,
@@ -248,6 +248,7 @@ public class BoardController {
      *  📌 (5) 게시글 삭제
      * =========================================================== */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "sitemap", allEntries = true)
     public ResponseEntity<?> deleteBoard(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
