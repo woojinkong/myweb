@@ -177,9 +177,9 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
               const thumbSrc = getThumbnailSrc(board);
 
 
-              const profileSrc = board.profileUrl
-                ? `${BASE_URL}${board.profileUrl}`
-                : "/default_profile.png";
+              // const profileSrc = board.profileUrl
+              //   ? `${BASE_URL}${board.profileUrl}`
+              //   : "/default_profile.png";
 
               return (
                 <li
@@ -207,7 +207,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
                     <h3 className="board-title" style={styles.title}>{board.title}</h3>
 
                     <div style={styles.meta}>
-                      <img
+                      {/* <img
                         className="board-profile"
                         src={profileSrc}
                         alt="프로필"
@@ -221,12 +221,12 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
                         onError={(e) =>
                           (e.currentTarget.src = "/default-profile.png")
                         }
-                      />
+                      /> */}
 
-                      <span style={{ fontWeight: 500 }}>{board.nickName}</span>
+                      {/* <span style={{ fontWeight: 500 }}>{board.nickName}</span> */}
 
                       <span style={{ opacity: 0.6, fontSize: "10.5px" }}>
-                        • {new Date(board.createdDate).toLocaleDateString()}
+                        {new Date(board.createdDate).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -302,10 +302,17 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
                       <h3 style={styles.title}>
                         {index + 1}. {board.title}
                       </h3>
-                      <div style={styles.meta}>
+                      {/* <div style={styles.meta}>
                         👁 {board.viewCount} · {board.nickName}
+                      </div> */}
+                      <div style={styles.meta}>
+                      <span style={{ opacity: 0.6, fontSize: "10.5px" }}>
+                        {new Date(board.createdDate).toLocaleDateString()}
+                       </span>
                       </div>
                     </div>
+                    
+
                   </li>
                 );
               })}
