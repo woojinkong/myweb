@@ -59,11 +59,21 @@ export default function Home() {
 
   // 🔥 각 그룹별 최근 5개의 게시글 로딩
  useEffect(() => {
-  if (visibleGroups.length === 0) return;
+  if (groups.length === 0) return;
 
   const fetchGroupBoards = async () => {
     const entries = await Promise.all(
-        visibleGroups.map(async (g) => {
+      groups
+        .filter((g) => {
+          if (g.type === "DIVIDER") return false;
+          if (g.type === "LINK") return false;
+          if (g.passwordEnabled) return false;
+          if (g.adminOnly && user?.role !== "ADMIN") return false;
+          if (g.loginOnly && !user) return false;
+          return true;
+        })
+        .slice(0, 6)
+        .map(async (g) => {
           try {
             const res = await axiosInstance.get(
               `/board?groupId=${g.id}&page=0&size=4`
@@ -79,7 +89,8 @@ export default function Home() {
   };
 
   fetchGroupBoards();
-}, [visibleGroups]);
+}, [groups, user?.role]);
+
 
 const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
 
@@ -271,7 +282,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
       <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
         {visibleGroups.length > 0 ? (
-            visibleGroups.map((group) => renderSection(group))
+            visibleGroups.slice(0, 6).map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
             게시판이 없습니다.
