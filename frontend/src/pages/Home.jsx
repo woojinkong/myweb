@@ -66,7 +66,7 @@ useEffect(() => {
   const fetchGroupBoards = async () => {
     const result = {};
 
-    const targetGroups = visibleGroups.slice(0, 6);
+    const targetGroups = visibleGroups.slice(0, 7);
 
     for (const g of targetGroups) {
       try {
@@ -278,7 +278,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
       <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
         {visibleGroups.length > 0 ? (
-            visibleGroups.slice(0, 6).map((group) => renderSection(group))
+            visibleGroups.slice(0, 7).map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
             게시판이 없습니다.
