@@ -192,6 +192,8 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
                     {thumbSrc && (
                       <img
                         src={thumbSrc}
+                        loading="lazy"
+                        decoding="async"
                         alt=""
                         style={styles.thumbnail}
                         onError={(e) => {
