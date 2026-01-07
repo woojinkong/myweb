@@ -6,6 +6,7 @@ import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
 import useIsMobile from "../hooks/useIsMobile";
 import useAuth from "../hooks/useAuth";
+import { useMemo } from "react";
 //home
 export default function Home() {
   const [groups, setGroups] = useState([]);
@@ -45,51 +46,46 @@ export default function Home() {
   }, []);
 
 
-  const visibleGroups = groups.filter((g) => {
-  if (g.type === "DIVIDER") return false;
-  if (g.type === "LINK") return false;
-  if (g.passwordEnabled) return false;
-  if (g.adminOnly && user?.role !== "ADMIN") return false;
-  if (g.loginOnly && !user) return false;
-  return true;
-});
+  const visibleGroups = useMemo(() => {
+  return groups.filter((g) => {
+    if (g.type === "DIVIDER") return false;
+    if (g.type === "LINK") return false;
+    if (g.passwordEnabled) return false;
+    if (g.adminOnly && user?.role !== "ADMIN") return false;
+    if (g.loginOnly && !user) return false;
+    return true;
+  });
+}, [groups, user]);
 
 
 
 
-  // 🔥 각 그룹별 최근 5개의 게시글 로딩
- useEffect(() => {
-  if (groups.length === 0) return;
+useEffect(() => {
+  if (visibleGroups.length === 0) return;
 
   const fetchGroupBoards = async () => {
-    const entries = await Promise.all(
-      groups
-        .filter((g) => {
-          if (g.type === "DIVIDER") return false;
-          if (g.type === "LINK") return false;
-          if (g.passwordEnabled) return false;
-          if (g.adminOnly && user?.role !== "ADMIN") return false;
-          if (g.loginOnly && !user) return false;
-          return true;
-        })
-        .slice(0, 6)
-        .map(async (g) => {
-          try {
-            const res = await axiosInstance.get(
-              `/board?groupId=${g.id}&page=0&size=4`
-            );
-            return [g.id, res.data.content || []];
-          } catch {
-            return [g.id, []];
-          }
-        })
-    );
+    const result = {};
 
-    setBoardsByGroup(Object.fromEntries(entries));
+    const targetGroups = visibleGroups.slice(0, 6);
+
+    for (const g of targetGroups) {
+      try {
+        const res = await axiosInstance.get(
+          `/board?groupId=${g.id}&page=0&size=4`
+        );
+        result[g.id] = res.data.content || [];
+      } catch {
+        result[g.id] = [];
+      }
+    }
+
+    setBoardsByGroup(result);
   };
 
   fetchGroupBoards();
-}, [groups, user?.role]);
+}, [visibleGroups]);
+
+
 
 
 const DEFAULT_THUMBNAIL = "/icons/icon-512.png";

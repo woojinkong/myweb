@@ -22,6 +22,7 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=blue
+      - JAVA_OPTS=-Xms256m -Xmx512m
       - PASSWORD=dnwls2247!
       - SECRET=dnwlstmfrltjdlgodqhrgkrpgowntpdy
       - MAIL_PASSWORD=vgpxxukqecpjabmn
