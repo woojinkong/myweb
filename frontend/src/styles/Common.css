@@ -150,13 +150,21 @@
 }
 
 
+.home-container {
+  width: 100%;
+  max-width: 1100px;
+  margin-left: 0;     /* 핵심 */
+  margin-right: auto; /* 오른쪽만 여백 */
+}
+
+
 
 /* ============================================
    📱 Mobile (최대 768px)
 ============================================ */
 @media (max-width: 768px) {
 
-  .home-container { padding: 8px; }
+  .home-container { padding: 6px; }
 
   .home-grid {
     grid-template-columns: 1fr !important;
