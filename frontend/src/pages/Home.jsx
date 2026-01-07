@@ -264,7 +264,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
       style={{
         maxWidth: "1200px",
         margin: "0 auto",
-        padding: "20px",
+        padding: "0px",
       }}
     > 
       <div className="home-container" style={styles.container}>
