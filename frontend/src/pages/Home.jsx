@@ -338,7 +338,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
 const styles = {
   container: {
     width: "100%",
-    padding: "10px 15px",
+    padding: "10px 0px",
   },
   grid: {
     display: "grid",

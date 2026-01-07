@@ -153,8 +153,7 @@
 .home-container {
   width: 100%;
   max-width: 1100px;
-  margin-left: 0;     /* 핵심 */
-  margin-right: auto; /* 오른쪽만 여백 */
+  margin: 0;              /* 핵심 */
 }
 
 
