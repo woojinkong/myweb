@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { colors, buttons, cardBase } from "../styles/common";
-import { FiFolder } from "react-icons/fi";
 import { Helmet } from "react-helmet-async";
 import { fetchSiteName } from "../api/siteApi";
 import useIsMobile from "../hooks/useIsMobile";
@@ -15,7 +14,7 @@ export default function Home() {
   const isMobile = useIsMobile();
   const BASE_URL = import.meta.env.VITE_API_URL;
   const { user } = useAuth();
-  const [weeklyPopular, setWeeklyPopular] = useState([]);
+  // const [weeklyPopular, setWeeklyPopular] = useState([]);
 
     const [siteTitle, setSiteTitle] = useState("KongHome");
   useEffect(() => {
@@ -112,17 +111,17 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
   return DEFAULT_THUMBNAIL;
 };
 
-  useEffect(() => {
-  const fetchPopular = async () => {
-    try {
-      const res = await axiosInstance.get("/board/popular/week");
-      setWeeklyPopular(res.data || []);
-    } catch (e) {
-      console.error("주간 인기글 로드 실패", e);
-    }
-  };
-  fetchPopular();
-}, []);
+//   useEffect(() => {
+//   const fetchPopular = async () => {
+//     try {
+//       const res = await axiosInstance.get("/board/popular/week");
+//       setWeeklyPopular(res.data || []);
+//     } catch (e) {
+//       console.error("주간 인기글 로드 실패", e);
+//     }
+//   };
+//   fetchPopular();
+// }, []);
 
 
 
@@ -269,64 +268,6 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
     > 
       <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
-
-        {/* 🔥 이번주 인기글 섹션 (맨 위) */}
-        {weeklyPopular.length > 0 && (
-          <section
-            className="home-section"
-            style={{
-              ...cardBase,
-              minHeight: "260px",
-              padding: "12px 14px",
-            }}
-          >
-            <div style={styles.header}>
-              <h2 style={styles.sectionTitle}>🔥 이번주 인기글</h2>
-            </div>
-
-            <ul style={styles.list}>
-              {weeklyPopular.map((board, index) => {
-                const thumbSrc = getThumbnailSrc(board);
-
-                return (
-                  <li
-                    key={board.boardNo}
-                    style={styles.listItem}
-                    onClick={() => navigate(`/board/${board.boardNo}`)}
-                  >
-                    {/* 썸네일 */}
-                    <div style={styles.thumbBox}>
-                      <img
-                        src={thumbSrc}
-                        alt=""
-                        style={styles.thumbnail}
-                        onError={(e) => {
-                          e.currentTarget.src = "/icons/icon-512.png";
-                        }}
-                      />
-                    </div>
-
-                    <div style={styles.textBox}>
-                      <h3 style={styles.title}>
-                        {index + 1}. {board.title}
-                      </h3>
-                      {/* <div style={styles.meta}>
-                        👁 {board.viewCount} · {board.nickName}
-                      </div> */}
-                      <div style={styles.meta}>
-                      <span style={{ opacity: 0.6, fontSize: "10.5px" }}>
-                        {new Date(board.createdDate).toLocaleDateString()}
-                       </span>
-                      </div>
-                    </div>
-                    
-
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
         {visibleGroups.length > 0 ? (
             visibleGroups.map((group) => renderSection(group))
         ) : (
