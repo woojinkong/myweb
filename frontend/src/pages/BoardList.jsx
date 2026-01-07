@@ -45,6 +45,7 @@ export default function BoardList() {
   useEffect(() => {
     const loadData = async () => {
       if (!groupId) return;
+      
       setLoading(true);   // ⭐ 추가
       try {
 
@@ -79,6 +80,12 @@ export default function BoardList() {
 
     loadData();
   }, [groupId,page,sort]);
+
+  useEffect(() => {
+  setPage(0);
+  setSort("new"); // 선택 사항
+}, [groupId]);
+
 
   // groupId 없는 경우
   if (!groupId)
