@@ -259,7 +259,15 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
         <meta property="og:url" content={window.location.href} />
       </Helmet>
 
-    <div className="home-container" style={styles.container}>
+
+      <div
+      style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
+        padding: "20px",
+      }}
+    > 
+      <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
 
         {/* 🔥 이번주 인기글 섹션 (맨 위) */}
@@ -328,6 +336,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
         )}
       </div>
     </div>
+    </div>
     </>
   );
 }
@@ -338,7 +347,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
 const styles = {
   container: {
     width: "100%",
-    padding: "10px 0px",
+    padding: "0",
   },
   grid: {
     display: "grid",

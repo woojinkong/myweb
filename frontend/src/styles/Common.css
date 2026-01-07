@@ -152,8 +152,8 @@
 
 .home-container {
   width: 100%;
-  max-width: 1100px;
   margin: 0;              /* 핵심 */
+  max-width: none;   /* ⭐ 중앙정렬 책임은 바깥 래퍼 */
 }
 
 
