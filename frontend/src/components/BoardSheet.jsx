@@ -5,6 +5,7 @@ import axiosInstance from "../api/axiosInstance";
 import jspreadsheet from "jspreadsheet-ce";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
+import "../styles/BoardSheet.css";
 
 export default function BoardSheet() {
   const { groupId } = useParams();
@@ -12,8 +13,16 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jssRef = useRef(null);
   const selectionRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const [groupName, setGroupName] = useState("");
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorValue, setEditorValue] = useState("");
+  const [editorCell, setEditorCell] = useState(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const saveTimerRef = useRef(null);
+  const savingRef = useRef(false);
+
 
   /* ==================================================
      공통 유틸
@@ -43,6 +52,24 @@ export default function BoardSheet() {
     [toCellName]
   );
 
+  useEffect(() => {
+  if (editorOpen) {
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  }
+  }, [editorOpen]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setEditorOpen(false);
+    };
+    if (editorOpen) window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editorOpen]);
+
+
+
 
   /* ==================================================
      시트 로딩
@@ -64,8 +91,11 @@ export default function BoardSheet() {
 
       if (sheetRef.current) sheetRef.current.innerHTML = "";
 
+      const data = saved.data || [[]];
+      const colCount = data[0]?.length || 1;
+
       const jss = jspreadsheet(sheetRef.current, {
-        data: saved.data || [[]],
+        data,
 
         style: {
           "*": {
@@ -76,17 +106,32 @@ export default function BoardSheet() {
           ...(saved.style || {}),
         },
 
-        columns: (saved.columnWidth || []).map((w) => ({
-          width: w,
-          type: "textarea",
-        })),
+        columns: Array.from({ length: colCount }, (_, i) => ({
+        width: saved.columnWidth?.[i] || 120,
+        type: "textarea",
 
-        rows: (saved.rowHeight || []).reduce((acc, h, i) => {
-          acc[i] = { height: h };
-          return acc;
-        }, {}),
+      })),
 
-        minDimensions: [10, 30],
+      rows: (saved.rowHeight || []).reduce((acc, h, i) => {
+        acc[i] = { height: h };
+        return acc;
+      }, {}),
+
+      ondblclick: (instance, cell, x, y) => {
+        if (x < 0 || y < 0) return; // 헤더/비셀 영역 차단
+
+        const cellName = toCellName(x, y);
+        const value = instance.getValue(cellName) ?? "";
+
+        setEditorCell(cellName);
+        setEditorValue(value);
+        setEditorOpen(true);
+
+        return false;
+      },
+
+
+        minDimensions: undefined,
         tableOverflow: false,
         filters: true,
         columnSorting: true,
@@ -96,6 +141,11 @@ export default function BoardSheet() {
         onselection: (_, x1, y1, x2, y2) => {
           selectionRef.current = { x1, y1, x2, y2 };
         },
+
+        onchange: () => {
+        if (savingRef.current) return;
+        setIsDirty(true);
+      },
       });
 
       jssRef.current = jss;
@@ -117,15 +167,17 @@ export default function BoardSheet() {
     const jss = jssRef.current;
     if (!jss) return;
 
+    savingRef.current = true;
+
     const payload = {
-      data: jss.getData(),
-      style: jss.getStyle(),
-      columnWidth: jss.getWidth(),
-      rowHeight: jss.getHeight(),
-    };
+    data: jss.getData(),
+    style: jss.getStyle(),
+    columnWidth: jss.getWidth().slice(0, jss.getData()[0].length),
+    rowHeight: jss.getHeight(),
+  };
 
     await axiosInstance.post(`/sheet/${groupId}`, payload);
-    alert("저장 완료");
+    savingRef.current = false;
   };
 
   /* ==================================================
@@ -178,6 +230,40 @@ export default function BoardSheet() {
     }
 };
 
+    useEffect(() => {
+    if (!isDirty) return;
+
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = setTimeout(() => {
+      handleSave();
+      setIsDirty(false);
+    }, 2000);
+
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [isDirty, groupId]); // handleSave 직접 의존 X
+
+    useEffect(() => {
+    const beforeUnload = (e) => {
+      if (isDirty) {
+        handleSave();
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => window.removeEventListener("beforeunload", beforeUnload);
+  }, [isDirty]);
+
+
+
+
 
   /* ==================================================
      UI
@@ -213,6 +299,42 @@ export default function BoardSheet() {
 
       {/* sheet */}
       <div ref={sheetRef} />
+
+      {editorOpen && (
+        <div className="sheet-modal-backdrop">
+          <div className="sheet-modal">
+            <h3>셀 내용 편집</h3>
+
+            <textarea
+               ref={textareaRef}
+              value={editorValue}
+              onChange={(e) => setEditorValue(e.target.value)}
+              style={{
+                width: "100%",
+                height: "200px",
+                resize: "vertical",
+              }}
+            />
+
+            <div className="modal-actions">
+              <button onClick={() => setEditorOpen(false)}>취소</button>
+              <button
+                onClick={() => {
+                  if (editorCell) {
+                    jssRef.current.setValue(editorCell, editorValue);
+                    const rowIndex = parseInt(editorCell.match(/\d+/)[0], 10) - 1;
+                    jssRef.current.setRowHeight(rowIndex, "auto");
+                  }
+                  setEditorOpen(false);
+                }}
+              >
+                적용
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   </div>
 );
