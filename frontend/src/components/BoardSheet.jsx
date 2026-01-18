@@ -14,6 +14,8 @@ export default function BoardSheet() {
   const selectionRef = useRef(null);
 
   const [groupName, setGroupName] = useState("");
+  
+
 
   /* ==================================================
      공통 유틸
@@ -62,6 +64,9 @@ export default function BoardSheet() {
         ? JSON.parse(sheetRes.data.sheetData)
         : {};
 
+      const rowCount = saved.data?.length || 1;
+      const colCount = saved.data?.[0]?.length || 1;
+
       if (sheetRef.current) sheetRef.current.innerHTML = "";
 
       const jss = jspreadsheet(sheetRef.current, {
@@ -86,7 +91,10 @@ export default function BoardSheet() {
           return acc;
         }, {}),
 
-        minDimensions: [10, 30],
+        minDimensions: [
+          Math.max(colCount, 1),
+          Math.max(rowCount, 1),
+        ],
         tableOverflow: false,
         filters: true,
         columnSorting: true,
