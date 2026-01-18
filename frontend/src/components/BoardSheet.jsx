@@ -5,7 +5,6 @@ import axiosInstance from "../api/axiosInstance";
 import jspreadsheet from "jspreadsheet-ce";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import "jsuites/dist/jsuites.css";
-import "../styles/BoardSheet.css";
 
 export default function BoardSheet() {
   const { groupId } = useParams();
@@ -13,16 +12,8 @@ export default function BoardSheet() {
   const sheetRef = useRef(null);
   const jssRef = useRef(null);
   const selectionRef = useRef(null);
-  const textareaRef = useRef(null);
 
   const [groupName, setGroupName] = useState("");
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editorValue, setEditorValue] = useState("");
-  const [editorCell, setEditorCell] = useState(null);
-
-  const [isDirty, setIsDirty] = useState(false);
-  const saveTimerRef = useRef(null);
-  const savingRef = useRef(false);
 
   /* ==================================================
      공통 유틸
@@ -52,70 +43,6 @@ export default function BoardSheet() {
     [toCellName]
   );
 
-  // ✅ (핵심) data 구조를 jspreadsheet가 절대 안 터지게 정규화
-  const normalizeData = useCallback((raw) => {
-    if (!Array.isArray(raw) || raw.length === 0) return [[""]];
-
-    // row가 배열이 아닐 수도 있으니 방어
-    const safeRows = raw.map((r) => (Array.isArray(r) ? r : []));
-
-    const maxCols = Math.max(
-      ...safeRows.map((r) => r.length),
-      1
-    );
-
-    // 모든 row를 maxCols 길이로 맞춤
-    return safeRows.map((row) => {
-      const padded = row.slice(0, maxCols);
-      while (padded.length < maxCols) padded.push("");
-      return padded;
-    });
-  }, []);
-
-  /* ==================================================
-     모달 포커스 / ESC 닫기
-  ================================================== */
-  useEffect(() => {
-    if (!editorOpen) return;
-    const t = setTimeout(() => textareaRef.current?.focus(), 0);
-    return () => clearTimeout(t);
-  }, [editorOpen]);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") setEditorOpen(false);
-    };
-    if (editorOpen) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [editorOpen]);
-
-  /* ==================================================
-     저장 (자동저장/수동저장 공용)
-  ================================================== */
-  const handleSave = useCallback(async () => {
-    const jss = jssRef.current;
-    if (!jss) return;
-
-    // 저장 중에 onchange가 또 dirty로 만들지 않게
-    savingRef.current = true;
-
-    try {
-      const gridData = jss.getData();
-      const colCount = gridData?.[0]?.length || 1;
-
-      const payload = {
-        data: gridData,
-        style: jss.getStyle(),
-        // getWidth()는 전체 컬럼 폭 배열을 주는데, 현재 colCount까지만 저장
-        columnWidth: (jss.getWidth?.() || []).slice(0, colCount),
-        rowHeight: jss.getHeight?.() || [],
-      };
-
-      await axiosInstance.post(`/sheet/${groupId}`, payload);
-    } finally {
-      savingRef.current = false;
-    }
-  }, [groupId]);
 
   /* ==================================================
      시트 로딩
@@ -135,27 +62,10 @@ export default function BoardSheet() {
         ? JSON.parse(sheetRes.data.sheetData)
         : {};
 
-      // ✅ 저장된 데이터 기반으로 안정적으로 정규화
-      const data = normalizeData(saved.data);
-      const colCount = data[0].length;
-
-      // ✅ columnWidth도 colCount 길이로 강제 보정
-      const columnWidth = Array.from({ length: colCount }, (_, i) => {
-        const w = saved.columnWidth?.[i];
-        return typeof w === "number" && w > 0 ? w : 120;
-      });
-
-      // ✅ rows(height)도 row 개수까지만 반영
-      const rows = {};
-      for (let i = 0; i < data.length; i++) {
-        const h = saved.rowHeight?.[i];
-        if (typeof h === "number" && h > 0) rows[i] = { height: h };
-      }
-
       if (sheetRef.current) sheetRef.current.innerHTML = "";
 
       const jss = jspreadsheet(sheetRef.current, {
-        data,
+        data: saved.data || [[]],
 
         style: {
           "*": {
@@ -166,27 +76,17 @@ export default function BoardSheet() {
           ...(saved.style || {}),
         },
 
-        columns: columnWidth.map((w) => ({
+        columns: (saved.columnWidth || []).map((w) => ({
           width: w,
           type: "textarea",
         })),
 
-        rows,
+        rows: (saved.rowHeight || []).reduce((acc, h, i) => {
+          acc[i] = { height: h };
+          return acc;
+        }, {}),
 
-        ondblclick: (instance, cell, x, y) => {
-          if (x < 0 || y < 0) return; // 헤더/비셀 영역 차단
-
-          const cellName = toCellName(x, y);
-          const value = instance.getValue(cellName) ?? "";
-
-          setEditorCell(cellName);
-          setEditorValue(value);
-          setEditorOpen(true);
-
-          return false; // 기본 편집 차단
-        },
-
-        minDimensions: undefined,
+        minDimensions: [10, 30],
         tableOverflow: false,
         filters: true,
         columnSorting: true,
@@ -196,15 +96,9 @@ export default function BoardSheet() {
         onselection: (_, x1, y1, x2, y2) => {
           selectionRef.current = { x1, y1, x2, y2 };
         },
-
-        onchange: () => {
-          if (savingRef.current) return;
-          setIsDirty(true);
-        },
       });
 
       jssRef.current = jss;
-      setIsDirty(false); // 로드 직후 dirty 해제
     };
 
     load();
@@ -214,41 +108,25 @@ export default function BoardSheet() {
       jssRef.current?.destroy?.();
       jssRef.current = null;
     };
-  }, [groupId, normalizeData, toCellName]);
+  }, [groupId]);
 
   /* ==================================================
-     자동저장 (디바운스)
+     저장
   ================================================== */
-  useEffect(() => {
-    if (!isDirty) return;
+  const handleSave = async () => {
+    const jss = jssRef.current;
+    if (!jss) return;
 
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-
-    saveTimerRef.current = setTimeout(() => {
-      handleSave();
-      setIsDirty(false);
-    }, 2000);
-
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [isDirty, handleSave]);
-
-  // 새로고침/닫기 직전에 저장 시도
-  useEffect(() => {
-    const beforeUnload = (e) => {
-      if (!isDirty) return;
-
-      // 주의: beforeunload에서 비동기 완료 보장 불가 (브라우저 정책)
-      handleSave();
-
-      e.preventDefault();
-      e.returnValue = "";
+    const payload = {
+      data: jss.getData(),
+      style: jss.getStyle(),
+      columnWidth: jss.getWidth(),
+      rowHeight: jss.getHeight(),
     };
 
-    window.addEventListener("beforeunload", beforeUnload);
-    return () => window.removeEventListener("beforeunload", beforeUnload);
-  }, [isDirty, handleSave]);
+    await axiosInstance.post(`/sheet/${groupId}`, payload);
+    alert("저장 완료");
+  };
 
   /* ==================================================
      스타일 / 정렬
@@ -293,82 +171,50 @@ export default function BoardSheet() {
       for (let x = r.x1; x <= r.x2; x++) {
         const cell = toCellName(x, y);
         const cur = jss.getValue(cell) ?? "";
-        jss.setValue(cell, cur + "\n"); // 끝에 줄바꿈 추가
+
+        // 커서 위치 개념이 없으므로 "끝에 줄바꿈" 삽입
+        jss.setValue(cell, cur + "\n");
       }
     }
-  };
+};
+
 
   /* ==================================================
      UI
   ================================================== */
   return (
-    <div style={{ padding: 20 }}>
-      <h2>📄 {groupName}</h2>
+  <div style={{ padding: 20 }}>
+  <h2>📄 {groupName}</h2>
 
-      {/* 가로 스크롤 */}
-      <div className="board-sheet-wrapper">
-        {/* toolbar는 반드시 여기 */}
-        <div className="board-toolbar">
-          <button onClick={() => setAlign("left")}>⯇</button>
-          <button onClick={() => setAlign("center")}>≡</button>
-          <button onClick={() => setAlign("right")}>⯈</button>
 
-          <button onClick={toggleBold}>B</button>
-          <button onClick={insertNewLine}>↵</button>
+    {/* 가로 스크롤 */}
+    <div className="board-sheet-wrapper">
 
-          {COMMON_COLORS.map((c) => (
-            <div
-              key={c}
-              className="color-dot"
-              onClick={() => setBg(c)}
-              style={{ background: c }}
-            />
-          ))}
+      {/* toolbar는 반드시 여기 */}
+      <div className="board-toolbar">
+        <button onClick={() => setAlign("left")}>⯇</button>
+        <button onClick={() => setAlign("center")}>≡</button>
+        <button onClick={() => setAlign("right")}>⯈</button>
 
-          {/* 수동 저장 버튼 유지 (자동저장 있어도 안전장치로 추천) */}
-          <button onClick={handleSave}>저장</button>
-        </div>
+        <button onClick={toggleBold}>B</button>
+        <button onClick={insertNewLine}>↵</button>
 
-        {/* sheet */}
-        <div ref={sheetRef} />
+        {COMMON_COLORS.map((c) => (
+          <div
+            key={c}
+            className="color-dot"
+            onClick={() => setBg(c)}
+            style={{ background: c }}
+          />
+        ))}
 
-        {editorOpen && (
-          <div className="sheet-modal-backdrop">
-            <div className="sheet-modal">
-              <h3>셀 내용 편집</h3>
-
-              <textarea
-                ref={textareaRef}
-                value={editorValue}
-                onChange={(e) => setEditorValue(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "200px",
-                  resize: "vertical",
-                }}
-              />
-
-              <div className="modal-actions">
-                <button onClick={() => setEditorOpen(false)}>취소</button>
-                <button
-                  onClick={() => {
-                    if (editorCell && jssRef.current?.setRowHeight) {
-                      const rowIndex =
-                        parseInt(editorCell.match(/\d+/)[0], 10) - 1;
-
-                      jssRef.current.setRowHeight(rowIndex, 40); // 숫자(px) 권장
-                    }
-
-                    setEditorOpen(false);
-                  }}
-                >
-                  적용
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <button onClick={handleSave}>저장</button>
       </div>
+
+      {/* sheet */}
+      <div ref={sheetRef} />
     </div>
-  );
+  </div>
+);
+
 }
