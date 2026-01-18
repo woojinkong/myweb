@@ -27,6 +27,8 @@ public class BoardDetailResponse {
 
     private List<BoardImage> images;
     private String profileUrl;
+    private boolean linkAllowed; // 🔥 링크 허용 여부
+
 
 
 }

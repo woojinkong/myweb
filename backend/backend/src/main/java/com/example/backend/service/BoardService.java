@@ -290,6 +290,7 @@ public class BoardService {
                     .profileUrl(getProfileUrl(board.getUserId()))
                     .allowComment(allowComment)
                     .pinned(board.isPinned())
+                    .linkAllowed(board.isLinkAllowed())   // 🔥 딱 이 줄
                     .build();
         }catch(Exception e){
             return null;

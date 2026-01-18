@@ -89,5 +89,10 @@ public class Board {
     @Column(nullable = false)
     private boolean pinned = false;  // 기본값 false
 
+    // Board.java
+    @Column(nullable = false)
+    private boolean linkAllowed = false; // 🔥 관리자 링크 허용 여부
+
+
 
 }

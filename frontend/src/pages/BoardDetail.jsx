@@ -383,6 +383,47 @@ const handleReport = async () => {
           </button>
         )}
 
+        {user?.role === "ADMIN" && (
+          <button
+            onClick={async () => {
+              try {
+                const url = board.linkAllowed
+                  ? `/board/${id}/link-disallow`
+                  : `/board/${id}/link-allow`;
+
+                await axiosInstance.post(url);
+
+                alert(
+                  board.linkAllowed
+                    ? "링크 허용이 해제되었습니다."
+                    : "이 게시글이 링크로 공개되었습니다."
+                );
+
+                // 🔥 상태 즉시 반영
+                setBoard(prev => ({
+                  ...prev,
+                  linkAllowed: !prev.linkAllowed
+                }));
+              } catch (err) {
+                console.error("링크 허용 토글 실패:", err);
+                alert("처리 중 오류가 발생했습니다.");
+              }
+            }}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: board.linkAllowed ? "#7f8c8d" : "#27ae60",
+              color: "white",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13px"
+            }}
+          >
+            {board.linkAllowed ? "🔒 링크 허용 해제" : "🔓 링크 허용"}
+          </button>
+        )}
+
+
       </div>
 
 

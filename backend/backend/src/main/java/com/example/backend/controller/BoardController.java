@@ -119,11 +119,13 @@ public class BoardController {
                 ? userDetails.getUser().getRole()
                 : "GUEST";
 
-        // 4) 관리자 전용 게시판이면 일반 유저 차단
-        if (group.isAdminOnly() && !"ADMIN".equalsIgnoreCase(role)) {
+        // ✅ 여기에서만 linkAllowed 사용
+        if (group.isAdminOnly()
+                && !"ADMIN".equalsIgnoreCase(role)
+                && !board.isLinkAllowed()) {
+
             return ResponseEntity.status(403).build();
         }
-
         // 🔐 반드시 추가
         checkBoardPassword(group, boardPassword);
 
@@ -487,6 +489,49 @@ public class BoardController {
     public List<BoardListResponse> weeklyPopular() {
         return boardService.findWeeklyPopularBoards();
     }
+
+
+    // BoardController.java
+    @PostMapping("/{id}/link-allow")
+    public ResponseEntity<?> allowLink(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @PathVariable Long id
+    ) {
+        if (userDetails == null ||
+            !"ADMIN".equalsIgnoreCase(userDetails.getUser().getRole())) {
+            return ResponseEntity.status(403).body("관리자만 가능합니다.");
+        }
+
+        Board board = boardService.findByIdRaw(id);
+        if (board == null) return ResponseEntity.notFound().build();
+
+        board.setLinkAllowed(true);
+        boardService.saveWithoutCooldown(board);
+
+        return ResponseEntity.ok("LINK_ALLOWED");
+    }
+
+        // BoardController.java
+    @PostMapping("/{id}/link-disallow")
+    public ResponseEntity<?> disallowLink(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id
+    ) {
+        if (userDetails == null ||
+            !"ADMIN".equalsIgnoreCase(userDetails.getUser().getRole())) {
+            return ResponseEntity.status(403).body("관리자만 가능합니다.");
+        }
+
+        Board board = boardService.findByIdRaw(id);
+        if (board == null) return ResponseEntity.notFound().build();
+
+        board.setLinkAllowed(false);
+        boardService.saveWithoutCooldown(board);
+
+        return ResponseEntity.ok("LINK_DISALLOWED");
+    }
+
+
 
 
 
