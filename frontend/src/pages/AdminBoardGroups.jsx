@@ -146,6 +146,24 @@ export default function AdminBoardGroups() {
     loadGroups();
   };
 
+
+
+  const removeAllBoardsInGroup = async (groupId, groupName) => {
+  const ok = window.confirm(
+    `[${groupName}] 게시판의 게시글을 전부 삭제할까요?\n되돌릴 수 없습니다.`
+  );
+  if (!ok) return;
+
+  try {
+    const res = await axiosInstance.delete(`/admin/board-group/${groupId}/boards`);
+    alert(`삭제 완료: ${res.data?.deletedCount ?? 0}개`);
+  } catch (err) {
+    alert("삭제 중 오류가 발생했습니다.");
+    console.error(err);
+  }
+};
+
+
   /* ===============================
       렌더
   =============================== */
@@ -335,6 +353,16 @@ export default function AdminBoardGroups() {
                   <button onClick={() => move(g.id, true)} disabled={i === 0 || isEditMode}>⬆</button>
                   <button onClick={() => move(g.id, false)} disabled={i === groups.length - 1 || isEditMode}>⬇</button>
                   <button onClick={() => startEdit(g)}>수정</button>
+                  {g.type === "BOARD" && (
+                      <button
+                        type="button"
+                        onClick={() => removeAllBoardsInGroup(g.id, g.name)}
+                        disabled={isEditMode}
+                        style={{ background: "#ffe3e3", border: "1px solid #ffa8a8" }}
+                      >
+                        글 전체삭제
+                      </button>
+                    )}
                   <button onClick={() => remove(g.id)}>삭제</button>
                 </div>
               </>

@@ -15,6 +15,9 @@ export default function Home() {
   const isMobile = useIsMobile();
   const BASE_URL = import.meta.env.VITE_API_URL;
   const { user } = useAuth();
+  const HOME_GROUP_COUNT = 7;
+  const HOME_BOARD_COUNT = 5;
+
   // const [weeklyPopular, setWeeklyPopular] = useState([]);
 
     const [siteTitle, setSiteTitle] = useState("KongHome");
@@ -66,12 +69,12 @@ useEffect(() => {
   const fetchGroupBoards = async () => {
     const result = {};
 
-    const targetGroups = visibleGroups.slice(0, 7);
+    const targetGroups = visibleGroups.slice(0, HOME_GROUP_COUNT);
 
     for (const g of targetGroups) {
       try {
         const res = await axiosInstance.get(
-          `/board?groupId=${g.id}&page=0&size=4`
+          `/board?groupId=${g.id}&page=0&size=${HOME_BOARD_COUNT}`
         );
         result[g.id] = res.data.content || [];
       } catch {
@@ -179,7 +182,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
         {/* 목록 */}
         {list.length > 0 ? (
           <ul style={styles.list}>
-            {list.slice(0,5).map((board) => {
+            {list.slice(0,HOME_BOARD_COUNT).map((board) => {
               const thumbSrc = getThumbnailSrc(board);
 
 
@@ -278,7 +281,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
       <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
         {visibleGroups.length > 0 ? (
-            visibleGroups.slice(0, 7).map((group) => renderSection(group))
+            visibleGroups.slice(0, HOME_GROUP_COUNT).map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
             게시판이 없습니다.

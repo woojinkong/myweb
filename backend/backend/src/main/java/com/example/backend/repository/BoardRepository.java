@@ -192,6 +192,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
         Pageable pageable
     );
 
+    @Query("SELECT b.boardNo FROM Board b WHERE b.boardGroup.id = :groupId")
+    List<Long> findBoardNosByGroupId(@Param("groupId") Long groupId);
+
+
 
 
 

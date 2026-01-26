@@ -338,6 +338,27 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/board-group/{groupId}/boards")
+    public ResponseEntity<?> deleteBoardsInGroup(@PathVariable Long groupId) {
+
+        List<Long> boardNos = boardRepository.findBoardNosByGroupId(groupId);
+
+        int deleted = 0;
+        for (Long boardNo : boardNos) {
+            boardService.delete(boardNo);
+            deleted++;
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "deletedCount", deleted
+        ));
+    }
+
+
+
+
 
 
 }
