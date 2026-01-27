@@ -85,9 +85,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/board-group/*/check-password").permitAll()
                         // 광고 조회(GET)만 허용
                         .requestMatchers(HttpMethod.GET, "/api/ads/**").permitAll()
-
-                        .requestMatchers("/api/site/name").permitAll()
+                        // site 조회는 허용
                         .requestMatchers("/api/contact/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/site/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/site/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/board/report/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/board/like/**").authenticated()
 
@@ -122,6 +123,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/board-group/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/ads/update").hasAuthority("ADMIN")
+                        
 
 
 

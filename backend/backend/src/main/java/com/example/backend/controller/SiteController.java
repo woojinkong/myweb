@@ -25,7 +25,7 @@ public class SiteController {
     }
 
     // 관리자만 변경
-    @PreAuthorize("hasRole('ADMIN')") // 또는 hasAuthority('ROLE_ADMIN')
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/name")
     public ResponseEntity<?> updateSiteName(@RequestBody Map<String, String> req) {
         String name = req.get("siteName");
@@ -47,7 +47,7 @@ public class SiteController {
     }
 
     // 관리자만 변경
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/home-settings")
     public ResponseEntity<?> updateHomeSettings(@RequestBody Map<String, Integer> req) {
         Integer groupCount = req.get("homeGroupCount");
