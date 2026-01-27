@@ -15,13 +15,14 @@ export default function Home() {
   const isMobile = useIsMobile();
   const BASE_URL = import.meta.env.VITE_API_URL;
   const { user } = useAuth();
-  const HOME_GROUP_COUNT = 7;
-  const HOME_BOARD_COUNT = 5;
+  const [homeGroupCount, setHomeGroupCount] = useState(7);
+  const [homeBoardCount, setHomeBoardCount] = useState(5);
+
 
   // const [weeklyPopular, setWeeklyPopular] = useState([]);
 
     const [siteTitle, setSiteTitle] = useState("KongHome");
-  useEffect(() => {
+   useEffect(() => {
       const loadSiteName = async () => {
       try {
         const name = await fetchSiteName();
@@ -32,6 +33,21 @@ export default function Home() {
     };
     loadSiteName();
   }, []);
+
+  useEffect(() => {
+
+  const loadHomeSettings = async () => {
+    try {
+      const res = await axiosInstance.get("/site/home-settings");
+      setHomeGroupCount(res.data.homeGroupCount ?? 7);
+      setHomeBoardCount(res.data.homeBoardCount ?? 5);
+    } catch (err) {
+      console.error("홈 설정 로드 실패", err);
+    }
+  };
+  loadHomeSettings();
+}, []);
+
 
   
 
@@ -69,12 +85,12 @@ useEffect(() => {
   const fetchGroupBoards = async () => {
     const result = {};
 
-    const targetGroups = visibleGroups.slice(0, HOME_GROUP_COUNT);
+    const targetGroups = visibleGroups.slice(0, homeGroupCount);
 
     for (const g of targetGroups) {
       try {
         const res = await axiosInstance.get(
-          `/board?groupId=${g.id}&page=0&size=${HOME_BOARD_COUNT}`
+          `/board?groupId=${g.id}&page=0&size=${homeBoardCount}`
         );
         result[g.id] = res.data.content || [];
       } catch {
@@ -86,7 +102,7 @@ useEffect(() => {
   };
 
   fetchGroupBoards();
-}, [visibleGroups]);
+}, [visibleGroups, homeGroupCount, homeBoardCount]);
 
 
 
@@ -182,7 +198,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
         {/* 목록 */}
         {list.length > 0 ? (
           <ul style={styles.list}>
-            {list.slice(0,HOME_BOARD_COUNT).map((board) => {
+            {list.slice(0,homeBoardCount).map((board) => {
               const thumbSrc = getThumbnailSrc(board);
 
 
@@ -256,19 +272,23 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
   return (
     <>
       <Helmet>
-        <title>{siteTitle}</title>
+        <title>{`${siteTitle} | 부동산·IT·육아·이슈 플랫폼`}</title>
         <meta
           name="description"
-          content="최신 게시글과 인기 게시판을 한눈에 확인하세요."
+          content="서울·수도권 부동산, 재개발, 정책, 세금 절세, 육아정보, IT정보, 최신이슈를 정리하는 플랫폼"
         />
-        <meta property="og:title" content="메인 페이지" />
+        <meta
+          property="og:title"
+          content={`${siteTitle} | 부동산·IT·육아·이슈 플랫폼`}
+        />
         <meta
           property="og:description"
-          content="최신 게시글과 다양한 커뮤니티 정보를 제공합니다."
+          content="서울·수도권 부동산, 재개발, 정책, 세금 절세, 육아정보, IT정보, 최신이슈를 정리하는 플랫폼"
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content="https://konghome.kr/" />
       </Helmet>
+
 
 
       <div
@@ -281,7 +301,7 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
       <div className="home-container" style={styles.container}>
       <div className="home-grid" style={styles.grid}>
         {visibleGroups.length > 0 ? (
-            visibleGroups.slice(0, HOME_GROUP_COUNT).map((group) => renderSection(group))
+            visibleGroups.slice(0, homeGroupCount).map((group) => renderSection(group))
         ) : (
           <p style={{ textAlign: "center", padding: "40px 0" }}>
             게시판이 없습니다.

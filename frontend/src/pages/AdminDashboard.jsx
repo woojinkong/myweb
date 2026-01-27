@@ -8,6 +8,8 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [adStatus, setAdStatus] = useState([]);
+  const [homeGroupCount, setHomeGroupCount] = useState(7);
+  const [homeBoardCount, setHomeBoardCount] = useState(5);
 
   const [stats, setStats] = useState({
     todayUsers: 0,
@@ -22,6 +24,39 @@ export default function AdminDashboard() {
   // ⭐ 사이트 이름 관리
   const [siteName, setSiteName] = useState("");
   const [editName, setEditName] = useState("");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+  const loadHomeSettings = async () => {
+    try {
+      const res = await axiosInstance.get("/site/home-settings");
+      setHomeGroupCount(res.data.homeGroupCount ?? 7);
+      setHomeBoardCount(res.data.homeBoardCount ?? 5);
+
+    } catch (err) {
+      console.error("홈 설정 불러오기 실패", err);
+    }
+  };
+  loadHomeSettings();
+  }, []);
+
+    const saveHomeSettings = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await axiosInstance.put("/site/home-settings", {
+        homeGroupCount,
+        homeBoardCount,
+      });
+      alert("홈 화면 설정이 저장되었습니다.");
+    } catch (err) {
+      alert("저장 실패");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
 
   // 🚫 관리자 체크
   useEffect(() => {
@@ -59,34 +94,28 @@ export default function AdminDashboard() {
     }
   };
 
+
+
   // 📊 통계 불러오기
-  useEffect(() => {
-    const fetchStats = async () => {
+    useEffect(() => {
+    const load = async () => {
       try {
-        const res = await axiosInstance.get("/admin/stats");
-        setStats(res.data);
+        const [statsRes, activeRes] = await Promise.all([
+          axiosInstance.get("/admin/stats"),
+          axiosInstance.get("/admin/active-users"),
+        ]);
+
+        setStats({
+          ...statsRes.data,
+          activeUsers: activeRes.data,
+        });
       } catch (err) {
         console.error("통계 불러오기 실패:", err);
       }
     };
-    fetchStats();
-  }, []);
-
-  // 접속자 확인
-  useEffect(() => {
-    const load = async () => {
-      const [statsRes, activeRes] = await Promise.all([
-        axiosInstance.get("/admin/stats"),
-        axiosInstance.get("/admin/active-users")
-      ]);
-
-      setStats({
-        ...statsRes.data,
-        activeUsers: activeRes.data
-      });
-    };
     load();
   }, []);
+
 
       useEffect(() => {
       const loadAdStatus = async () => {
@@ -205,6 +234,8 @@ export default function AdminDashboard() {
           현재 사이트 이름: <strong>{siteName}</strong>
         </p>
 
+
+
         <input
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
@@ -232,6 +263,39 @@ export default function AdminDashboard() {
         </button>
       </div>
       {/* 🔥 사이트 이름 설정 끝 */}
+
+          <div style={{ marginTop: "30px" }}>
+        <h3>🏠 홈 화면 표시 설정</h3>
+
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <input
+            type="number"
+            min={1}
+            max={30}
+            value={homeGroupCount}
+            onChange={(e) => setHomeGroupCount(Number(e.target.value))}
+
+          />
+          <span>개 게시판</span>
+
+          <input
+            type="number"
+            min={1}
+            max={30}
+            value={homeBoardCount}
+            onChange={(e) => setHomeBoardCount(Number(e.target.value))}
+
+          />
+          <span>개 게시글</span>
+
+          <button onClick={saveHomeSettings} disabled={saving}>
+            {saving ? "저장중..." : "저장"}
+          </button>
+
+        </div>
+      </div>
+
+
 
       {/* 🔹 통계 카드 */}
       <div style={styles.statsGrid}>
