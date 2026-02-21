@@ -338,10 +338,22 @@ export default function AdminBoardGroups() {
       <ul style={styles.list}>
         {groups.map((g, i) => (
           <li key={g.id} style={styles.listItem}>
-            {g.type === "DIVIDER" ? (
+           {g.type === "DIVIDER" ? (
               <>
                 <strong style={{ color: "#777" }}>── {g.name} ──</strong>
                 <div style={styles.btnGroup}>
+                  <button
+                    onClick={() => move(g.id, true)}
+                    disabled={i === 0 || isEditMode}
+                  >
+                    ⬆
+                  </button>
+                  <button
+                    onClick={() => move(g.id, false)}
+                    disabled={i === groups.length - 1 || isEditMode}
+                  >
+                    ⬇
+                  </button>
                   <button onClick={() => startEdit(g)}>수정</button>
                   <button onClick={() => remove(g.id)}>삭제</button>
                 </div>
@@ -354,15 +366,15 @@ export default function AdminBoardGroups() {
                   <button onClick={() => move(g.id, false)} disabled={i === groups.length - 1 || isEditMode}>⬇</button>
                   <button onClick={() => startEdit(g)}>수정</button>
                   {g.type === "BOARD" && (
-                      <button
-                        type="button"
-                        onClick={() => removeAllBoardsInGroup(g.id, g.name)}
-                        disabled={isEditMode}
-                        style={{ background: "#ffe3e3", border: "1px solid #ffa8a8" }}
-                      >
-                        글 전체삭제
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeAllBoardsInGroup(g.id, g.name)}
+                      disabled={isEditMode}
+                      style={{ background: "#ffe3e3", border: "1px solid #ffa8a8" }}
+                    >
+                      글 전체삭제
+                    </button>
+                  )}
                   <button onClick={() => remove(g.id)}>삭제</button>
                 </div>
               </>
