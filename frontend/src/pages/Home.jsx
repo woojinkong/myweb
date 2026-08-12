@@ -272,18 +272,18 @@ const DEFAULT_THUMBNAIL = "/icons/icon-512.png";
   return (
     <>
       <Helmet>
-        <title>{`${siteTitle} | 부동산·IT·육아·이슈 플랫폼`}</title>
+        <title>{`${siteTitle} | 부동산·IT·이슈 플랫폼`}</title>
         <meta
           name="description"
-          content="서울·수도권 부동산, 재개발, 정책, 세금 절세, 육아정보, IT정보, 최신이슈를 정리하는 플랫폼"
+          content="서울·수도권 부동산, 재개발, 정책, 세금 절세, IT정보, 최신이슈를 정리하는 플랫폼"
         />
         <meta
           property="og:title"
-          content={`${siteTitle} | 부동산·IT·육아·이슈 플랫폼`}
+          content={`${siteTitle} | 부동산·IT·이슈 플랫폼`}
         />
         <meta
           property="og:description"
-          content="서울·수도권 부동산, 재개발, 정책, 세금 절세, 육아정보, IT정보, 최신이슈를 정리하는 플랫폼"
+          content="서울·수도권 부동산, 재개발, 정책, 세금 절세, IT정보, 최신이슈를 정리하는 플랫폼"
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://konghome.kr/" />
