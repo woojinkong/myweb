@@ -164,13 +164,15 @@ const styles = {
     position: "fixed",
     top: 0,
     left: 0,
-    height: "100vh",
+    height: "100dvh",
     background: "#fdfdfd",
     borderRight: "1px solid #e5e5e5",
     paddingTop: "8px",
     transition: "width 0.25s ease",
     zIndex: 2000,
     overflowY: "auto",
+    boxSizing: "border-box",
+    overflowX: "hidden",
   },
   header: {
     display: "flex",
@@ -187,7 +189,7 @@ const styles = {
   },
   list: {
     listStyle: "none",
-    padding: "0 8px",
+    padding: "0 8px 30px",
     margin: 0,
   },
   item: {
